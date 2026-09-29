@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="theme-color" content="#2c1b12">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Character Compendium</title>
+  <meta name="description" content="Races, classes, subclasses and spells for our homebrew campaign — searchable.">
+  <link rel="preload" href="fonts/cinzel-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/eb-garamond-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2 L28 9 V23 L16 30 L4 23 V9 Z' fill='%232c1b12' stroke='%23e9cf8f' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M16 9 L23.5 21 H8.5 Z M16 2 V9 M4 9 H28 M4 9 L8.5 21 M28 9 L23.5 21 M4 23 L8.5 21 M28 23 L23.5 21 M8.5 21 L16 30 L23.5 21' fill='none' stroke='%23e9cf8f' stroke-width='1.3' stroke-linejoin='round'/%3E%3C/svg%3E">
+</head>
+<body>
+  <header class="top">
+    <div class="top-inner">
+      <a class="brand" href="#" id="home-link">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path class="face" d="M16 2 L28 9 V23 L16 30 L4 23 V9 Z"/><path d="M16 2 L28 9 V23 L16 30 L4 23 V9 Z"/><path d="M16 9 L23.5 21 H8.5 Z"/><path d="M16 2 V9 M4 9 L16 9 L28 9 M4 9 L8.5 21 M28 9 L23.5 21 M4 23 L8.5 21 M28 23 L23.5 21 M8.5 21 L16 30 L23.5 21"/></svg>
+        <span>Character Compendium</span>
+      </a>
+      <label class="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="q" type="search" placeholder="Search races, classes, subclasses, spells…" autocomplete="off" spellcheck="false" aria-label="Search">
+        <kbd>/</kbd>
+      </label>
+    </div>
+    <nav class="tabs" id="tabs" role="tablist"></nav>
+  </header>
+
+  <main class="layout">
+    <section class="list-pane" aria-label="Results">
+      <div class="filters" id="filters"></div>
+      <div class="result-meta" id="result-meta"></div>
+      <div id="results" class="results"></div>
+    </section>
+    <aside class="detail-pane" id="detail" aria-live="polite"></aside>
+  </main>
+
+  <noscript><p class="noscript">This compendium needs JavaScript to load.</p></noscript>
+  <script src="app.js"></script>
+</body>
+</html>
