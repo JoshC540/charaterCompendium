@@ -67,14 +67,6 @@ doesn't depend on another CDN), `supabase/setup.sql` (the database). The project
 "anon" key are at the top of `notes.js`. The anon key is meant to be public; never put the
 `service_role` key in this repo.
 
-### One-time setup
-
-1. **Create the tables.** Supabase dashboard → **SQL Editor** → New query → paste all of
-   `supabase/setup.sql` → **Run**. It's safe to run again whenever this file is updated.
-2. **Stop strangers signing up.** Authentication → **Sign In / Providers** → turn off
-   **Allow new users to sign up**. Leave the Email provider itself switched on.
-3. **Create your own account.** Authentication → **Users** → **Add user** → **Create new user**, with
-   `joshcronin540@gmail.com` and a password, and tick **Auto Confirm User**. That email is the admin.
 
 ### Adding a player
 
@@ -86,19 +78,6 @@ notes from the account button once signed in.
 **Admin · reset a player's password**. No email is involved. Avoid Supabase's "Send password recovery"
 emails: they expire quickly, some mail apps use them up by previewing them, and they only work once the
 Site URL below is set.
-
-**If you're locked out of your own account,** run this in the SQL Editor:
-
-```sql
-update auth.users
-set encrypted_password = extensions.crypt('NEW-PASSWORD-HERE', extensions.gen_salt('bf'))
-where email = 'joshcronin540@gmail.com';
-```
-
-**Site URL:** Authentication → **URL Configuration** → set **Site URL** to the GitHub Pages address
-(e.g. `https://YOUR-USERNAME.github.io/charaterCompendium/`) and add the same address under
-**Redirect URLs**. Supabase defaults to `http://localhost:3000`, which is why email links go nowhere.
-
 ### Who can do what
 
 | | Players | Admin (you) |
