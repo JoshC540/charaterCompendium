@@ -1,4 +1,4 @@
-# Character Compendium
+# Player’s Handbook
 
 A searchable reference for the campaign's races, classes, subclasses and spells, hosted on GitHub Pages.
 
@@ -43,3 +43,57 @@ python -m http.server
 ```
 
 Then open http://localhost:8000. Opening `index.html` directly from disk won't work, because browsers block the content files from loading that way.
+
+
+## Handbook chapters (Advancement and Gods)
+
+`content/advancement.md` and `content/gods.md` are plain markdown, converted from the Google Docs
+*Character Advancement* and *The Book of Gods*. Each `#` heading is a chapter and each `##` heading is a
+section players can open and search. Inside a section you can use `###` sub-headings, `-` bullet lists,
+`1.` numbered lists and `|` tables (the first row of a table is its header; a one-column table becomes a
+highlighted callout box).
+
+The two DM-only passages of the Book of Gods (reading Pluras's blot, and why the Namewright was erased)
+were left out on purpose — don't paste them back in.
+
+## Session notes and sign-in (Supabase)
+
+The handbook itself is open to anyone with the link. Signing in is only needed for the **Notes** tab,
+where players share notes organised by campaign and session. The sign-in button is in the top bar on
+every page.
+
+Files: `notes.js` (sign-in and notes), `vendor/supabase.js` (the Supabase library, kept here so the site
+doesn't depend on another CDN), `supabase/setup.sql` (the database). The project address and its public
+"anon" key are at the top of `notes.js`. The anon key is meant to be public; never put the
+`service_role` key in this repo.
+
+### One-time setup
+
+1. **Create the tables.** Supabase dashboard → **SQL Editor** → New query → paste all of
+   `supabase/setup.sql` → **Run**. It's safe to run again later.
+2. **Stop strangers signing up.** Authentication → **Sign In / Providers** → turn off
+   **Allow new users to sign up**. Leave the Email provider itself switched on.
+3. **Create your own account.** Authentication → **Users** → **Add user** → **Create new user**, with
+   `joshcronin540@gmail.com` and a password, and tick **Auto Confirm User**. That email is the admin.
+
+### Adding a player
+
+Authentication → Users → Add user → Create new user → their email and a password you choose → tick
+**Auto Confirm User**. Send them the details. They can change their password and the name shown on their
+notes from the account button once signed in.
+
+To reset a forgotten password: Users → click the player → set a new password (or delete and re-add them;
+deleting a user also deletes their notes).
+
+### Who can do what
+
+| | Players | Admin (you) |
+| --- | --- | --- |
+| Read all notes | ✓ | ✓ |
+| Add sessions and notes | ✓ | ✓ |
+| Edit a session | the ones they added | any |
+| Edit / delete notes | their own | any |
+| Add, rename or delete campaigns | – | ✓ |
+| Delete sessions | – | ✓ |
+
+These rules are enforced by the database (row-level security in `setup.sql`), not just hidden in the page.

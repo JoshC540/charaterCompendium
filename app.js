@@ -7,10 +7,13 @@
     class: 'content/classes.md',
     subclass: 'content/subclasses.md',
     spell: 'content/spells.md',
+    adv: 'content/advancement.md',
+    god: 'content/gods.md',
   };
-  const TYPES = ['race', 'class', 'subclass', 'spell'];
-  const TYPE_LABEL = { all: 'All', race: 'Races', class: 'Classes', subclass: 'Subclasses', spell: 'Spells' };
-  const TYPE_ONE = { race: 'Race', class: 'Class', subclass: 'Subclass', spell: 'Spell' };
+  const TYPES = ['race', 'class', 'subclass', 'spell', 'adv', 'god'];
+  const DOC_TYPES = ['adv', 'god'];
+  const TYPE_LABEL = { all: 'All', race: 'Races', class: 'Classes', subclass: 'Subclasses', spell: 'Spells', adv: 'Advancement', god: 'Gods', notes: 'Notes' };
+  const TYPE_ONE = { race: 'Race', class: 'Class', subclass: 'Subclass', spell: 'Spell', adv: 'Advancement', god: 'Book of Gods' };
 
   const $ = (sel, root = document) => root.querySelector(sel);
   const el = (tag, attrs = {}, ...kids) => {
@@ -71,11 +74,26 @@
       .replace(/`(.+?)`/g, '<code>$1</code>');
   }
 
+  function table(rows) {
+    const cells = rows.map(r => r.replace(/^\s*\|/, '').replace(/\|\s*$/, '').split('|').map(c => c.trim()));
+    const cols = Math.max(...cells.map(r => r.length));
+    if (cols === 1) return `<div class="callout">${cells.map(r => `<p>${inline(r[0])}</p>`).join('')}</div>`;
+    const [head, ...body] = cells;
+    const narrow = Array.from({ length: cols }, (_, k) => body.length > 0 && body.every(r => plain(r[k] || '').length <= 6));
+    const tr = (r, tag) => `<tr>${Array.from({ length: cols }, (_, k) => `<${tag}${narrow[k] ? ' class="nar"' : ''}>${inline(r[k] || '')}</${tag}>`).join('')}</tr>`;
+    // size columns by how much text they hold, so long descriptions get the room
+    const wts = Array.from({ length: cols }, (_, k) => narrow[k] ? 0 : Math.sqrt(Math.max(8, body.reduce((n, r) => n + plain(r[k] || '').length, 0) / Math.max(1, body.length))));
+    const total = wts.reduce((a, b) => a + b, 0) || 1;
+    const colgroup = `<colgroup>${wts.map(w => `<col style="width:${w ? Math.round(w / total * 100) : 1}%">`).join('')}</colgroup>`;
+    return `<div class="table-wrap"><table>${colgroup}<thead>${tr(head, 'th')}</thead><tbody>${body.map(r => tr(r, 'td')).join('')}</tbody></table></div>`;
+  }
+
   function md(src) {
     if (!src) return '';
     const out = [];
     let para = [];
-    const stack = []; // open list depths
+    let rows = [];
+    const stack = []; // open lists: { depth, tag }
     const flushPara = () => {
       if (!para.length) return;
       const txt = para.join(' ');
@@ -84,38 +102,56 @@
       para = [];
     };
     const closeLists = (depth = -1) => {
-      while (stack.length && stack[stack.length - 1] > depth) { out.push('</li></ul>'); stack.pop(); }
+      while (stack.length && stack[stack.length - 1].depth > depth) { out.push(`</li></${stack.pop().tag}>`); }
     };
+    const flushTable = () => { if (rows.length) { out.push(table(rows)); rows = []; } };
     for (const line of src.split('\n')) {
       let m;
+      if (/^\s*\|/.test(line)) { flushPara(); closeLists(); rows.push(line); continue; }
+      flushTable();
       if (!line.trim()) { flushPara(); closeLists(); continue; }
       if ((m = line.match(/^(#{3,4}) (.+)$/))) {
         flushPara(); closeLists();
         const lvl = m[1].length;
-        out.push(`<h${lvl}>${inline(m[2])}</h${lvl}>`);
+        out.push(`<h${lvl} id="h-${slug(m[2])}">${inline(m[2])}</h${lvl}>`);
         continue;
       }
-      if ((m = line.match(/^(\s*)[-*] (.+)$/))) {
+      if ((m = line.match(/^(\s*)(?:([-*])|\d+\.) (.+)$/))) {
         flushPara();
         const depth = Math.floor(m[1].length / 2);
-        const top = stack.length ? stack[stack.length - 1] : -1;
-        if (depth > top) { out.push('<ul><li>'); stack.push(depth); }
-        else { closeLists(depth); out.push('</li><li>'); }
-        out.push(inline(m[2]));
+        const tag = m[2] ? 'ul' : 'ol';
+        const top = stack.length ? stack[stack.length - 1].depth : -1;
+        if (depth > top) { out.push(`<${tag}><li>`); stack.push({ depth, tag }); }
+        else {
+          closeLists(depth);
+          if (stack.length && stack[stack.length - 1].tag !== tag) { out.push(`</li></${stack.pop().tag}><${tag}><li>`); stack.push({ depth, tag }); }
+          else out.push('</li><li>');
+        }
+        out.push(inline(m[3]));
         continue;
       }
       if (stack.length) { out.push(' ' + inline(line.trim())); continue; }
       para.push(line.trim());
     }
-    flushPara(); closeLists();
+    flushTable(); flushPara(); closeLists();
     return out.join('');
   }
 
-  const plain = s => (s || '').replace(/^#+ /gm, '').replace(/^\s*[-*] /gm, '').replace(/\*\*|\*|`/g, '').replace(/\s+/g, ' ').trim();
+  const plain = s => (s || '').replace(/^#+ /gm, '').replace(/^\s*(?:[-*]|\d+\.) /gm, '').replace(/\|/g, ' ').replace(/\*\*|\*|`/g, '').replace(/\s+/g, ' ').trim();
 
   /* ---------------- data ---------------- */
 
-  const DB = { items: [], byId: new Map(), raceIntros: {}, subGroups: [], schools: [], sourceIndex: new Map(), classOrder: [] };
+  const DB = { items: [], byId: new Map(), raceIntros: {}, subGroups: [], schools: [], sourceIndex: new Map(), classOrder: [], docs: { adv: [], god: [] } };
+
+  // first readable paragraph of a body: skips tables, headings and lists
+  const firstPara = body => {
+    for (const block of (body || '').split(/\n\s*\n/)) {
+      const b = block.trim();
+      if (!b || /^(\||#|\s*[-*] |\d+\. )/.test(b)) continue;
+      return plain(b);
+    }
+    return '';
+  };
 
   function uniqueId(base) {
     let id = base, i = 2;
@@ -183,6 +219,22 @@
         if (it.spellsTag) DB.sourceIndex.set(it.spellsTag, { subId: it.id, group });
       }
     }
+    // Handbook chapters (Advancement, Gods): every # chapter intro and ## section becomes a readable entry
+    for (const t of DOC_TYPES) {
+      for (const g of parseDoc(raw[t])) {
+        const mk = (name, body, isIntro) => {
+          const heads = [...body.matchAll(/^###+ (.+)$/gm)].map(m => m[1]);
+          const it = add({
+            type: t, id: `${t}/${slug(g.title)}${isIntro ? '' : '/' + slug(name)}`, name, chapter: g.title, body, heads,
+            metaText: `${TYPE_LABEL[t]} ${g.title} ${heads.join(' ')}`, bodyText: body,
+            snippet: firstPara(body) || (heads.length ? heads.join(' · ') : ''),
+          });
+          DB.docs[t].push(it);
+        };
+        if (g.body && g.title !== 'Introduction') mk(g.title, g.body, true);
+        for (const e of g.entries) mk(e.title, e.body, false);
+      }
+    }
     // Spells
     for (const g of parseDoc(raw.spell)) {
       DB.schools.push(g.title);
@@ -228,7 +280,7 @@
   /* ---------------- state ---------------- */
 
   const state = {
-    tab: 'all', q: '', sel: null,
+    tab: 'all', q: '', sel: null, ses: '',
     classCat: '', subClass: '', showUpcoming: true, school: '', tier: 0, source: '',
   };
 
@@ -243,6 +295,7 @@
     state.tier = parseInt(p.get('tier') || '0', 10) || 0;
     state.source = p.get('source') || '';
     state.showUpcoming = p.get('announced') !== '0';
+    state.ses = state.tab === 'notes' ? (p.get('ses') || '') : '';
   }
   function hashFor(s = state) {
     const p = new URLSearchParams();
@@ -255,6 +308,7 @@
     if (s.source) p.set('source', s.source);
     if (!s.showUpcoming) p.set('announced', '0');
     if (s.sel) p.set('item', s.sel);
+    if (s.tab === 'notes' && s.ses) p.set('ses', s.ses);
     const h = p.toString();
     return h ? '#' + h : location.pathname + location.search;
   }
@@ -271,6 +325,18 @@
     go({ sel: id }, true);
     const pane = $('#detail');
     pane.scrollTop = 0;
+    const i = DB.byId.get(id);
+    const tokens = norm(state.q).split(' ').filter(Boolean);
+    if (i && i.heads && tokens.length && !tokens.every(t => i._name.includes(t))) {
+      const h = i.heads.find(x => tokens.every(t => norm(x).includes(t)));
+      if (h) jumpTo(h, false);
+    }
+  }
+  function jumpTo(head, smooth = true) {
+    const t = document.getElementById('h-' + slug(head));
+    if (!t) return;
+    t.scrollIntoView({ block: 'start', behavior: smooth ? 'smooth' : 'auto' });
+    t.classList.remove('flash'); void t.offsetWidth; t.classList.add('flash');
   }
   function showSpells(filters) {
     go({ tab: 'spell', q: '', school: '', tier: 0, source: '', sel: null, ...filters }, true);
@@ -295,6 +361,7 @@
     if (item._name === qn) score += 200;
     else if (item._name.includes(qn)) score += 40;
     if (item.type === 'subclass' && item.upcoming) score -= 3;
+    if (item.heads && item.heads.some(h => norm(h).includes(qn))) score += 25;
     return score;
   }
 
@@ -337,10 +404,12 @@
   function renderTabs() {
     const c = counts();
     const nav = $('#tabs');
-    nav.replaceChildren(...['all', ...TYPES].map(t => el('button', {
+    nav.replaceChildren(...['all', ...TYPES, 'notes'].map(t => el('button', {
       class: 'tab', role: 'tab', 'aria-selected': String(state.tab === t),
       onclick: () => go({ tab: t, sel: state.tab === t ? state.sel : null }, true),
-    }, TYPE_LABEL[t], el('span', { class: 'n' }, String(c[t])))));
+    }, TYPE_LABEL[t], DOC_TYPES.includes(t) || t === 'notes' ? null : el('span', { class: 'n' }, String(c[t])))));
+    const on = nav.querySelector('[aria-selected="true"]');
+    if (on && (on.offsetLeft < nav.scrollLeft || on.offsetLeft + on.offsetWidth > nav.scrollLeft + nav.clientWidth)) nav.scrollLeft = Math.max(0, on.offsetLeft - 40);
   }
 
   function select(options, value, onchange, label) {
@@ -358,6 +427,7 @@
   function renderFilters() {
     const f = $('#filters');
     const kids = [];
+    if (state.tab === 'notes') { f.replaceChildren(); return; }
     if (state.tab === 'class') {
       for (const cat of ['', 'Melee', 'Ranged', 'Magic', 'Other']) {
         kids.push(el('button', { class: 'chip' + (state.classCat === cat ? ' on' : ''), onclick: () => go({ classCat: cat }, false) }, cat || 'All'));
@@ -399,11 +469,18 @@
       case 'class': return [i.category, i.meta.hp && `HP ${i.meta.hp}`, i.meta['hit die'] && `${i.meta['hit die']} hit die`].filter(Boolean).join(' · ');
       case 'subclass': return i.group.title;
       case 'spell': return `Tier ${i.tier} · ${i.school}${i.sources.length ? ' · ' + i.sources.join(', ') : ''}`;
+      case 'adv': case 'god': return i.name === i.chapter ? '' : i.chapter;
     }
     return '';
   }
 
   function card(i, tokens, showType) {
+    if (DOC_TYPES.includes(i.type) && !tokens && !showType) {
+      return el('button', { class: 'card toc' + (state.sel === i.id ? ' sel' : ''), 'data-id': i.id, onclick: () => openItem(i.id) },
+        el('span', { class: 'badge ' + i.type, hidden: true }),
+        el('span', { class: 'card-name' }, i.name === i.chapter ? 'Overview' : i.name),
+        i.heads.length ? el('span', { class: 'card-sub' }, `${i.heads.length} entries`) : null);
+    }
     return el('button', {
       class: 'card' + (state.sel === i.id ? ' sel' : '') + (i.upcoming ? ' dim' : ''),
       'data-id': i.id, onclick: () => openItem(i.id),
@@ -416,7 +493,11 @@
         i.sixth ? lockBadge('sixth', 'Sixth') : null,
         i.prime ? lockBadge('prime', 'Prime') : null,
         el('span', { class: 'card-sub' }, cardSub(i))),
-      i.snippet ? el('div', { class: 'card-snip' }, i.snippet) : null);
+      i.snippet ? el('div', { class: 'card-snip' }, i.snippet) : null,
+      tokens && i.heads && i.heads.length ? (() => {
+        const hits = i.heads.filter(h => tokens.every(t => norm(h).includes(t)));
+        return hits.length ? el('div', { class: 'card-hits', html: 'Includes ' + hits.slice(0, 4).map(h => highlight(h, tokens)).join(' · ') }) : null;
+      })() : null);
   }
 
   function sectionKey(i) {
@@ -425,6 +506,7 @@
       case 'class': return i.category;
       case 'subclass': return i.group.title;
       case 'spell': return `${i.school} · Tier ${i.tier}`;
+      case 'adv': case 'god': return i.chapter;
     }
     return '';
   }
@@ -432,16 +514,25 @@
   function renderHome() {
     const c = counts();
     const tile = (t, hint) => el('button', { class: `home-tile ${t}`, onclick: () => go({ tab: t, sel: null }, true) },
-      el('span', { class: 'big' }, String(c[t])), el('span', { class: 'lbl' }, TYPE_LABEL[t]), el('span', { class: 'hint' }, hint));
+      DOC_TYPES.includes(t)
+        ? el('span', { class: 'big' }, String(new Set(DB.docs[t].map(x => x.chapter)).size), el('small', {}, ' chapters'))
+        : el('span', { class: 'big' }, String(c[t])),
+      el('span', { class: 'lbl' }, TYPE_LABEL[t]), el('span', { class: 'hint' }, hint));
     return [
       el('div', { class: 'home-intro' },
-        el('h1', {}, 'Build your character'),
-        el('p', {}, 'Every race, class, subclass and spell for the campaign in one place. Search for anything, or start with a category.')),
+        el('h1', {}, 'The Player’s Handbook'),
+        el('p', {}, 'Everything you need to build and grow your character: races, classes, subclasses, spells, advancement and the gods. Search for anything, or open a chapter.')),
       el('div', { class: 'home-grid' },
         tile('race', 'Traits and unlockable feats'),
         tile('class', 'HP, weapons and class traits'),
         tile('subclass', 'Paths, oaths and specialisations'),
-        tile('spell', `Across ${DB.schools.length} schools of magic`)),
+        tile('spell', `Across ${DB.schools.length} schools of magic`),
+        tile('adv', 'Levelling, soft skills, feats and traits'),
+        tile('god', 'The pantheon, courts and faith in play')),
+      el('button', { class: 'home-notes', onclick: () => go({ tab: 'notes', sel: null }, true) },
+        el('span', { class: 'lbl' }, 'Session notes'),
+        el('span', { class: 'hint' }, 'The party’s shared notebook, by campaign and session. Sign in to read and write.'),
+        el('span', { class: 'go' }, 'Open →')),
       el('p', { class: 'home-tips', html: 'Try searching <code>fire</code>, <code>heal</code>, <code>tier 3</code>, <code>bleed</code> or a class name. Press <code>/</code> to jump to search.' }),
     ];
   }
@@ -449,9 +540,21 @@
   function renderResults() {
     const box = $('#results');
     const meta = $('#result-meta');
+    if (state.tab === 'notes') {
+      if (Notes) Notes.renderList(box, meta);
+      else { meta.textContent = ''; box.replaceChildren(el('div', { class: 'empty' }, el('strong', {}, 'Notes are unavailable'), 'notes.js didn’t load.')); }
+      return;
+    }
     if (state.tab === 'all' && !state.q) {
       meta.textContent = '';
       box.replaceChildren(...renderHome());
+      return;
+    }
+    if (state.tab === 'spell' && !state.q && !state.school && !state.tier && !state.source) {
+      meta.textContent = 'Choose a school of magic, or use the filters above.';
+      box.replaceChildren(el('div', { class: 'home-grid schools' }, ...DB.schools.map(sc => el('button', { class: 'home-tile spell', onclick: () => go({ school: sc }, true) },
+        el('span', { class: 'big' }, String(DB.items.filter(x => x.type === 'spell' && x.school === sc).length), el('small', {}, ' spells')),
+        el('span', { class: 'lbl' }, sc)))));
       return;
     }
     const { items, ranked, tokens } = filtered();
@@ -473,7 +576,7 @@
         state.q ? `No ${state.tab === 'all' ? 'entries' : TYPE_LABEL[state.tab].toLowerCase()} match “${state.q}”.` : 'Try clearing a filter.'));
     }
     const n = items.length;
-    meta.textContent = n ? `${n} result${n === 1 ? '' : 's'}${n > LIMIT ? ` — showing the first ${LIMIT}, refine your search to see more` : ''}` : '';
+    meta.textContent = (DOC_TYPES.includes(state.tab) && !ranked) ? 'Contents' : n ? `${n} result${n === 1 ? '' : 's'}${n > LIMIT ? ` — showing the first ${LIMIT}, refine your search to see more` : ''}` : '';
     box.replaceChildren(...kids);
   }
 
@@ -563,9 +666,31 @@
     ];
   }
 
+  function detailDoc(i) {
+    const list = DB.docs[i.type];
+    const k = list.indexOf(i);
+    const prev = list[k - 1], next = list[k + 1];
+    const sibs = list.filter(x => x.chapter === i.chapter && x !== i);
+    return [
+      i.heads.length >= 3 ? el('div', { class: 'onpage' }, el('span', { class: 'k' }, 'On this page'),
+        el('div', { class: 'linklist' }, ...i.heads.map(h => linkBtn(h, () => jumpTo(h))))) : null,
+      el('div', { class: 'prose doc', html: md(i.body) }),
+      sibs.length ? section(`More in ${i.chapter}`, el('div', { class: 'linklist' }, ...sibs.map(s => linkBtn(s.name, () => openItem(s.id))))) : null,
+      el('nav', { class: 'pager' },
+        prev ? el('button', { class: 'pg prev', onclick: () => openItem(prev.id) }, el('span', { class: 'k' }, '← Previous'), el('span', { class: 'v' }, prev.name)) : el('span'),
+        next ? el('button', { class: 'pg next', onclick: () => openItem(next.id) }, el('span', { class: 'k' }, 'Next →'), el('span', { class: 'v' }, next.name)) : el('span')),
+    ];
+  }
+
   function renderDetail() {
     const pane = $('#detail');
     const layout = $('.layout');
+    if (state.tab === 'notes') {
+      const shown = Notes ? Notes.renderDetail(pane) : false;
+      layout.classList.toggle('no-detail', !shown);
+      if (!state.ses) document.title = 'Session notes · Player’s Handbook';
+      return;
+    }
     const i = state.sel && DB.byId.get(state.sel);
     document.body.classList.toggle('has-detail', !!i);
     const noDetail = !i && state.tab === 'all' && !state.q;
@@ -581,22 +706,23 @@
     if (i.type === 'race') kicker.push(i.group);
     if (i.type === 'subclass') kicker.push(i.group.title);
     if (i.type === 'spell') kicker.push(`${i.school} · Tier ${i.tier}`);
+    if (DOC_TYPES.includes(i.type) && i.name !== i.chapter) kicker.push(i.chapter);
     if (i.upcoming) kicker.push(el('span', { class: 'badge soon' }, 'Coming soon'));
     if (i.sixth) kicker.push(lockBadge('sixth', 'Sixth'));
     if (i.prime) kicker.push(lockBadge('prime', 'Prime variant'));
-    const body = { race: detailRace, class: detailClass, subclass: detailSubclass, spell: detailSpell }[i.type](i);
+    const body = { race: detailRace, class: detailClass, subclass: detailSubclass, spell: detailSpell, adv: detailDoc, god: detailDoc }[i.type](i);
     pane.replaceChildren(
       el('button', { class: 'back', onclick: () => go({ sel: null }, true) }, '← Back to results'),
       el('div', { class: 'd-kicker' }, ...kicker),
       el('h1', { class: 'd-title' }, i.name),
       ...body.filter(Boolean));
-    document.title = `${i.name} · Character Compendium`;
+    document.title = `${i.name} · Player’s Handbook`;
   }
 
   function render() {
     const input = $('#q');
     if (input.value !== state.q) input.value = state.q;
-    if (!state.sel) document.title = 'Character Compendium';
+    if (!state.sel) document.title = 'Player’s Handbook';
     renderTabs();
     renderFilters();
     renderResults();
@@ -606,7 +732,7 @@
   /* ---------------- boot ---------------- */
 
   async function boot() {
-    $('#results').replaceChildren(el('div', { class: 'empty' }, 'Loading the compendium…'));
+    $('#results').replaceChildren(el('div', { class: 'empty' }, 'Loading the handbook…'));
     try {
       const entries = await Promise.all(TYPES.map(async t => {
         const r = await fetch(FILES[t], { cache: 'no-cache' });
@@ -637,12 +763,17 @@
       if (e.key === '/' && document.activeElement !== $('#q') && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) {
         e.preventDefault(); $('#q').focus();
       }
-      if (e.key === 'Escape' && state.sel && document.activeElement !== $('#q')) go({ sel: null }, true);
+      if (e.key === 'Escape' && document.activeElement !== $('#q') && !document.querySelector('dialog[open]')) {
+        if (state.sel) go({ sel: null }, true);
+        else if (state.ses && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) go({ ses: '' }, true);
+      }
     });
-    $('#home-link').addEventListener('click', e => { e.preventDefault(); go({ tab: 'all', q: '', sel: null, classCat: '', subClass: '', school: '', tier: 0, source: '' }, true); });
+    $('#home-link').addEventListener('click', e => { e.preventDefault(); go({ tab: 'all', q: '', sel: null, ses: '', classCat: '', subClass: '', school: '', tier: 0, source: '' }, true); });
+    if (Notes) Notes.init();
     window.addEventListener('popstate', () => { readHash(); render(); });
     window.addEventListener('hashchange', () => { readHash(); render(); });
   }
 
+  const Notes = window.HandbookNotes ? window.HandbookNotes({ el, md, esc, plain, norm, highlight, state, go, render: () => render(), $, createClient: window.__mockCreateClient }) : null;
   boot();
 })();
