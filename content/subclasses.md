@@ -223,7 +223,7 @@ Beast fighting, whips, disabling.
 
 - **Beast's Call (Passive).** Advantage on all attacks against animals/monsters. You can attempt to tame wounded beasts, which fight with you until combat ends and then leave (d100 vs the beast's remaining HP × 5).
 - **Lash of Pain.** Whip attacks gain +1d8 damage, +1d4 bleed and +10 ft range. On hit, choose to disarm (STR check) or knock prone (DEX check).
-- **Arena Trap.** Prepare a trap as an action (3 uses per combat): **Caltrops** — 2d4 damage + slow (DEX save); **Snare** — restrain target (STR save); **Blinding Dust** — disadvantage on attacks (CON save).
+- **Arena Trap.** Prepare a trap as an action (3 uses per combat): **Caltrops** — 2d4 damage + slow (DEX save); **Snare** — restrain target (STR save); **Blinding Dust** — disadvantage on attacks (STR save).
 - **Beast's Fury.** When damaged by a beast/monster, frenzy: your next 3 attacks gain +1d6 damage, but you take +2 damage from all sources. Ends if no beasts remain.
 - **Crowd Pleaser.** Perform a spectacle move (recharges on a kill): **Whirling Lash** — attack all enemies within 10 ft; **Daring Escape** — disengage with +5 movement; **Final Stroke** — automatically hit a bleeding target for 2x damage.
 
@@ -1463,10 +1463,10 @@ spells: Mage (Water) – The Deep
 
 Deep mages have no interest in the surface and never have. Their craft is the weight of a mile of ocean — what it does to a chest that keeps trying to expand, to a joint that keeps trying to hold, to a hull that was fine a moment ago. They bring that pressure inland with them and set it on things standing in open air, and there is no dodging it and nothing to block, only the question of how long a body can hold its shape under it.
 
-They are the only mage in any element whose damage is a strength or constitution problem rather than a dexterity one. Nothing they cast is a projectile, so cover, shields and ranged defences do nothing — but pressure builds over turns instead of landing at once, so they are slow to kill and very hard to escape. Their work is crushing armour, forcing water into lungs on dry land, and pinning things in place under their own weight.
+They are the only mage in any element whose damage is a strength problem rather than a dexterity one. Nothing they cast is a projectile, so cover, shields and ranged defences do nothing — but pressure builds over turns instead of landing at once, so they are slow to kill and very hard to escape. Their work is crushing armour, forcing water into lungs on dry land, and pinning things in place under their own weight.
 
 **Feat — Pressure.**
-Deep spells don't hit — they press. Instead of dealing damage up front, most apply **Pressure** stacks. A creature takes 1d6 per stack at the start of each of its turns, and saves against Deep spells are always strength or constitution, never dexterity. Cover, shields, barriers and ranged defences do nothing against them.
+Deep spells don't hit — they press. Instead of dealing damage up front, most apply **Pressure** stacks. A creature takes 1d6 per stack at the start of each of its turns, and saves against Deep spells are always strength, never dexterity. Cover, shields, barriers and ranged defences do nothing against them.
 - **3 stacks.** Movement halved; can't fly or swim upward.
 - **5 stacks.** Restrained; armour gives no defence.
 - **7 stacks.** Can't breathe or speak; spells with spoken words fail.
@@ -1583,7 +1583,7 @@ spells: Mage (Air) – Echo
 Echo mages treat air as something to be listened to rather than pushed around. They carry a conversation held three rooms away, throw a voice into a corridor that nobody is standing in, find the pitch at which a thing comes apart, and drop a silence so complete that a spellcaster in it cannot speak the words they need. Very little happens within earshot of an Echo mage that they do not already know about.
 
 **Feat — Every Sound Carries.**
-You hear everything spoken or struck within 100 ft of you, through walls, doors and magical silence, and can recall any sound you have heard in the last day perfectly. Once per turn, as a reaction, you can take the voice from a creature within 30 ft that is about to speak: it makes a constitution save or makes no sound at all until the end of its next turn, and any spell needing spoken words fails. On a pass it still speaks, but the spell is cast at disadvantage.
+You hear everything spoken or struck within 100 ft of you, through walls, doors and magical silence, and can recall any sound you have heard in the last day perfectly. Once per turn, as a reaction, you can take the voice from a creature within 30 ft that is about to speak: it makes a strength save or makes no sound at all until the end of its next turn, and any spell needing spoken words fails. On a pass it still speaks, but the spell is cast at disadvantage.
 
 # Cleric (Dawn)
 class: Cleric
@@ -1771,35 +1771,45 @@ spells: Warlock (Celestial) – Courage
 
 Courage warlocks draw on a patron of valour and dawn-light, banishing fear from their allies and burning it out of their foes. Where others quail, they stand — and make others stand with them. The celestial mirror of the Fear warlock.
 
-- **Unbreakable (Passive).** You are immune to fear and terror; allies within 15 ft make fear and terror saves at advantage.
+- **Resolve Engine.** Allies can gain Resolve Stacks (max 5); each stack gives +1 to their rolls. At 5 stacks an ally becomes Unbroken for 1 turn and cannot be reduced below 1 HP. When an Unbroken ally lands a hit, they consume all their stacks and deal +2d6 radiant. For each Unbroken ally, you gain 5 temp HP.
 
 ## Abundance
 spells: Warlock (Celestial) – Abundance
 
 Abundance warlocks serve a patron of harvest, plenty and renewal, turning scarcity to surplus — mending wounds and conjuring sustenance where nothing should grow. The celestial mirror of the Famine warlock.
 
-- **Overflow (Passive).** Whenever you heal a target above their maximum HP, the excess becomes temp HP (up to 10).
+- **Bountiful Cycle.** You may give Plenty Stacks (max 5) to allies. Each stack adds +1 to all healing they receive. At 5 stacks they heal 2d6 at the start of each turn. Removing stacks from them costs any enemy double the usual effect or resource.
 
 ## Peace
 spells: Warlock (Celestial) – Peace
 
 Peace warlocks are bound to a patron of stillness and accord. They smother conflict, shield the vulnerable and turn aggression back on those who wield it. The celestial mirror of the War warlock.
 
-- **Sanctuary (Passive).** Enemies must pass a wisdom save to target you directly; on a fail they must choose another target.
+- **Olive Branch.** A white staff grows from living wood in your hand, and you are proficient with it. It deals 1d20 non-lethal damage and applies a Truce mark. You may roll with charisma when using it. When a creature with a Truce mark lays down its weapon, surrenders or retreats, consume the mark and refresh a random spell slot.
 
 ## Freedom
 spells: Warlock (Celestial) – Freedom
 
 Freedom warlocks answer to a patron of liberty and the open road. They break chains, shatter control and make sure no ally is ever truly bound. The celestial mirror of the Conquest warlock.
 
-- **Unchained (Passive).** You and allies within 15 ft can't be restrained, paralysed or forcibly moved for more than one turn before breaking free.
+- **Broken Chains.** Whenever something bound is set free by your action (a prisoner released, a grapple broken, a charm lifted, a contract voided, a caged beast let loose), you gain a Chain Link. Spend them:
+
+| Links | Effect |
+| 1 | End a grapple or restraint on anyone in sight. |
+| 2 | Remove a control effect (charm, fear or command). |
+| 5 | Teleport an ally to any point you can see. |
+| 20 | Free a soul from a pact, possession or binding. |
+| 25 | The party is immune to control and forced movement for 1d3 turns. |
+| 66 | Gain a celestial companion: something you once freed that chose to stay. |
+| 100 | Break a curse on a bloodline or a geas on a city. |
+| 666 | Become Unbound. No prison, lock, chain or contract can hold you again, divine ones included. |
 
 ## Undeath
 spells: Warlock (Celestial) – Undeath
 
 Undeath warlocks are bound to a patron of the threshold — the keeper between life and grave. They lend allies a borrowed deathlessness and lay the restless dead to rest. Their gift is endurance; the price is a slow estrangement from the living. The celestial mirror of the Death warlock.
 
-- **Threshold (Passive).** When you would drop to 0 HP, you stay conscious and can act for one extra turn before death saves; if healed during that turn, you don't go down.
+- **Lantern Rite.** When a creature dies near you, you may lay it to rest as a bonus action (a free action if it was an ally or an innocent). Its spirit rises as a Wisp (1 HP, one act, then it passes on): heal an ally 1d10, block one hit, or light the way. You may have up to 10 Wisps. Undead within 2m of the spot where a Wisp passes on take 1d6 radiant.
 
 ## Ascension
 sixth: yes
@@ -1883,7 +1893,7 @@ spells: Enhancer – Conduit
 
 Conduit enhancers are living channels, routing power between allies — sharing strength, redistributing harm and linking the party into one resilient whole.
 
-- **Living Conduit (Passive).** Link to up to 2 allies; while linked, transfer HP, temp HP or buffs between any of you as a bonus action.
+- **Living Conduit (Passive).** Link up to 2 allies. Linked creatures share senses at any distance, and as a bonus action you may move any one buff, debuff or status between linked creatures.
 
 ## Feel No Pain
 spells: Enhancer – Feel No Pain
@@ -1909,9 +1919,9 @@ The dark mirror of their kin: instead of strengthening friends, they sap the str
 ## Leech
 spells: Enhancer – Leech
 
-Leech enhancers thrive on the exchange of vitality, draining life from foes to pour into allies. They keep a party standing by making sure their enemies don't.
+Leech enhancers steal what makes an enemy dangerous: its speed, its senses, its size, even its skills. They wear what they take, and leave their foes a sketch of themselves.
 
-- **Lifethief (Passive).** Whenever you deal damage with a spell, you may heal a chosen ally for half that amount.
+- **Thief Of Qualities (Passive).** Whenever your spell damages a creature, you may take one trait from it until the end of your next turn: its speed, its min hit value, one sense (darkvision, scent, tremorsense) or its size.
 
 ## Overload
 sixth: yes
@@ -2000,6 +2010,32 @@ Utility. Primeval shamans wield the oldest magic there is — raw, half-remember
 
 - **Ancient Magic Burst.** When you cast a spell, roll 1d20; on a 20 you trigger an additional spell. The number needed drops by one each cast until it triggers (19 on your second cast, 18 on your third…). On a trigger, roll 1d100 for the spell produced and the counter resets.
 
+### Ancient Magic Burst table
+Roll 1d100 when Ancient Magic Burst triggers.
+
+| d100 | Effect |
+| 01–05 | A gust knocks every creature within 10ft prone. |
+| 06–10 | The target's hair turns white and it is frightened for 1 turn. |
+| 11–15 | Every ally within 10ft heals 1d8. |
+| 16–20 | A 10ft stone wall rises where you point. |
+| 21–25 | Every fire within 60ft roars up; anyone beside one takes 1d10. |
+| 26–30 | An extinct beast appears for 1d4 turns. It is confused but friendly; the DM picks it. |
+| 31–35 | Lightning strikes the nearest enemy for 2d10. |
+| 36–40 | You speak the first tongue: everyone who hears you understands you for an hour. |
+| 41–45 | Roots burst up through the target's feet and root it until it passes a strength save. |
+| 46–50 | Rain falls on you alone for a minute; heal 1 HP per turn. |
+| 51–55 | The next spell you cast this combat costs no slot. |
+| 56–60 | A cave painting of this fight appears on the nearest stone, showing one thing that happens next turn. |
+| 61–65 | Every creature within 20ft forgets its last action and must choose again. |
+| 66–70 | The ground drops 5ft in a 15ft circle around the target. |
+| 71–75 | An ancestor spirit takes your next hit. |
+| 76–80 | Bone spikes erupt along a 10ft line for 2d8. |
+| 81–85 | The target is a child again for 1 turn and cannot attack. |
+| 86–90 | A herd of spirit deer stampedes through: enemies in a 30ft line take 3d6 and fall prone. |
+| 91–95 | The triggering spell is cast a second time for free. |
+| 96–99 | Roll twice; both happen. |
+| 100 | The sky remembers. The DM chooses any tier 6 spell's effect and it happens. |
+
 ## Primordial Shaman
 spells: Shaman – Primordial
 
@@ -2078,6 +2114,17 @@ spells: Hemomancer – The Scarred
 The Scarred carve their power into their own flesh, each ritual scar a permanent well of strength bought with pain. The most durable of hemomancers, and the most disfigured.
 
 - **Ritual Scars.** During a long rest, cut a new scar (max half your level); each grants a permanent +2 to a chosen stat or +5 max HP. Rites can open a scar for a surge of power.
+
+### Named scars
+Each scar has a name and an effect that fires whenever it is opened.
+
+| Scar | When opened |
+| Eye in the palm | Hold out your hand to see through it, including around corners. |
+| Tally | +1 damage for each kill you have made this session. |
+| Mouth | It speaks one true thing about the last creature you hit. |
+| Spine ladder | You cannot be knocked prone or moved. |
+| Heart line | An ally you touch heals the HP you spend this turn. |
+| Crown | Enemies that see it must pass a wisdom save or they will not target you first. |
 
 ## Sanguivore
 spells: Hemomancer – Sanguivore
@@ -2801,13 +2848,13 @@ Fence tricksters turn a profit on everything that passes through their hands —
 
 ## Open Pockets
 
-Open Pockets tricksters never met a pocket they couldn't empty. Coins, keys, even the weapon from an enemy's hand — it all finds its way to them, and they make it look like luck.
+Disruptive thief-fighters who specialise in breaking enemy flow, stripping resources and winning fights by leaving foes helpless and empty-handed. Where others draw blood, you draw coins, weapons, pride and control.
 
-- **Light Fingers.** Attempt to steal an item; the roll must beat the target's dex and passive perception. Advantage if you're unnoticed.
-- **Now You See It.** On a successful card strike in combat, lift one item the target isn't currently holding.
-- **Disarming Draw.** Throw a card to flick a weapon or item from a foe's grip (DEX save); it lands where you choose within 10 ft.
-- **Deep Pockets.** You conceal an improbable amount on your person; searches for hidden items on you are at disadvantage, and you always "happen to have" a mundane small item.
-- **Sleight of Hand.** Once per scene, on a passed dex roll, plant or retrieve an object on or from a creature without them noticing — a card, a key, a piece of evidence.
+- **Stolen Initiative (Passive).** At the start of each combat, choose one enemy you have seen. You automatically take your turn before them, even if turn order would place them first. If you attack that target in the opening round and deal damage, you gain advantage on your next card throw this combat. When attacking the target you stole initiative from, you get an additional attack.
+- **Cut Purse Strike.** If you hit a target with two separate card attacks in the same round, they must drop one item currently held or visibly stored. Weapons, shields and wands fall to the ground. If a weapon is dropped, the target loses their next attack or spell action recovering it. Heavy or strapped gear may take longer.
+- **Deck Scatter.** Once per combat, unleash a wide spray of thrown cards that hits a group instead of a single target. Draw a card, then draw cards equal to its value (draw a 5, then draw 5 more). Everyone hit must roll or be slowed for 1d4 turns, reducing their movement and delaying their reactions (dodges have a chance to fail).
+- **Gambler's Gutting.** If you hit using a King or Ace, you may remove one beneficial effect from the target: a buff, regeneration, a temporary resistance or an ongoing positive enchantment. If an Ace triggered this, the removed benefit briefly reverses and the target takes 1d10 damage of whatever energy that buff represents.
+- **Five-Finger Heist.** Once per long rest, at any moment in or out of combat, declare "That's mine." Choose a creature within reach or engagement. You automatically steal one carried item, ignoring detection, rolls, line of sight and combat chaos. You choose what you take, within reason: keys, potions, scrolls, purses, quest items, rings, jewellery or trinkets.
 
 ## Luck of the Draw
 

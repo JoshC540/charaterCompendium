@@ -123,3 +123,18 @@ create policy "admin deletes"      on public.sessions for delete to authenticate
 create policy "players add own"     on public.notes for insert to authenticated with check (author_id = auth.uid());
 create policy "author/admin edit"   on public.notes for update to authenticated using (author_id = auth.uid() or public.is_admin());
 create policy "author/admin delete" on public.notes for delete to authenticated using (author_id = auth.uid() or public.is_admin());
+
+-- ---------- admin password reset (no email needed) ----------
+-- Lets the admin set a player's password from the site's account menu.
+create or replace function public.admin_set_password(target_email text, new_password text) returns void
+language plpgsql security definer set search_path = public, extensions as $$
+begin
+  if not public.is_admin() then raise exception 'Only the admin can reset passwords'; end if;
+  if length(coalesce(new_password, '')) < 8 then raise exception 'Use at least 8 characters'; end if;
+  update auth.users
+     set encrypted_password = crypt(new_password, gen_salt('bf')), updated_at = now()
+   where lower(email) = lower(trim(target_email));
+  if not found then raise exception 'No player has that email'; end if;
+end $$;
+revoke all on function public.admin_set_password(text, text) from public, anon;
+grant execute on function public.admin_set_password(text, text) to authenticated;

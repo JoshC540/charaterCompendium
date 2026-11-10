@@ -70,7 +70,7 @@ doesn't depend on another CDN), `supabase/setup.sql` (the database). The project
 ### One-time setup
 
 1. **Create the tables.** Supabase dashboard → **SQL Editor** → New query → paste all of
-   `supabase/setup.sql` → **Run**. It's safe to run again later.
+   `supabase/setup.sql` → **Run**. It's safe to run again whenever this file is updated.
 2. **Stop strangers signing up.** Authentication → **Sign In / Providers** → turn off
    **Allow new users to sign up**. Leave the Email provider itself switched on.
 3. **Create your own account.** Authentication → **Users** → **Add user** → **Create new user**, with
@@ -82,8 +82,22 @@ Authentication → Users → Add user → Create new user → their email and a 
 **Auto Confirm User**. Send them the details. They can change their password and the name shown on their
 notes from the account button once signed in.
 
-To reset a forgotten password: Users → click the player → set a new password (or delete and re-add them;
-deleting a user also deletes their notes).
+**Resetting a forgotten password:** sign in as yourself, click your name in the top bar, and use
+**Admin · reset a player's password**. No email is involved. Avoid Supabase's "Send password recovery"
+emails: they expire quickly, some mail apps use them up by previewing them, and they only work once the
+Site URL below is set.
+
+**If you're locked out of your own account,** run this in the SQL Editor:
+
+```sql
+update auth.users
+set encrypted_password = extensions.crypt('NEW-PASSWORD-HERE', extensions.gen_salt('bf'))
+where email = 'joshcronin540@gmail.com';
+```
+
+**Site URL:** Authentication → **URL Configuration** → set **Site URL** to the GitHub Pages address
+(e.g. `https://YOUR-USERNAME.github.io/charaterCompendium/`) and add the same address under
+**Redirect URLs**. Supabase defaults to `http://localhost:3000`, which is why email links go nowhere.
 
 ### Who can do what
 
@@ -97,3 +111,11 @@ deleting a user also deletes their notes).
 | Delete sessions | – | ✓ |
 
 These rules are enforced by the database (row-level security in `setup.sql`), not just hidden in the page.
+
+
+## Patch notes
+
+`content/patch-notes.md` holds the changelog players see in the **Patch Notes** tab, newest first. The top
+update is also shown on the home page as "Latest update". Add a new `## Date — Title` block at the top
+(under the current year's `#` heading, or start a new `# 2027`), with `### New`, `### Changed` and
+`### Fixed` lists as needed.

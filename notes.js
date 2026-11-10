@@ -33,6 +33,7 @@
       if (/duplicate key.*number/i.test(m)) return 'That campaign already has a session with that number.';
       if (/row-level security|permission denied/i.test(m)) return 'You don’t have permission to do that.';
       if (/Failed to fetch|NetworkError/i.test(m)) return 'Couldn’t reach the server. Check your connection.';
+      if (/Could not find the function|admin_set_password/i.test(m)) return 'Run the latest supabase/setup.sql first (it adds password resets).';
       return m;
     };
 
@@ -52,13 +53,27 @@
       try {
         await loadLib();
         sb = (H.createClient || window.supabase.createClient)(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
+        const linkError = new URLSearchParams(location.hash.slice(1)).get('error_description');
+        let recovering = /type=recovery/.test(location.hash);
+        sb.auth.onAuthStateChange((evt, session) => {
+          if (evt === 'PASSWORD_RECOVERY') recovering = true;
+          const next = session ? session.user : null;
+          const changed = (next && next.id) !== (user && user.id);
+          const p = changed ? setUser(next) : Promise.resolve();
+          if (recovering && next) { recovering = false; p.then(() => openNewPassword()); }
+        });
         const { data: { session } } = await sb.auth.getSession();
         status = 'ready';
-        await setUser(session ? session.user : null);
-        sb.auth.onAuthStateChange((_evt, session) => {
-          const next = session ? session.user : null;
-          if ((next && next.id) !== (user && user.id)) setUser(next);
-        });
+        if ((session && session.user && session.user.id) !== (user && user.id)) await setUser(session ? session.user : null);
+        else renderAccount();
+        if (linkError) {
+          history.replaceState(null, '', location.pathname + location.search);
+          dialog('That link didn’t work',
+            el('p', { class: 'dlg-note' }, /expired|invalid/i.test(linkError)
+              ? 'The email link has expired or was already used. Ask your DM to set a new password for you.'
+              : linkError),
+            el('div', { class: 'dlg-foot' }, el('button', { class: 'btn', onclick: () => $('#hb-dialog').close() }, 'OK')));
+        }
       } catch (e) {
         console.warn('Sign-in unavailable:', e);
         status = 'offline';
@@ -164,6 +179,26 @@
       setTimeout(() => email.focus(), 30);
     }
 
+    function openNewPassword() {
+      const err = el('p', { class: 'dlg-err', role: 'alert' });
+      const pw1 = el('input', { type: 'password', autocomplete: 'new-password', minlength: '8', required: true, placeholder: 'At least 8 characters' });
+      const pw2 = el('input', { type: 'password', autocomplete: 'new-password', required: true, placeholder: 'Type it again' });
+      const d = dialog('Choose a new password',
+        el('p', { class: 'dlg-note' }, `You’re signed in as ${user.email}. Set a new password to finish.`),
+        el('form', {
+          class: 'dlg-form', onsubmit: async e => {
+            e.preventDefault(); err.className = 'dlg-err';
+            if (pw1.value.length < 8) { err.textContent = 'Use at least 8 characters.'; return; }
+            if (pw1.value !== pw2.value) { err.textContent = 'Those passwords don’t match.'; return; }
+            const { error } = await sb.auth.updateUser({ password: pw1.value });
+            if (error) { err.textContent = friendly(error); return; }
+            d.close();
+          },
+        }, el('label', {}, 'New password', pw1), el('label', {}, 'Confirm new password', pw2), err,
+          el('button', { class: 'btn primary', type: 'submit' }, 'Save password')));
+      setTimeout(() => pw1.focus(), 30);
+    }
+
     function openAccount() {
       const nameErr = el('p', { class: 'dlg-err', role: 'alert' });
       const pwErr = el('p', { class: 'dlg-err', role: 'alert' });
@@ -192,8 +227,27 @@
             pw1.value = pw2.value = ''; pwErr.textContent = 'Password changed.'; pwErr.classList.add('ok');
           },
         }, el('label', {}, 'New password', pw1), el('label', {}, 'Confirm new password', pw2), pwErr, el('button', { class: 'btn', type: 'submit' }, 'Change password')),
+        admin() ? adminResetForm() : null,
         el('div', { class: 'dlg-foot' },
           el('button', { class: 'btn ghost', onclick: async () => { await sb.auth.signOut(); d.close(); } }, 'Sign out')));
+    }
+
+    function adminResetForm() {
+      const msg = el('p', { class: 'dlg-err', role: 'alert' });
+      const email = el('input', { type: 'email', required: true, placeholder: 'player@example.com', autocomplete: 'off' });
+      const pw = el('input', { type: 'text', required: true, minlength: '8', placeholder: 'At least 8 characters', autocomplete: 'off' });
+      return el('form', {
+        class: 'dlg-form admin', onsubmit: async e => {
+          e.preventDefault(); msg.className = 'dlg-err';
+          if (pw.value.length < 8) { msg.textContent = 'Use at least 8 characters.'; return; }
+          const { error } = await sb.rpc('admin_set_password', { target_email: email.value.trim(), new_password: pw.value });
+          if (error) { msg.textContent = friendly(error); return; }
+          msg.textContent = `Done. ${email.value.trim()} can now sign in with that password.`; msg.classList.add('ok');
+          pw.value = '';
+        },
+      }, el('p', { class: 'dlg-sub' }, 'Admin · reset a player’s password'),
+        el('label', {}, 'Player’s email', email), el('label', {}, 'New password', pw), msg,
+        el('button', { class: 'btn', type: 'submit' }, 'Set password'));
     }
 
     /* ---------------- list pane ---------------- */

@@ -58,7 +58,7 @@
 - Spores | | Mage (Air) – Plague | Release a cloud of poisonous spores.
 - Calming Breeze | Heal 1d4 (1d4 targets) | Mage (Air) – Gentle Breeze | Create a gust of wind healing 1d4 people for 1d4 HP.
 - Wind Slap | | Mage (Air) – Gentle Breeze | Target must pass a strength roll to keep hold of their held item.
-- Resonance | 2d8 / 3d8 objects | Mage (Air) – Echo | Find a thing's pitch. A creature takes 2d8 thunder and makes a constitution save or is deafened; an object takes 3d8, and non-magical glass, pottery or brittle stone shatters outright.
+- Resonance | 2d8 / 3d8 objects | Mage (Air) – Echo | Find a thing's pitch. A creature takes 2d8 thunder and makes a strength save or is deafened; an object takes 3d8, and non-magical glass, pottery or brittle stone shatters outright.
 - Hush | | Mage (Air) – Echo | Drop a 15 ft sphere of total silence for 1d4+1 turns. Nothing inside makes a sound, and spells needing spoken words can't be cast in it.
 
 ## Tier 3
@@ -97,7 +97,7 @@
 - Wind Shell | | Mage (Air) – Gentle Breeze | A target is immune to all projectiles for a single turn.
 - Dead Air | | Mage (Air) – Echo | For 3 turns, a 30 ft silence moves with you. Enemy casters inside can't use spells needing spoken words, but you and your allies can still hear you speak.
 - Reverberate | | Mage (Air) – Echo | The next spell cast within 30 ft of you this turn — friend or foe — goes off again at the start of your next turn, with the same targets and the same effect.
-- Thunderclap | 6d8 (20 ft) | Mage (Air) – Echo | Clap the air flat. Everything within 20 ft takes 6d8 thunder and makes a constitution save or is stunned for a turn and deafened for 1d4 turns.
+- Thunderclap | 6d8 (20 ft) | Mage (Air) – Echo | Clap the air flat. Everything within 20 ft takes 6d8 thunder and makes a strength save or is stunned for a turn and deafened for 1d4 turns.
 
 ## Tier 5
 - Antifire Sphere | | Mage (Air) – Sand; Mage (Earth) – Sand | Create an area around you and your party that prevents fire and fire damage.
@@ -110,7 +110,7 @@
 - Slippy Doom | | Mage (Air) – Plague | Your target's weapon inflicts the Slippy Doom effect — struck foes bleed uncontrollably and are stunned on each hit.
 - Increased Speed | | Mage (Air) – Gentle Breeze | Target may take an additional action each turn while you focus on this spell.
 - Soothing Winds | | Mage (Air) – Gentle Breeze | All targets hit must make a wisdom save to prevent them from wanting to leave combat.
-- Voice Theft | | Mage (Air) – Echo | Take a creature's voice for an hour (constitution save). It can make no sound, and you can speak in its voice perfectly. On a pass, it loses its voice until the end of its next turn.
+- Voice Theft | | Mage (Air) – Echo | Take a creature's voice for an hour (strength save). It can make no sound, and you can speak in its voice perfectly. On a pass, it loses its voice until the end of its next turn.
 - Harmonic Collapse | 3d12 per turn | Mage (Air) – Echo | Set a target ringing. It takes 3d12 thunder at the start of each of its next three turns, and on the third anything non-magical within 20 ft of it cracks and falls apart.
 
 ## Tier 6
@@ -132,21 +132,21 @@
 - Guiding Light | +1 | Warlock (Celestial) | Create a mote of light that follows you, granting allies near it +1 to their rolls.
 - Mend | Heal 1d4 | Warlock (Celestial) | Heal a target.
 - Ward Sign | −1d6 dmg | Warlock (Celestial) | The next attack on a chosen ally is reduced by 1d6.
-- Embolden | | Warlock (Celestial) – Courage | A target is immune to fear for 1d3 turns and gains +1 to attacks.
-- Beacon | | Warlock (Celestial) – Courage | Light a 20 ft area; hidden or invisible foes within it are revealed.
-- Steady Hand | | Warlock (Celestial) – Courage | Remove disadvantage from an ally's next roll.
-- Conjure Feast | | Warlock (Celestial) – Abundance | Create food and water enough for the party.
-- Quickgrow | Heal 1d6 | Warlock (Celestial) – Abundance | Heal a target.
-- Share | | Warlock (Celestial) – Abundance | Transfer up to 10 of your HP to an ally with no loss.
-- Calm | | Warlock (Celestial) – Peace | A target makes a wisdom save or can't take an aggressive action this turn.
-- Soothe | | Warlock (Celestial) – Peace | Remove one status effect from an ally.
-- Still Air | −3 dmg | Warlock (Celestial) – Peace | Reduce all damage in a 10 ft area by 3 for one turn.
-- Slip | | Warlock (Celestial) – Freedom | End one restraint, grapple or hold on a target.
-- Quicken | | Warlock (Celestial) – Freedom | An ally gains +half movement and ignores difficult terrain this turn.
-- Open | | Warlock (Celestial) – Freedom | Unlock or unbar any mundane lock or door.
-- Borrowed Breath | | Warlock (Celestial) – Undeath | An ally that would drop to 0 this turn stays at 1 instead (once per ally per combat).
-- Still the Dead | | Warlock (Celestial) – Undeath | A single undead makes a save or is laid to rest (destroyed if non-boss, stunned if boss).
-- Grave Sense | | Warlock (Celestial) – Undeath | Sense all dead and undead within 60 ft.
+- Chin up |  | Warlock (Celestial) – Courage | Give an ally 1 Resolve Stack, or 2 if they are outnumbered or the last one standing near you.
+- War story | Heal 1d6 | Warlock (Celestial) – Courage | Tell a short tale of an old victory. Heal 1d6, plus 1d6 more if any ally has 3+ Resolve.
+- Banner |  | Warlock (Celestial) – Courage | Plant any cloth on a pole. For 1 turn, allies within 5m cannot be given disadvantage.
+- Loaf |  | Warlock (Celestial) – Abundance | Conjure warm bread for the party. Each person who eats gains 1 Plenty Stack.
+- Share the cup | Heal 1d4 | Warlock (Celestial) – Abundance | Heal 1d4. The next ally to drink from your cup heals the same.
+- Ripen | 1d6 | Warlock (Celestial) – Abundance | Grain, fruit or a wound within reach ripens in a minute: a harvest is ready, or a wound closes for 1d6 out of combat.
+- Hand on the shoulder |  | Warlock (Celestial) – Peace | Mark the first creature that attacks this turn. You gain +1 defence against every marked creature until the marks are consumed.
+- Gentle intent |  | Warlock (Celestial) – Peace | Your next attack this turn cannot miss. It deals no damage and applies a Truce mark.
+- Step between |  | Warlock (Celestial) – Peace | Blink 5m to stand between two combatants. The next attack either of them makes this turn hits you instead, halved.
+- Slip |  | Warlock (Celestial) – Freedom | End one restraint, grapple or hold on a target. Gain a Chain Link.
+- Open |  | Warlock (Celestial) – Freedom | Unlock or unbar any mundane lock or door. Gain a Chain Link if anyone was locked inside.
+- Loose tongue |  | Warlock (Celestial) – Freedom | Free a creature from a vow of silence or a magical gag. It may speak one truth it has been forbidden to tell.
+- Lay to rest |  | Warlock (Celestial) – Undeath | A corpse can never be raised again, and a Wisp rises from it.
+- Borrowed breath |  | Warlock (Celestial) – Undeath | An ally that would drop to 0 this turn stays at 1 instead (once per ally per combat).
+- Grave sense |  | Warlock (Celestial) – Undeath | Sense all dead and undead within 60ft.
 - Radiance | | Warlock (Celestial) – Ascension | Your body sheds light. 3d6 radiant to anything adjacent at the start of your turn, and you cannot be hidden from.
 - Above Pain | | Warlock (Celestial) – Ascension | Ignore the first 10 damage taken each turn. You also cease to feel it, including warnings you needed.
 - Small Miracle | | Warlock (Celestial) – Ascension | Something impossible but minor happens because you needed it to. Once per rest.
@@ -158,16 +158,16 @@
 - Absorb Blessing | | | If targeted by a beneficial spell this turn, absorb its excess divine energy and send it to your patron. Regain a random expended spell slot.
 - Radiant Bolt | 1d10 radiant | Warlock (Celestial) | +1d6 against undead and fiends.
 - Uplift | | Warlock (Celestial) | Remove fear from a target and grant them advantage on their next save.
-- Rally | 1d6 temp HP | Warlock (Celestial) – Courage | All allies within 15 ft gain 1d6 temp HP and may immediately stand if prone.
-- Searing Courage | 1d10 radiant | Warlock (Celestial) – Courage | A foe that causes fear loses that ability for a turn.
-- Bountiful Ward | 1d8 temp HP/turn | Warlock (Celestial) – Abundance | An ally gains 1d8 temp HP that refreshes each turn for 1d3 turns.
-- Cornucopia | | Warlock (Celestial) – Abundance | Restore one consumed item or spell charge (tier 2 or lower) to an ally.
-- Pacify | | Warlock (Celestial) – Peace | A non-boss makes a wisdom save or sheathes its weapon for 1d3 turns (breaks if attacked).
-- Reflective Calm | | Warlock (Celestial) – Peace | The next creature to attack you takes half the damage they deal to you.
-- Break the Leash | | Warlock (Celestial) – Freedom | End all control effects (charm, fear, command) on an ally.
-- Evasion | | Warlock (Celestial) – Freedom | An ally automatically dodges the next attack against them.
-- Deathless Ward | | Warlock (Celestial) – Undeath | An ally can't drop below 1 HP for 1d3 turns.
-- Leech the Line | 1d10 necrotic | Warlock (Celestial) – Undeath | Grant the healing to a downed or dying ally.
+- Shame the bully | 2d6 radiant | Warlock (Celestial) – Courage | Deal 2d6 radiant to the last enemy that hit an ally. That ally gains 1 Resolve per 4 damage dealt, rounded down.
+- Pass it on (Bonus Action) |  | Warlock (Celestial) – Courage | Move all Resolve Stacks from one ally to up to two others.
+- Second helping |  | Warlock (Celestial) – Abundance | An ally gains advantage on their next roll and 1 Plenty Stack.
+- Harvest feast | Heal 1d6 | Warlock (Celestial) – Abundance | For 2 turns an ally heals 1d6 at the end of each turn and gains 1 Plenty Stack.
+- Lay it down |  | Warlock (Celestial) – Peace | A marked target makes a wisdom save or sheathes its weapon until it is struck.
+- Stalemate |  | Warlock (Celestial) – Peace | For 2 turns, any marked creature that deals damage takes the same amount itself.
+- Cut loose |  | Warlock (Celestial) – Freedom | Mark a target. Whenever anything it holds or binds is freed, gain 1 Chain Link (once per turn).
+- Jailbreak |  | Warlock (Celestial) – Freedom | A restrained, grappled or caged creature in sight makes an escape attempt with advantage. If it escapes, gain 2 Chain Links.
+- Lantern walk (Bonus Action) |  | Warlock (Celestial) – Undeath | All your Wisps act at once.
+- Still the dead |  | Warlock (Celestial) – Undeath | A single undead makes a save or is laid to rest (destroyed if non-boss, stunned if boss).
 - Unbound Flesh | | Warlock (Celestial) – Ascension | For 3 turns you do not need to breathe, eat, stand on ground, or occupy one place at a time.
 - Higher Word | | Warlock (Celestial) – Ascension | Speak, and all celestial, fiendish and elemental creatures within earshot must acknowledge you. Hostile ones lose their next action.
 
@@ -176,59 +176,59 @@
 - Wings of Judgment | 1d8 radiant each | | Summon 1d6 ethereal wings that hover around you for 1 hour (8 turns in combat). Each can strike for 1d8 radiant damage or block one attack before dissipating.
 - Prophetic Vision | | | Enter a target's dreams. On a failed wisdom save you can influence their subconscious toward divine insight. You cannot speak to them directly.
 - Aegis | Absorbs 20 | Warlock (Celestial) | Grant an ally a shield that absorbs 20 damage for 1d4 turns.
-- Last Stand | +3 | Warlock (Celestial) – Courage | While below half HP, you and adjacent allies gain +3 to all rolls for 1d3 turns.
-- Banish Dread | | Warlock (Celestial) – Courage | End all fear and charm effects on the party and grant immunity to them for 1 turn.
-- Bloom | Heal 2d6 (15 ft) | Warlock (Celestial) – Abundance | Heal all allies within 15 ft.
-- Plenty from Little | | Warlock (Celestial) – Abundance | Double the effect of the next healing or buff spell you cast.
-- Zone of Peace | | Warlock (Celestial) – Peace | Create a 15 ft area for 1d3 turns in which no creature can deal damage.
-- Bonds of Accord | | Warlock (Celestial) – Peace | Two enemies make wisdom saves or can't attack each other or coordinate for 1d4 turns.
-- Liberate | | Warlock (Celestial) – Freedom | A controlled or summoned enemy makes a save; on a fail it turns on its master for 1d3 turns.
-- Free Movement | | Warlock (Celestial) – Freedom | The party ignores all movement restrictions and opportunity attacks for 1 turn.
-- Stay Your Passing | | Warlock (Celestial) – Undeath | Suspend an ally's death saves for 1d6 turns; they are stable but can't act.
-- Reaper's Stride | 2d6 necrotic | Warlock (Celestial) – Undeath | Move through creatures and walls up to 30 ft; enemies passed through take 2d6 necrotic.
+- Shoulder to shoulder |  | Warlock (Celestial) – Courage | Give 2 Resolve Stacks to every ally within 10m.
+- Steel spine | 4d6 radiant | Warlock (Celestial) – Courage | An ally with 3+ Resolve deals 4d6 radiant on their next hit and cannot be moved until their next turn.
+- Spread the table | Heal 1d8 | Warlock (Celestial) – Abundance | Move up to 3 Plenty Stacks between allies within 10m. Each stack moved heals its new owner 1d8.
+- Orchard |  | Warlock (Celestial) – Abundance | Trees burst from the ground in a 10m area. Allies inside gain 1 Plenty Stack per turn. The trees stay after the fight.
+- Mirror the blow |  | Warlock (Celestial) – Peace | Choose a target. For 2 turns, damage it deals to anyone is mirrored back to it at half, and damage you deal to it is non-lethal.
+- Calm cadence |  | Warlock (Celestial) – Peace | This turn, each time you consume a mark, an enemy of your choice loses its readied action.
+- Spend the chain | Heal 1d8 | Warlock (Celestial) – Freedom | Consume up to 5 Chain Links. Heal 1d8 per link spent.
+- Free movement |  | Warlock (Celestial) – Freedom | The party ignores all movement restrictions and opportunity attacks for 1 turn.
+- Gather the lost (Bonus Action) |  | Warlock (Celestial) – Undeath | Up to 3 Wisps rise from old graves or bones nearby.
+- Stay your passing |  | Warlock (Celestial) – Undeath | Suspend an ally's death saves for 1d6 turns; they are stable but cannot act.
 - Burn the Mortal | | Warlock (Celestial) – Ascension | Spend a Rung's worth of yourself for a single spell cast at maximum effect, no roll, no save.
 - Wings Not Yours | | Warlock (Celestial) – Ascension | Flight and immunity to falling, permanent. You cannot pass through spaces a mortal shape would fit through.
 
 ## Tier 4
-- Heroes Never Fall | | Warlock (Celestial) – Courage | The first ally to drop to 0 each combat stays at 1 HP and acts normally this turn.
-- Radiant Charge | 2d8 radiant | Warlock (Celestial) – Courage | Move up to 30 ft in a line; enemies crossed take damage and save or are knocked back.
-- Aura of Valour | | Warlock (Celestial) – Courage | Allies within 20 ft auto-pass the first save they would fail each turn for 1d4 turns.
-- Field of Life | Heal 1d8 per turn | Warlock (Celestial) – Abundance | Create a 20 ft zone for 1d4 turns; allies inside heal each turn.
-- Reap and Sow | 2d10 → party heal | Warlock (Celestial) – Abundance | Damage an enemy and split that damage as healing among your allies.
-- Endless Quiver | | Warlock (Celestial) – Abundance | Refill the party's expendables — arrows, potions and charges up to tier 3.
-- Turn the Other Cheek | | Warlock (Celestial) – Peace | For 1 turn all damage to the party is halved and reflected back at the attackers at half again.
-- Disarm the Heart | | Warlock (Celestial) – Peace | All enemies within 20 ft make a wisdom save or deal only non-lethal damage for 1d4 turns.
-- Shelter | | Warlock (Celestial) – Peace | Make an ally immune to all damage for one turn; they also can't deal damage.
-- Throw Off the Yoke | | Warlock (Celestial) – Freedom | The party becomes immune to control and forced-movement effects for 1d4 turns.
-- Cut the Strings | | Warlock (Celestial) – Freedom | Destroy a summon or break a non-boss creature's pact or binding with a contested roll.
-- Unbound Step | | Warlock (Celestial) – Freedom | Teleport yourself and one ally to any visible point and gain an extra action this turn.
-- Anchor the Soul | | Warlock (Celestial) – Undeath | Tether an ally — for 1d4 turns, the first time they die they instead revive at half HP, then the tether breaks.
-- Toll the Bell | | Warlock (Celestial) – Undeath | All enemies below 25% HP within 20 ft make a CON save or die (non-boss).
-- Restless Guard | 2d6 | Warlock (Celestial) – Undeath | Raise a fallen ally or enemy as a deathless guardian for the encounter (30 HP, protects the party).
+- Charge of the light | 6d6 radiant | Warlock (Celestial) – Courage | Deal 6d6 radiant. If an Unbroken ally strikes the same target this turn, double the damage.
+- Second wind | Heal 1d4 | Warlock (Celestial) – Courage | For 2 turns, whenever an ally gains a Resolve Stack, they heal 1d4.
+- Aura of valour |  | Warlock (Celestial) – Courage | For 2 turns, allies who enter or start their turn near you gain 1 Resolve Stack.
+- Overflow | Heal 5d6 | Warlock (Celestial) – Abundance | Heal 5d6. Double it if the target has 3+ Plenty Stacks.
+- Tithe to the soil |  | Warlock (Celestial) – Abundance | Draw up to 2 poisons, diseases or exhaustion levels out of an ally and into the ground, where a patch of grass withers.
+- Full bellies |  | Warlock (Celestial) – Abundance | An ally deals +5 damage on all attacks for 2 turns.
+- Edict of sanctuary |  | Warlock (Celestial) – Peace | Declare a creature protected. All damage it takes is reduced by 3. If it would die this turn, it drops to 1 HP instead and you regain a spent spell slot.
+- Peace made flesh |  | Warlock (Celestial) – Peace | For 1d3 turns your movement does not provoke opportunity attacks, and you may consume marks without hitting.
+- Shelter |  | Warlock (Celestial) – Peace | Make an ally immune to all damage for one turn; they also cannot deal damage.
+- Liberate |  | Warlock (Celestial) – Freedom | A controlled or summoned enemy makes a save; on a fail it turns on its master for 1d3 turns.
+- Torn contract |  | Warlock (Celestial) – Freedom | Touch a written contract or pact and it is void. Everyone bound by it knows at once. Gain a Chain Link for each party released.
+- Unbound step |  | Warlock (Celestial) – Freedom | Teleport yourself and one ally to any visible point and gain an extra action this turn.
+- Vigil |  | Warlock (Celestial) – Undeath | For 2 turns, a Wisp rises automatically whenever a creature dies.
+- Release |  | Warlock (Celestial) – Undeath | All your Wisps pass on at once. Each heals every creature within 2m of it 1d8.
+- Last request |  | Warlock (Celestial) – Undeath | A creature that has just died sits up for one minute to say goodbye, finish a sentence or point at its killer. Then it rests and a Wisp rises.
 - Ascendant Form | | Warlock (Celestial) – Ascension | For 1d4+2 turns you gain resistance to everything, double movement, and an additional action each turn. Rung +1.
 - Intercession | | Warlock (Celestial) – Ascension | Undo a death that occurred this encounter. The creature returns whole. You do not decide which parts of them return.
 - Judgement Borrowed | | Warlock (Celestial) – Ascension | Strike a creature with your patron's authority — 10d10 radiant, and evil-aligned creatures are stunned for 1d3 turns.
 
 ## Tier 5
-- Avatar of the Dawn | 1d8 radiant per turn | Warlock (Celestial) – Courage | For 1d4 turns you radiate light — allies near you gain +5 to all rolls and immunity to fear; enemies take radiant damage each turn.
-- Undaunted | | Warlock (Celestial) – Courage | Become immune to all control effects for 1d3 turns, and damage can't drop you below 1 HP.
-- Harvest of Souls | Heal 2d8 | Warlock (Celestial) – Abundance | When an enemy dies near you, heal the party 2d8 and gain +1 max HP (caps at +10 per session).
-- Verdant Surge | | Warlock (Celestial) – Abundance | Restore an ally to full HP and end all status effects on them.
-- Armistice | | Warlock (Celestial) – Peace | All combatants make a wisdom save; those who fail can't attack for 1d3 turns. An ally attacking ends it.
-- Guardian's Vow | | Warlock (Celestial) – Peace | Bind to an ally — all damage they take is redirected to you, halved, for 1d4 turns.
-- Spirit of Freedom | | Warlock (Celestial) – Freedom | For 1d4 turns you and your allies have advantage on all saves and can't be stopped from moving or acting by any non-boss effect.
-- Shatter Dominion | | Warlock (Celestial) – Freedom | End a boss's control or aura effect for 1d3 turns and free anything it controlled.
-- Between Worlds | | Warlock (Celestial) – Undeath | For 1d4 turns you exist half in the grave — immune to non-magic damage; your touch heals allies 2d6 or deals 2d8 necrotic to foes.
-- Deny the Reaper | | Warlock (Celestial) – Undeath | Revive a party member who died this combat at half HP; you take their remaining death-save failures onto yourself.
+- Last stand |  | Warlock (Celestial) – Courage | Every ally gains 3 Resolve Stacks. Allies already at 3+ become Unbroken.
+- Heartstart |  | Warlock (Celestial) – Courage | An ally at 0 HP stands back up with HP equal to 10 times their Resolve Stacks.
+- Horn of plenty | Heal 2d6 | Warlock (Celestial) – Abundance | Consume every Plenty Stack on every ally. Heal 2d6 per stack consumed, shared out as you choose.
+- Abundance Incarnate |  | Warlock (Celestial) – Abundance | For 2 turns: All allies gain 1 Plenty Stack per turn · You heal 1d6 whenever a Plenty Stack is applied.
+- Armistice |  | Warlock (Celestial) – Peace | All combatants make a wisdom save; those who fail cannot attack for 1d3 turns. An ally attacking ends it.
+- Field of accord |  | Warlock (Celestial) – Peace | For 3 turns, creatures within 10m cannot be reduced below 1 HP. Each creature that surrenders refreshes one of your spell slots.
+- Spirit of freedom |  | Warlock (Celestial) – Freedom | For 1d4 turns you and your allies act with advantage on all saves and cannot be stopped from moving or acting by any non-boss effect.
+- Shatter dominion |  | Warlock (Celestial) – Freedom | End a boss's control or aura effect for 1d3 turns and free anything it controlled.
+- Field of lanterns | 6d6 radiant | Warlock (Celestial) – Undeath | Deal 6d6 radiant to every undead in an area. For each undead hit, a Wisp rises: the spirit it had trapped.
+- Deny the reaper |  | Warlock (Celestial) – Undeath | Revive a party member who died this combat at half HP; you take their remaining death-save failures onto yourself.
 - The Ninth Rung | | Warlock (Celestial) – Ascension | For 1d4+2 turns you cannot be killed, controlled, banished, silenced or dispelled by anything below divine tier. Rung +2.
 - Grant | | Warlock (Celestial) – Ascension | Give an ally one of your accumulated boons permanently. You lose it, keep the cost, and do not go down a Rung.
 
 ## Tier 6
-- The Sun Stands With Us | 5d10 to undead/fiends | Warlock (Celestial) – Courage | Heal all allies to full, grant fear immunity and 25 temp HP, and bathe the field in dawn-light for 1d4 turns; undead and fiends take 5d10 and flee on a failed save.
-- Land of Plenty | | Warlock (Celestial) – Abundance | For 1d4 turns the party heals to full at the start of each of their turns, can't be reduced below 1 HP by non-boss damage, and can't starve or thirst.
-- Lasting Peace | 5d10 backlash | Warlock (Celestial) – Peace | All combatants make a wisdom save; on a fail they lose all will to fight for the encounter (non-boss) or 1d4 turns (boss). Any creature that strikes first while the peace holds takes 5d10 backlash.
-- No Gods, No Masters | | Warlock (Celestial) – Freedom | Break every binding, control effect and summon contract on the field, free all controlled creatures, and grant the party a full extra turn before the enemy may act.
-- The Long Vigil | | Warlock (Celestial) – Undeath | For the rest of the combat no ally can permanently die — any ally reduced to 0 rises at the start of their next turn with 1d20 HP. When it ends you fall unconscious for 1d4 turns as the borrowed life is repaid.
+- The Sun Stands With Us |  | Warlock (Celestial) – Courage | For 2 turns: All allies gain 2 Resolve Stacks at the start of their turn · Unbroken allies heal 2d6 at the start of their turn · Resolve Stacks cannot be removed · Undead and fiends that see the light take 5d10 and flee on a failed wisdom save.
+- Land of Plenty |  | Warlock (Celestial) – Abundance | For 3 turns: Healing on allies is doubled · All allies gain 2 Plenty Stacks per turn · Allies at max stacks cannot be reduced below 1 HP by non-boss damage · When it ends, the ground stays fertile for a year and a day.
+- Ascension: Peace Unbound |  | Warlock (Celestial) – Peace | For 2 turns: No damage of any kind can be dealt within 40m of you · Truce marks apply automatically to anyone who tries · Every marked creature must pass a wisdom save or lay down its arms for the encounter. When it ends you drop to 1 HP and cannot be healed until the end of your next turn.
+- No Gods, No Masters |  | Warlock (Celestial) – Freedom | Break every binding, control effect and summon contract on the field, free all controlled creatures, and grant the party a full extra turn before the enemy may act. Gain a Chain Link for each thing freed.
+- The Long Vigil |  | Warlock (Celestial) – Undeath | For 5 turns: No ally can permanently die; any ally reduced to 0 rises at the start of their next turn with 1d20 HP · A Wisp rises from every death, with no cap. When it ends, every Wisp passes on together, each healing 2d6 to everyone within 2m.
 - Apotheosis | | Warlock (Celestial) – Ascension | The last step. For the remainder of the encounter you act as something no longer mortal — you cannot fail a roll, cannot die, and reshape the immediate world by intent alone. When it ends, Rung +3. If this takes you to 10 or beyond, the character ascends immediately, mid-scene, and the party watches it happen.
 
 # Augury Magic
@@ -242,21 +242,21 @@
 - Glimpse | | Seer | Peek a few seconds into the future; gain advantage on your next roll.
 - Read Intent | | Seer | Sense whether a creature means you or your party harm.
 - Premonition | | Seer | Once warned, you and your allies cannot be surprised for this scene.
-- Retrace | | Seer – Past Regrets | See the last hour of a creature's or object's movements.
-- Old Wounds | | Seer – Past Regrets | Learn a creature's greatest past regret or shame.
-- Residue | | Seer – Past Regrets | Detect whether magic, violence or death occurred nearby, and roughly when.
-- Misstep | | Seer – Future Mistakes | Show a target their next failure; they take disadvantage on their next roll.
-- Safe Path | | Seer – Future Mistakes | Identify the least dangerous of several routes.
-- Hunch | | Seer – Future Mistakes | Gain advantage on a single skill check by "having a feeling".
-- Mark the Opening | | Seer – Guided Strikes | An ally's next attack on your chosen target hits automatically (normal damage).
-- Steady Aim | +2 | Seer – Guided Strikes | Remove disadvantage and grant +2 to an ally's next attack.
-- Read the Guard | +1d6 | Seer – Guided Strikes | Reveal a target's weak point; +1d6 to the next hit on it.
-- Feigned Fumble | | Seer – Trickster | Bait a reaction from a foe, then exploit it for advantage on your next roll.
-- Misdirect | | Seer – Trickster | A target's next attack strikes a point you choose instead (within reason).
-- Lucky Break | | Seer – Trickster | Reroll one of your own failed rolls per scene.
-- Counsel | | Seer – Path of Guidance | Give an ally advice; their next decision-based roll gains advantage.
-- Light the Way | | Seer – Path of Guidance | Reveal the safest immediate course of action to the party.
-- Reassure | | Seer – Path of Guidance | Remove fear and grant +1 to an ally's rolls for one turn.
+- Where it was |  | Seer – Past Regrets | In a place you stand in, see a faint outline of where a named object sat at any moment in the last day.
+- Old wounds |  | Seer – Past Regrets | Touch a scar you can see and learn what made it, roughly when, and whether whoever gave it still lives.
+- Hindsight |  | Seer – Past Regrets | After any roll fails, the DM tells you exactly what would have made it pass. The next attempt at the same thing has advantage.
+- Don't |  | Seer – Future Mistakes | Give a creature a one-word warning. The first time in the next hour it is about to walk into harm, it hears your voice say the word again.
+- Wrong foot |  | Seer – Future Mistakes | Name an action out loud. If the target takes that action on its next turn, it fails.
+- Safe path |  | Seer – Future Mistakes | Learn which of several routes is least dangerous, and get one word for what waits on each of the others.
+- Mark the opening |  | Seer – Guided Strikes | An ally's next attack on your chosen target hits automatically (normal damage).
+- There |  | Seer – Guided Strikes | An ally's next shot curves around one corner or piece of cover to reach a target you can see.
+- Tell |  | Seer – Guided Strikes | Learn the one move a target always makes before its biggest attack. The first time it makes it this fight, any ally may react to interrupt it.
+- Feigned fumble |  | Seer – Trickster | Bait a reaction from a foe, then exploit it for advantage on your next roll.
+- I knew you'd say that |  | Seer – Trickster | Answer a question before it is asked. The asker must pass a wisdom save or forget what they meant to ask.
+- Planted coin |  | Seer – Trickster | Find on you right now a small mundane item you will need in the next hour. You put it there yesterday.
+- Hunch for a friend |  | Seer – Path of Guidance | Give an ally a one-word feeling about a choice ("left", "wait", "no"). If they follow it, the roll that follows has advantage.
+- Light the way |  | Seer – Path of Guidance | Reveal the safest immediate course of action to the party.
+- Not today |  | Seer – Path of Guidance | Tell an ally they will not die today. Until dawn, the first death save they fail passes instead.
 - Already Seen | | Seer – Fixed Point | Name an action a creature is about to take. On a wisdom save failure, they take it, whether they intended to or not.
 - No Surprise | | Seer – Fixed Point | You cannot be surprised, ambushed or caught flat-footed. Ever.
 - Small Certainty | | Seer – Fixed Point | Declare a minor detail of the scene true — a door unlocked, a guard asleep, a rope where you need one. Once per rest.
@@ -268,16 +268,16 @@
 - Strategic Foresight | | | Grant a single ally advantage on their next attack, check or save.
 - Foretell | | Seer | Ask the DM a single yes/no question about the near future.
 - Warding Vision | | Seer | Foresee an incoming attack; an ally may reroll a failed dodge.
-- Witness | | Seer – Past Regrets | Replay a past event in an area as a silent vision for the party.
-- Name the Dead | | Seer – Past Regrets | Learn the identity and cause of death of any remains.
-- Branch | | Seer – Future Mistakes | See the likely outcome of two different choices before committing.
-- Forewarn | | Seer – Future Mistakes | Grant an ally advantage on a save against an effect you foresee.
-- Coordinated Strike | | Seer – Guided Strikes | Two allies attacking the same target this turn each gain advantage.
-- Foreseen Parry | | Seer – Guided Strikes | An ally automatically blocks or dodges the next attack against them.
-- Sleight of Fate | | Seer – Trickster | Swap your next roll with a target's next roll.
-- Read the Room | | Seer – Trickster | Instantly know the disposition and intentions of everyone present.
-- Shared Foresight | | Seer – Path of Guidance | An ally gains your Foresight benefit on one roll.
-- Shield of Guidance | −1d10 dmg | Seer – Path of Guidance | Warn an ally of an incoming blow; reduce its damage by 1d10.
+- Witness |  | Seer – Past Regrets | Replay a past event in this place, up to a week back, as a silent vision the party can walk through and pause.
+- Name the dead |  | Seer – Past Regrets | Learn the name of any remains and the last word they spoke.
+- Branch |  | Seer – Future Mistakes | Say two plans out loud. The DM tells you in one sentence each how the first minute of each would go.
+- Called it |  | Seer – Future Mistakes | Write a prediction about the next 10 minutes and seal it. If it comes true, everyone who heard you make it gains a Foresight die (once each, per day).
+- On three |  | Seer – Guided Strikes | Up to three allies who hit the same target this turn land as one hit. It gets a single dodge against all of them.
+- Foreseen parry |  | Seer – Guided Strikes | An ally automatically blocks or dodges the next attack against them.
+- Sleight of fate |  | Seer – Trickster | Swap your next roll with a target's next roll.
+- Read the room |  | Seer – Trickster | Instantly know the disposition and intentions of everyone present.
+- Shared foresight |  | Seer – Path of Guidance | An ally gains your Foresight benefit on one roll.
+- Duck (Reaction) |  | Seer – Path of Guidance | An ally ducks a blow you saw coming. It hits whatever was behind them instead.
 - Fix a Roll | | Seer – Fixed Point | Declare the result of any roll made in the next turn, ally or enemy, before it is made. Roll wisdom against the target's; on a success your number stands.
 - The Long Look | | Seer – Fixed Point | Ask the GM one direct question about a future event. The answer is truthful, and the answering makes it likelier.
 
@@ -286,59 +286,59 @@
 - Greater Insight | | | Grant your entire party advantage for 1d2 turns in combat or a specific challenge.
 - Omen of Avoidance | | | Gain a general sense of dangerous encounters for the next 8 hours. You may avoid one encounter without knowing its exact nature.
 - Diverge | | Seer | Reroll any one roll in combat and choose which of the two timelines stands.
-- Unmake the Moment | | Seer – Past Regrets | Once per scene, undo the last action taken by anyone (including the party) and let it be re-chosen.
-- Borrowed Skill | | Seer – Past Regrets | Relive a master's memory to gain proficiency in one skill for an hour.
-- Pre-empt | | Seer – Future Mistakes | Once per combat, take your turn immediately before a foe you have foreseen.
-- Cancel the Future | | Seer – Future Mistakes | Negate an enemy's telegraphed ability before it resolves (once per combat).
-- Perfect Timing | | Seer – Guided Strikes | An ally takes an extra attack this turn at full damage.
-- Open the Wound | +1d8 per attack | Seer – Guided Strikes | A target you mark takes +1d8 from all attacks for 1d3 turns.
-- Foreseen Escape | | Seer – Trickster | Vanish from a tight spot you "saw coming", reappearing at a safe point within 60 ft.
-- Con | | Seer – Trickster | A target believes a falsehood you tell as though it were certain truth (wisdom save).
-- Right Place, Right Time | | Seer – Path of Guidance | Move a willing ally to the ideal position; they gain advantage there.
-- Mentor's Insight | | Seer – Path of Guidance | Grant an ally proficiency or expertise in one task for the scene.
+- Unmake the moment |  | Seer – Past Regrets | Once per scene, undo the last action taken by anyone (including the party) and let it be re-chosen.
+- Borrowed hands |  | Seer – Past Regrets | Hold a tool or weapon. For an hour you use it with the skill of its most practised past owner, and pick up one of their habits of the DM's choosing.
+- Pre-empt |  | Seer – Future Mistakes | Once per combat, take your turn immediately before a foe you have foreseen.
+- Already left (Reaction) |  | Seer – Future Mistakes | When an area effect would hit you, you foresaw it: you are 15ft away and always were.
+- Perfect timing |  | Seer – Guided Strikes | An ally takes an extra attack this turn at full damage.
+- Fault line |  | Seer – Guided Strikes | Mark a crack in a target's armour or a wall. Every hit on that spot adds 1d8; the third hit breaks it (armour gives no defence, a wall gets a hole).
+- Foreseen escape |  | Seer – Trickster | Vanish from a tight spot you "saw coming", reappearing at a safe point within 60ft.
+- Self-fulfilling prophecy |  | Seer – Trickster | Tell a target its fortune. On a failed wisdom save it believes it, and the DM must give the fortune a real chance to come true.
+- Right place, right time |  | Seer – Path of Guidance | Move a willing ally to the ideal position; they gain advantage there.
+- Letter to yourself |  | Seer – Path of Guidance | An ally writes a short note to their future self. At any moment in the next week they may open it, and the DM reveals one useful sentence their past self somehow knew.
 - Cannot Be Otherwise | | Seer – Fixed Point | For 3 turns, one named ally cannot fail a roll, cannot be killed, and cannot deviate from a course you announce for them. They do not get a say.
 - Unpick | | Seer – Fixed Point | Undo the last action taken by any creature, including yourself. It did not happen and nobody but you remembers it.
 
 ## Tier 4
-- Trial of Memory | | Seer – Past Regrets | Force a target to relive a regret; on a failed wisdom save they are incapacitated by grief for 1d3 turns.
-- Restore What Was | | Seer – Past Regrets | Repair an object or undo recent decay, returning it to its prior state.
-- Ancestral Testimony | | Seer – Past Regrets | Summon the memory-echo of a witness to answer questions truthfully.
-- Cascade | | Seer – Future Mistakes | An enemy that fails a roll this turn fails their next as well.
-- Closed Road | | Seer – Future Mistakes | Block a future escape or reinforcement the enemy was counting on.
-- Shared Sight | | Seer – Future Mistakes | Give the party your premonitions for 1d3 turns; all gain advantage on saves.
-- Choreography | +5 chaining | Seer – Guided Strikes | For 1 turn, every party attack that hits grants the next attacker +5 damage (chaining).
-- Called Crit | | Seer – Guided Strikes | Designate an ally's next hit to be a guaranteed critical.
-- Guardian's Foresight | | Seer – Guided Strikes | Cause an incoming attack on an ally to miss entirely (once per combat).
-- House Always Wins | | Seer – Trickster | For 1d3 turns, any roll you make of 10 or lower may be rerolled once for free.
-- Stacked Deck | | Seer – Trickster | Pre-set the result of a single chance event in the scene (a coin, a draw, a trap trigger).
-- Pull the Rug | | Seer – Trickster | Cancel an enemy's buff or advantage at the moment they rely on it.
-- Converging Paths | +3 | Seer – Path of Guidance | The party's next round is optimised: all gain +3 to rolls for 1 turn.
-- Avert Their Fall | | Seer – Path of Guidance | Prevent an ally from dropping below 1 HP this turn.
-- Clarity | | Seer – Path of Guidance | End all confusion, charm and fear on the party and grant immunity for 1 turn.
+- Trial of memory |  | Seer – Past Regrets | Force a target to relive its worst regret. On a failed wisdom save it is incapacitated by grief for 1d3 turns, and you see the regret too.
+- As it was |  | Seer – Past Regrets | Return an object or room to how it stood at a moment within the last year for an hour: a broken door whole, a burnt letter readable, a scrubbed floor bloody again.
+- Witness stand |  | Seer – Past Regrets | Call the echo of anyone who was present when something happened here. It answers truthfully about what it saw, only what it saw, and does not know it is dead.
+- Dominoes |  | Seer – Future Mistakes | Predict in plain words what a non-boss does on its next turn ("he runs for the door"). If you are right, every ally gets a free attack on it as it does it.
+- Closed road |  | Seer – Future Mistakes | Name one way the enemy might get out of this fight: a horn, a back door, a teleport. That way does not work today; the horn is cracked, the door is jammed.
+- Spoilers |  | Seer – Future Mistakes | For 1d3 turns the party sees six seconds ahead: every ally may declare their action after all enemies have declared theirs.
+- Choreography |  | Seer – Guided Strikes | For 1 turn, every party attack that hits grants the next attacker +5 damage (chaining).
+- Called crit |  | Seer – Guided Strikes | Designate an ally's next hit to be a guaranteed critical.
+- Deflection angle (Reaction) |  | Seer – Guided Strikes | When an enemy misses an ally, you tell it where the swing goes: it hits another enemy within its reach instead.
+- House always wins |  | Seer – Trickster | For 1d3 turns, any roll you make of 10 or lower may be rerolled once for free.
+- Stacked deck |  | Seer – Trickster | Pre-set the result of a single chance event in the scene (a coin, a draw, a trap trigger).
+- Told you so |  | Seer – Trickster | Predict an enemy's buff or plan out loud. When it uses it, it fails, and the enemy is shaken (−2 to rolls) for a turn.
+- Crossroads |  | Seer – Path of Guidance | Time stops for one minute while the party talks through a plan; enemies stand frozen. Then everyone acts in the order the party chooses.
+- Avert their fall |  | Seer – Path of Guidance | Prevent an ally from dropping below 1 HP this turn.
+- Clarity |  | Seer – Path of Guidance | End all confusion, charm and fear on the party and grant immunity for 1 turn.
 - Converge | | Seer – Fixed Point | Declare an outcome for this combat — a specific enemy dies, a door is opened, an ally survives. For the next 1d4+2 turns everything bends toward it: relevant rolls gain advantage, irrelevant ones suffer disadvantage.
 - The Point Approaches | | Seer – Fixed Point | Learn precisely when and how your sealed outcome will occur. You may not act to change it, and knowing costs you your next turn.
 - Fated Strike | | Seer – Fixed Point | One attack made by anyone this turn cannot miss, cannot be dodged, and deals maximum damage. Declare before initiative.
 
 ## Tier 5
-- Rewind | | Seer – Past Regrets | Undo the last full round of combat (DM discretion), keeping your own knowledge of it. Once per session.
-- Weight of the Past | −5 to rolls | Seer – Past Regrets | A target is burdened by every wrong they've done — −5 to all rolls for 1d4 turns (wisdom save halves).
-- Inevitable | | Seer – Future Mistakes | Declare that a non-boss enemy's next action will fail; it does.
-- Avert | | Seer – Future Mistakes | Once per session, prevent a single catastrophe (a death, a collapse, a betrayal) by having seen it coming.
-- Flawless Assault | | Seer – Guided Strikes | For 1d3 turns the party can't miss non-boss enemies and crits on 18+.
-- Foreseen Finish | | Seer – Guided Strikes | The next blow that would reduce a non-boss below 25% kills it outright.
-- Perfect Alibi | | Seer – Trickster | Convince all present (non-boss) that recent events went exactly as you describe.
-- Fortune's Favourite | | Seer – Trickster | Once per session, turn any single roll in the combat into a natural 20.
-- Shepherd of Fates | | Seer – Path of Guidance | For 1d4 turns, once per turn, swap a bad ally roll for a good one you've foreseen.
-- Chosen Path | | Seer – Path of Guidance | For 1d3 turns an ally can't roll below half on any die.
+- Rewind |  | Seer – Past Regrets | Undo the last full round of combat (DM discretion), keeping your own knowledge of it. Once per session.
+- The ledger |  | Seer – Past Regrets | A target hears every wrong it has done read aloud in its own voice. It takes −5 to all rolls for 1d4 turns (wisdom save halves), and everyone listening learns one of the wrongs.
+- Inevitable |  | Seer – Future Mistakes | Declare a non-boss enemy's next action will fail; it does.
+- Avert |  | Seer – Future Mistakes | Once per session, prevent a single catastrophe (a death, a collapse, a betrayal) by having seen it coming.
+- Flawless assault |  | Seer – Guided Strikes | For 1d3 turns the party cannot miss non-boss enemies and crits on 18+.
+- Executioner's note |  | Seer – Guided Strikes | Name which ally will kill a non-boss. That ally deals double damage to it, and it cannot hide from them while it lives.
+- Perfect alibi |  | Seer – Trickster | Convince all present (non-boss) that recent events went exactly as you describe.
+- Fortune's favourite |  | Seer – Trickster | Once per session, turn any single roll in the combat into a natural 20.
+- Guardian angel |  | Seer – Path of Guidance | For 1d4 turns, once per turn, when an ally would be hit you may spend a Foresight die as the attacker's roll.
+- Chosen path |  | Seer – Path of Guidance | For 1d3 turns an ally cannot roll below half on any die.
 - This Was Always Going to Happen | | Seer – Fixed Point | For 1d4+2 turns, no creature in sight may take any action you did not foresee. You list three permitted actions at the start of each turn; everything else fails.
 - Second Point | | Seer – Fixed Point | Seal a second outcome mid-session. If both come to pass, you may act twice on every turn for the rest of the session.
 
 ## Tier 6
-- The Unbroken Thread | | Seer – Past Regrets | Step into a vision of any one past event you choose, however distant, exactly as it happened; you may bring one ally to witness it.
-- No Future for You | | Seer – Future Mistakes | Lock a target into a doomed path: for 1d4 turns every roll they make is at disadvantage and they can't crit.
-- One Perfect Moment | | Seer – Guided Strikes | For one turn every ally acts in the optimal order, each attack auto-hits for maximum damage, and no enemy may react.
-- The Long Con | | Seer – Trickster | Reveal that events went to a plan only you foresaw: choose any one outcome that could plausibly have been set up earlier, and it is now true.
-- All Roads Lead Home | | Seer – Path of Guidance | The party can't die this combat (downed allies stabilise automatically) and gains a free reroll on every roll for 1d4 turns.
+- The Unbroken Thread |  | Seer – Past Regrets | Step into any past event, however distant, exactly as it happened, and bring one ally. You cannot change anything, but you may carry out one small object that was lost in that moment.
+- Dead end |  | Seer – Future Mistakes | Close a target's futures one by one. For 1d4 turns it cannot crit, and you may replace any roll it makes with one of your Foresight dice at no cost. Each time you do, tell it what it will fail at next.
+- One Perfect Moment |  | Seer – Guided Strikes | For one turn, every ally acts in the optimal order, each attack auto-hits for maximum damage, and no enemy may react.
+- The Long Con |  | Seer – Trickster | Reveal that events went to a plan only you foresaw: choose any one outcome that could plausibly have been set up earlier, and it is now true.
+- All Roads Lead Home |  | Seer – Path of Guidance | The party cannot die this combat (downed allies stabilise automatically) and gains a free reroll on every roll for 1d4 turns.
 - The Fixed Point | | Seer – Fixed Point | Declare one thing about the world that will be true, of any scale — a person will die, a city will fall, an army will turn, a god will answer. It becomes fixed. Nothing in the campaign can prevent it, including the party, including you, including the GM. It does not specify when, how, or at what cost, and the GM chooses all three.
 
 # Blood Magic (Rites)
@@ -352,21 +352,21 @@
 - Bloodletting | 1 blood charge | Hemomancer | Open a small wound at no cost to bank 1 blood charge (once per turn).
 - Sense Blood | | Hemomancer | Detect living creatures and their rough vitality within 30 ft.
 - Staunch | | Hemomancer | Stop one bleed effect on a creature.
-- Blood Dart | 1d8 piercing | Hemomancer – Bloodspiller | A dart of blood.
-- Crimson Spray | 1d6 (15 ft cone) | Hemomancer – Bloodspiller | A cone of blood.
-- Open Vein | 1d6 + 1 bleed | Hemomancer – Bloodspiller | Touch a creature for 1d6 and 1 bleed stack.
-- Blood Weapon | 1d10 | Hemomancer – Gorecrafter | Form a blade or whip of blood for the combat (counts as magic).
-- Blood Shield | Blocks 1d10 | Hemomancer – Gorecrafter | A floating clot blocks the next 1d10 damage to you or an ally.
-- Spatter | 1d6 | Hemomancer – Gorecrafter | Deal 1d6 and create a small patch of bloodied (difficult) ground.
-- Transfuse | | Hemomancer – Bloodbinder | Move up to 10 HP between two creatures.
-- Mend Wound | Heal 1d6 | Hemomancer – Bloodbinder | Heal a target by knitting their blood.
-- Staunch the Line | | Hemomancer – Bloodbinder | Remove one bleed or one minor debuff from an ally.
-- Open the Scar | | Hemomancer – The Scarred | Reopen a scar to gain its bonus again, doubled, for 1d3 turns.
-- Thick Blood | −1d8 dmg | Hemomancer – The Scarred | Reduce the next instance of damage you take by 1d8.
-- Warpaint | +2 | Hemomancer – The Scarred | Smear blood for +2 to your attacks for 1 turn.
-- Drain | 1d8 / heal | Hemomancer – Sanguivore | Deal 1d8 and heal the amount dealt.
-- Sip | Heal 1d4 | Hemomancer – Sanguivore | Heal by tapping a marked or adjacent foe.
-- Bloodscent | | Hemomancer – Sanguivore | Track and sense wounded creatures by the blood they have lost.
+- Blood dart | 1d8 piercing | Hemomancer – Bloodspiller | 1d8 piercing.
+- Spit |  | Hemomancer – Bloodspiller | Spit blood into a target's eyes: blind until its next turn. Costs 1 HP less than usual.
+- Open vein | 1d6 | Hemomancer – Bloodspiller | Touch a creature for 1d6 and 1 stack of bleed.
+- Blood weapon |  | Hemomancer – Gorecrafter | Form a blade or whip of blood for the combat (1d10, counts as magic).
+- Blood shield | 1d10 | Hemomancer – Gorecrafter | A floating clot blocks the next 1d10 damage to you or an ally.
+- Blood key |  | Hemomancer – Gorecrafter | Pour blood into a lock. It sets into a key that turns once, then crumbles.
+- Transfuse |  | Hemomancer – Bloodbinder | Move up to 10 HP between two creatures.
+- Mend wound | Heal 1d6 | Hemomancer – Bloodbinder | Heal a target 1d6 by knitting their blood.
+- Kin-sense |  | Hemomancer – Bloodbinder | Taste a drop of a creature's blood to learn who its closest living blood relative is and roughly which way they are.
+- Open the scar |  | Hemomancer – The Scarred | Reopen a scar to gain its bonus again, doubled, for 1d3 turns.
+- Old wound |  | Hemomancer – The Scarred | Your scars ache before danger. While any scar is open you cannot be surprised.
+- Warpaint |  | Hemomancer – The Scarred | Smear blood for +2 to your attacks for 1 turn.
+- Drain | 1d8 | Hemomancer – Sanguivore | Deal 1d8 and heal the amount dealt.
+- Mosquito | Heal 2d4 | Hemomancer – Sanguivore | Bite a sleeping or helpless creature without waking it and heal 2d4.
+- Bloodscent |  | Hemomancer – Sanguivore | Track and sense wounded creatures by the blood they have lost.
 - Open | | Hemomancer – Exsanguine | 4d8 necrotic to a target and you bleed for 1d4 per turn until you close it. While bleeding, all your Rites gain +2d6.
 - Second Heart | | Hemomancer – Exsanguine | Store HP or max HP in a vessel — a stone, a blade, a companion — and draw on it later. It can be stolen.
 - Read the Pulse | | Hemomancer – Exsanguine | Know a creature's exact HP, maximum, bleeding status, and how much life it has left in it.
@@ -378,16 +378,16 @@
 - Boiling Blood | 1d8 | | A target's blood heats in their veins. They take 1d8 and have disadvantage on their next attack as the fever grips them.
 - Blood Read | | Hemomancer | Touch fresh blood to learn the creature's species, health and last strong emotion.
 - Crimson Key | | Hemomancer | Use a drop of your blood to seal or open a blood-warded lock or pact.
-- Blood Lance | 2d8 piercing | Hemomancer – Bloodspiller | Overpay to pierce a second target behind the first.
-- Clotburst | 2× bleed stacks | Hemomancer – Bloodspiller | Detonate a target's bleed for twice their current stacks as instant damage.
-- Grasping Clot | | Hemomancer – Gorecrafter | Hands of blood hold a target (STR save) for 1d3 turns.
-- Crimson Caltrops | 1d6 + slow | Hemomancer – Gorecrafter | Scatter hardened blood spikes in 10 ft; 1d6 and slow to those crossing.
-- Crimson Bond (Binder) | | Hemomancer – Bloodbinder | Link a foe to an ally; for 1d3 turns, damage the foe takes also heals the ally for half.
-- Blood Ward | Absorbs 20 | Hemomancer – Bloodbinder | An ally gains a shield; when it breaks it bursts for 1d8 to nearby foes.
-- Iron in the Blood | | Hemomancer – The Scarred | Until your next turn, halve all incoming damage.
-- Blood Frenzy | +1d8 | Hemomancer – The Scarred | For 1d4 turns gain an extra attack and +1d8 damage; you bleed 2 HP on each of those turns.
-- Leeching Grasp | 1d6 per turn | Hemomancer – Sanguivore | Latch on; the target loses 1d6/turn, healed to you, until they break free (STR) or die.
-- Bloodlink | Heal 1d4 per hit | Hemomancer – Sanguivore | Mark an enemy; the party's hits on it heal the attacker 1d4.
+- Blood lance | 2d8 piercing | Hemomancer – Bloodspiller | 2d8 piercing; overpay to pierce a second target behind the first.
+- Clotburst |  | Hemomancer – Bloodspiller | Detonate a target's bleed for twice their current stacks as instant damage.
+- Grasping clot |  | Hemomancer – Gorecrafter | Hands of blood hold a target (strength save) for 1d3 turns.
+- Red thread |  | Hemomancer – Gorecrafter | Draw a thread of blood between two points up to 60ft apart. It holds one person's weight and dissolves at dawn.
+- Crimson bond |  | Hemomancer – Bloodbinder | Link a foe to an ally; for 1d3 turns, damage the foe takes also heals the ally for half.
+- Blood oath |  | Hemomancer – Bloodbinder | Two willing creatures mix blood. For a month, if either harms the other, both take the damage.
+- Iron in the blood |  | Hemomancer – The Scarred | Until your next turn, halve all incoming damage.
+- Blood frenzy | 1d8 | Hemomancer – The Scarred | For 1d4 turns gain an extra attack and +1d8 damage; you bleed 2 HP on each of those turns.
+- Leeching grasp | 1d6 | Hemomancer – Sanguivore | Latch on; the target loses 1d6 a turn, healed to you, until it breaks free (strength) or dies.
+- Last supper | Heal 2d8 | Hemomancer – Sanguivore | Feed on a corpse that died within the hour. Heal 2d8 and see the last thing it saw.
 - Transfusion | | Hemomancer – Exsanguine | Move any amount of HP between any two creatures in sight, in either direction, no save.
 - Thin the Blood | | Hemomancer – Exsanguine | A target's healing, regeneration and resistances are halved for 1d4+2 turns and their bleed effects double.
 
@@ -396,59 +396,59 @@
 - Blood Golem | 1d8 per strike | | You spill a measure of your own blood and shape it into a servant with its own stat block. It lasts 1 hour out of combat or 8 turns in combat.
 - Exsanguinate | 3d20 + 10 bleed | | You try to tear all the blood from a single creature at once. They make a strength roll at disadvantage or take 3d20 and gain 10 stacks of bleed; on a success they still take 1d20 and gain 10 stacks of bleed.
 - Blood Pact | | Hemomancer | Form a minor pact sealed in blood; both parties feel it the moment it is broken.
-- Arterial Lash | 3d8 | Hemomancer – Bloodspiller | If it drops the target below half, their bleed doubles.
-- Hemoplague | | Hemomancer – Bloodspiller | Mark up to 3 foes; for 1d3 turns, damage to any marked foe is shared at half to all marked.
-- Crimson Wall | 1d40 HP wall | Hemomancer – Gorecrafter | A 15 ft wall of hardened blood that bleeds attackers for 1d6.
-- Blood Puppet (Gore) | 1d8 minion | Hemomancer – Gorecrafter | Animate a corpse with its own blood as a minion (15 HP) for the combat.
-- Bleed the Bond | | Hemomancer – Bloodbinder | All creatures linked to a target share its next instance of damage evenly.
-- Shared Pulse | | Hemomancer – Bloodbinder | For 1d3 turns, healing done to any linked creature is echoed at half to all linked.
-- Crimson Vigour | | Hemomancer – The Scarred | Gain temp HP equal to twice the HP you've spent on Rites this turn.
-- Scarred Hide | | Hemomancer – The Scarred | For 1d3 turns gain resistance to physical damage and immunity to bleed.
-- Vampiric Burst | 2d8 (10 ft) | Hemomancer – Sanguivore | Split the total dealt as healing among your allies.
-- Parasite | 1d8 per turn | Hemomancer – Sanguivore | A target loses 1d8/turn (healed to you) for 1d3 turns and can't regain HP while it lasts.
+- Arterial lash |  | Hemomancer – Bloodspiller | 3d8 to one target; if it drops them below half, their bleed doubles.
+- Writing on the wall | 2d8 | Hemomancer – Bloodspiller | Paint one word in your blood on a surface. The next creature other than you to read it takes 2d8 and 2 stacks of bleed. It lasts until washed off.
+- Crimson wall | 1d6 | Hemomancer – Gorecrafter | A 15ft wall of hardened blood (1d40 HP) that bleeds attackers for 1d6.
+- Blood puppet |  | Hemomancer – Gorecrafter | Animate a corpse with its own blood as a minion (15 HP, 1d8) for the combat.
+- Bleed the bond |  | Hemomancer – Bloodbinder | All creatures linked to a target share its next instance of damage evenly.
+- Shared pulse |  | Hemomancer – Bloodbinder | For 1d3 turns, healing done to any linked creature is echoed at half to all linked.
+- Crimson vigour |  | Hemomancer – The Scarred | Gain temp HP equal to twice the HP you have spent on Rites this turn.
+- Scar-graft |  | Hemomancer – The Scarred | Cut one of your scars into a willing ally for a day. They gain its bonus and may open it once.
+- Vampiric burst |  | Hemomancer – Sanguivore | 2d8 to enemies in 10ft; split the total dealt as healing among your allies.
+- Parasite | 1d8 | Hemomancer – Sanguivore | A target loses 1d8 a turn (healed to you) for 1d3 turns and cannot regain HP while it lasts.
 - Sanguine Chains | | Hemomancer – Exsanguine | Bind a creature by its own blood. Restrained, and any damage it takes is dealt again at half to everything of its kind within 20m.
 - Pay Forward | | Hemomancer – Exsanguine | Spend max HP now to bank a Rite. It may be cast later this session for free, instantly, out of turn.
 
 ## Tier 4
-- Rain of Red | 3d8 (15 ft) | Hemomancer – Bloodspiller | Bleed applies to all hit.
-- Boiling Blood (Spiller) | 2d6 per turn | Hemomancer – Bloodspiller | A target's blood boils over 1d3 turns (CON save halves) and they can't be healed while it lasts.
-- Crimson Nova | = HP spent (max 30) | Hemomancer – Bloodspiller | Deal damage equal to the HP you spend this turn to all enemies within 10 ft.
-- Sanguine Cage | | Hemomancer – Gorecrafter | Encase a target — immune to damage but unable to act for 1 turn, or held if unwilling (CON save).
-- Gore Lash | 2d6 (15 ft) | Hemomancer – Gorecrafter | Whips of blood strike all enemies within 15 ft and drag them 5 ft toward you.
-- Reshape the Field | | Hemomancer – Gorecrafter | Turn all bloodied ground within 20 ft into grasping terrain; enemies in it are restrained on a failed save.
-- Vital Anchor | | Hemomancer – Bloodbinder | Tether an ally — the first time they would die this combat they drop to 1 HP and you take the overflow.
-- Mass Transfusion | Heal 3d6 (15 ft) | Hemomancer – Bloodbinder | Heal all allies within 15 ft, drawn from your blood (you pay the HP healed, halved).
-- Sever the Vein | | Hemomancer – Bloodbinder | End shared, summon or aura effects on a non-boss foe by cutting its links.
-- Unflinching | | Hemomancer – The Scarred | For 1d3 turns you can't be staggered, knocked prone, stunned or moved against your will, and you ignore wound penalties.
-- Blood for Power | + HP spent | Hemomancer – The Scarred | Spend up to 20 HP; add that much as flat damage to your next hit.
-- Reopen All | | Hemomancer – The Scarred | Open up to 3 scars at once for their single bonus for 1d4 turns.
-- Feast | | Hemomancer – Sanguivore | For 1d4 turns, all party damage to a marked target heals the attacker for half.
-- Engorge | 3d8 → temp HP | Hemomancer – Sanguivore | Drain nearby foes for 3d8 and convert it to temp HP (up to 25).
-- Steal Vitality | 2d6 max HP | Hemomancer – Sanguivore | Move 2d6 max HP from a foe to an ally until the foe rests.
+- Rain of red |  | Hemomancer – Bloodspiller | 3d8 in a 15ft radius; bleed applies to all hit.
+- Boiling blood | 2d6 | Hemomancer – Bloodspiller | A target's blood boils for 2d6 a turn over 1d3 turns (strength save halves), and it cannot be healed while it lasts.
+- Crimson nova |  | Hemomancer – Bloodspiller | Deal damage equal to the HP you spend this turn (max 30) to all enemies within 10ft.
+- Sanguine cage |  | Hemomancer – Gorecrafter | Encase a target: immune to damage but unable to act for 1 turn, or held if unwilling (strength save).
+- Gore lash | 2d6 | Hemomancer – Gorecrafter | Whips of blood strike all enemies in 15ft for 2d6 and drag them 5ft toward you.
+- Scab bridge |  | Hemomancer – Gorecrafter | Pour blood across a gap up to 30ft wide. It scabs into a walkable bridge for an hour, and it bleeds if cut, so you know if anyone tampers with it.
+- Vital anchor |  | Hemomancer – Bloodbinder | Tether an ally; the first time they would die this combat they drop to 1 HP and you take the overflow.
+- Mass transfusion | 3d6 | Hemomancer – Bloodbinder | Heal all allies in 15ft for 3d6, drawn from your blood (you pay the HP healed, halved).
+- Bad blood |  | Hemomancer – Bloodbinder | Tie two enemies' blood together for 1d4 turns. Whenever one of them is healed, the other takes that much damage.
+- Unflinching |  | Hemomancer – The Scarred | For 1d3 turns you cannot be staggered, knocked prone, stunned or moved against your will, and you ignore wound penalties.
+- Blood for power |  | Hemomancer – The Scarred | Spend up to 20 HP; add that much as flat damage to your next hit.
+- Reopen all |  | Hemomancer – The Scarred | Open up to 3 scars at once for their single bonus for 1d4 turns.
+- Feast |  | Hemomancer – Sanguivore | For 1d4 turns all party damage to a marked target heals the attacker for half.
+- Engorge | 3d8 | Hemomancer – Sanguivore | Drain nearby foes for 3d8 and convert it to temp HP (up to 25).
+- Leech swarm | 1d4 | Hemomancer – Sanguivore | Shake out your sleeve and 2d6 blood leeches drop onto a target. Each drains 1d4 a turn, healed to you, until they are burned or salted off.
 - Exsanguinate | | Hemomancer – Exsanguine | A single target loses half its current HP outright, no save. You gain that amount as temporary HP, and you may spend it as if it were max HP.
 - The Empty Vessel | | Hemomancer – Exsanguine | Reduce yourself to 1 HP deliberately. For 1d4+2 turns every Rite costs nothing at all, and you cannot be reduced below 1 by any means.
 - Blood of the Field | | Hemomancer – Exsanguine | Every wound taken by anyone in 30m — ally or enemy — feeds you. Regain 2d10 per instance.
 
 ## Tier 5
-- Sanguine Storm | 2d8 per turn (20 ft) | Hemomancer – Bloodspiller | A field of flying blood-shards for 1d4 turns.
-- Bloodburst Execution | | Hemomancer – Bloodspiller | A non-boss below 30% HP makes a CON save or their blood erupts and kills them (5d10 to others within 5 ft if it does).
-- Gore Golem | 2d8 | Hemomancer – Gorecrafter | Raise a blood golem (40 HP) for the encounter; it dissolves into reusable blood when destroyed.
-- Coagulant Tomb | 2d6 per turn | Hemomancer – Gorecrafter | Bury a target in setting blood (no save the first time) for 1d3 turns.
-- Crimson Communion | | Hemomancer – Bloodbinder | Redistribute all current HP evenly among the party; the dying are stabilised in the process.
-- Blood Regent | | Hemomancer – Bloodbinder | For 1d4 turns, all damage your linked allies take is routed through you first, halved.
-- Unkillable | | Hemomancer – The Scarred | For 1d3 turns you can't drop below 1 HP; when it ends you bleed the prevented damage, halved.
-- Avatar of Scars | +2d8 | Hemomancer – The Scarred | For 1d4 turns every scar's bonus is active and your strikes deal +2d8.
-- Exsanguinate (Sanguivore) | 4d8 → party heal | Hemomancer – Sanguivore | Distribute the full amount dealt as healing across the party.
-- Swell | +25 temp HP | Hemomancer – Sanguivore | For 1d3 turns become engorged — +25 temp HP, +1d6 damage, but −2 to dodge.
+- Red tide | 2d8 | Hemomancer – Bloodspiller | Spill your blood in a 20ft line. For 1d4 turns it runs uphill toward the nearest enemy, dragging every enemy it touches 10ft toward you and dealing 2d8 each turn.
+- Bloodburst execution |  | Hemomancer – Bloodspiller | A non-boss below 30% HP makes a strength save or its blood erupts and kills it (5d10 to others within 5ft if it does).
+- Red chapel |  | Hemomancer – Gorecrafter | Raise a sealed blood shelter for up to 8 people that lasts the night. It is warm and weatherproof, and anything that touches the outside wakes you.
+- Coagulant tomb | 2d6 | Hemomancer – Gorecrafter | Bury a target in setting blood (no save the first time) for 1d3 turns, 2d6 a turn.
+- Crimson communion |  | Hemomancer – Bloodbinder | Redistribute all current HP evenly among the party; the dying are stabilised in the process.
+- Blood brother |  | Hemomancer – Bloodbinder | Bind a non-boss foe's blood to yours for 1d3 turns. It cannot harm you without taking the same damage itself, and it knows it.
+- Unkillable |  | Hemomancer – The Scarred | For 1d3 turns you cannot drop below 1 HP; when it ends you bleed the prevented damage, halved.
+- Avatar of scars |  | Hemomancer – The Scarred | For 1d4 turns every scar's bonus is active and your strikes deal +2d8.
+- Gorge |  | Hemomancer – Sanguivore | Drink deep from a grappled or helpless creature: 6d8 drained and healed to you. You are bloated and move at half speed until the end of your next turn.
+- Swell | 1d6 | Hemomancer – Sanguivore | For 1d3 turns become engorged: +25 temp HP and +1d6 damage, but −2 to dodge.
 - The Last of It | | Hemomancer – Exsanguine | Spend any amount of max HP in one Rite. Its effect scales without limit against the amount paid, and the GM should let it do what that price implies.
 - Debt of Kin | | Hemomancer – Exsanguine | Pay a Rite's cost from someone else's maximum HP instead of your own. It must be someone who owes you, loves you, or is bound to you, and they will know.
 
 ## Tier 6
-- Exsanguination | 6d10 | Hemomancer – Bloodspiller | Rip the blood from a target; you heal any overkill, and the spray bleeds everything within 10 ft.
-- Tide of Blood | 2d8 per turn | Hemomancer – Gorecrafter | Flood a 40 ft area for 1d4 turns; enemies are swept and pinned (STR save), allies may surf it to reposition, and you may raise one gore construct each turn for free.
-- One Blood | | Hemomancer – Bloodbinder | For 1d4 turns the linked party shares a single HP pool; damage and healing apply to the whole, and no member can be individually downed while the pool holds.
-- Apotheosis of Scars | 50 temp HP | Hemomancer – The Scarred | Open every scar at once, all bonuses doubled, for 1d4 turns, and gain 50 temp HP. Afterward you fall to 1 HP.
-- Blood Glutton | 4d8 each (20 ft) | Hemomancer – Sanguivore | Tear the blood from every bloodied enemy within 20 ft, healing you for half of all of it; overkill becomes temp HP, and any enemy killed restores an ally to full.
+- Exsanguination | 6d10 | Hemomancer – Bloodspiller | Rip the blood from a target for 6d10; you heal any overkill, and the spray bleeds everything within 10ft.
+- Tide of blood | 2d8 | Hemomancer – Gorecrafter | Flood a 40ft area for 1d4 turns; enemies are swept and pinned (strength save, 2d8 a turn), allies may surf it to reposition, and you may raise one gore construct each turn for free.
+- One blood |  | Hemomancer – Bloodbinder | For 1d4 turns the linked party shares a single HP pool; damage and healing apply to the whole, and no member can be individually downed while the pool holds.
+- Apotheosis of scars |  | Hemomancer – The Scarred | Open every scar at once, all bonuses doubled, for 1d4 turns, and gain 50 temp HP. Afterwards you fall to 1 HP.
+- Blood glutton |  | Hemomancer – Sanguivore | Tear the blood from every bloodied enemy in 20ft (4d8 each), healing you for half of it all; overkill becomes temp HP, and any enemy killed restores an ally to full.
 - Exsanguine | | Hemomancer – Exsanguine | Spend everything. For 1d4+2 turns your maximum HP is your only resource and it is unlimited — every Rite at maximum effect, every turn, no cost calculated, no save allowed, no upper bound. Nothing on the field can meaningfully interrupt you. When it ends your maximum HP is 1, permanently, and only something on the order of a god, a pact or a genuine miracle changes that. Most hemomancers cast this once.
 
 # Dawn Magic
@@ -567,21 +567,21 @@
 - Imbue Shadow (Weapon) | | Cleric (Dusk) | Bonus action. Make a target's weapon deal necrotic damage.
 - Last Rites | | Cleric (Dusk) | Ask your god/pantheon to ease a dying creature's passing, or briefly stir a corpse to answer for the dead.
 - Gloom | | Cleric (Dusk) | Dim the light in an area, granting concealment to those within it.
-- Jinx | | Cleric (Dusk) – Chaos | Bonus action. A target takes their next roll at disadvantage.
-- Wild Surge | 1d8 random element | Cleric (Dusk) – Chaos | Deal 1d8 damage of a random element (roll 1d6 for the type).
-- Shuffle | | Cleric (Dusk) – Chaos | Swap the positions of two creatures within 15 ft.
-- Chill Touch | 1d6 necrotic | Cleric (Dusk) – Necromancy | Deal necrotic damage; the target cannot heal for one turn.
-- Bone Shard | 1d4 | Cleric (Dusk) – Necromancy | Fire a shard; on a kill, gain a corpse charge used by your other spells.
-- Speak with Dead | | Cleric (Dusk) – Necromancy | Ask a corpse one question, which it answers as it knew in life.
-- Lull | | Cleric (Dusk) – Bliss | Bonus action. A target makes a wisdom save or becomes drowsy (−2 to all rolls) for one turn.
-- Numb | | Cleric (Dusk) – Bliss | Remove a target's pain — they ignore the next 1d8 damage and one status effect for a turn.
-- Daydream | | Cleric (Dusk) – Bliss | A non-boss is briefly distracted, losing their reaction.
-- Flicker | | Cleric (Dusk) – Nightmares | Bonus action. A target glimpses something terrible, taking disadvantage on their next roll.
-- Whisper | | Cleric (Dusk) – Nightmares | Plant a frightening thought; a non-boss must take a step back on their turn.
-- Night Sight | | Cleric (Dusk) – Nightmares | Bonus action. See perfectly in any natural or magical darkness.
-- Silence | | Cleric (Dusk) – Null | Bonus action. A target cannot cast verbal spells for one turn.
-- Dampen | | Cleric (Dusk) – Null | Reduce incoming or outgoing magic damage in a small area by 5 for a turn.
-- Mark of Absence | | Cleric (Dusk) – Null | Mark a caster; you sense whenever they cast.
+- Heads or tails | 1d6 | Cleric (Dusk) – Chaos | Flip a coin with a creature that can see you. The loser takes 1d6 and the winner heals 1d6. You are one of the two players.
+- Wrong pocket |  | Cleric (Dusk) – Chaos | The next item the target draws, reaches for or pulls from a bag is a different item they carry, chosen at random by the DM.
+- Trade places |  | Cleric (Dusk) – Chaos | Two unattended objects of about the same size that you can see swap positions: a key and a spoon, two mugs, two hats.
+- Death mask |  | Cleric (Dusk) – Necromancy | Press your hand to a corpse's face. For one hour you wear its face and voice. You gain none of its memories.
+- Borrowed hand |  | Cleric (Dusk) – Necromancy | A dead hand crawls off to do one job for you: carry a key, pull a lever, hold a torch, lift a purse using your dex. Lasts 10 minutes.
+- Last moments |  | Cleric (Dusk) – Necromancy | A corpse stands and silently acts out the final ten seconds of its life, then falls. It cannot speak or be questioned.
+- Five more minutes |  | Cleric (Dusk) – Bliss | A sleeping creature will not wake for an hour to anything short of damage. Cast on someone awake and bored, such as a guard on watch, they doze off unless they pass a wisdom save.
+- Numb |  | Cleric (Dusk) – Bliss | For an hour the target feels no pain. They ignore wound penalties and cannot be broken by torture, but they no longer notice being hurt: the DM tracks their HP in secret.
+- Comfort food |  | Cleric (Dusk) – Bliss | Bless a meal. Those who eat it together cannot raise a hand against each other until dawn. An unwilling diner who knows what it is gets a wisdom save.
+- Teeth |  | Cleric (Dusk) – Nightmares | A target feels its teeth coming loose. On a failed wisdom save it cannot speak clearly for a turn: no orders, no spoken spells.
+- Under the bed |  | Cleric (Dusk) – Nightmares | Something now lives in a dark space you choose: under a bed, in a cupboard, down a well. Nothing is there, but nobody who knows the space will reach into it without passing a wisdom save. Lasts until daylight touches it.
+- Falling |  | Cleric (Dusk) – Nightmares | For a blink the target is certain it is falling. It drops prone and loses its reaction.
+- Hush |  | Cleric (Dusk) – Null | One thing you can see makes no sound for 10 minutes: a bell, a door, a pair of boots, a scream. On an unwilling creature's voice it lasts one turn and allows a wisdom save.
+- Forget-me |  | Cleric (Dusk) – Null | A creature makes a wisdom save. On a fail, once you leave its sight it remembers what happened but not what you looked like.
+- Clean hands |  | Cleric (Dusk) – Null | Wipe the residue of a spell from a place, object or person. Detection finds no sign that magic was ever used there.
 - Dimming | | Cleric (Dusk) – Eclipse | A creature loses all light sources, darkvision and magical sight for 3 turns.
 - Borrowed Grace | | Cleric (Dusk) – Eclipse | Steal an active buff from any creature and hold it for yourself for 1d4 turns.
 - The Sun Sets Early | | Cleric (Dusk) – Eclipse | Bring darkness over a 15m area. Allies see through it, enemies do not.
@@ -593,16 +593,16 @@
 - Final Prayer | | | Sacrifice 10 HP to allow an ally to regain one expended spell slot of 3rd level or lower.
 - Toll | | Cleric (Dusk) | The next attack against a target either deals double damage or heals them to full (1d2 to see which).
 - Imbue Shadow (Armour) | | Cleric (Dusk) | Bonus action. Make a target's min hit value 1d6 + 6, wreathed in shadow.
-- Misfortune | | Cleric (Dusk) – Chaos | Reaction. A target's next failed roll also causes them to drop a held item or lose their reaction.
-- Borrowed Luck | | Cleric (Dusk) – Chaos | Bonus action. Take advantage on your next roll; the next ally to roll takes disadvantage.
-- Animate Lesser | | Cleric (Dusk) – Necromancy | Bonus action. Raise one fresh corpse as a minion for the rest of the combat.
-- Siphon | 1d8 necrotic / heal half | Cleric (Dusk) – Necromancy | Deal necrotic damage and heal yourself half the amount.
-- Sweet Nothing | Heal 1d8 | Cleric (Dusk) – Bliss | Heal a target and make them immune to fear for 1d3 turns.
-- Sap Will | | Cleric (Dusk) – Bliss | A target's next attack is made at half damage as they hesitate.
-- Terrorise | | Cleric (Dusk) – Nightmares | A target makes a wisdom save or is frightened for 1d3 turns.
-- Feed on Fear | 1d10 / heal half | Cleric (Dusk) – Nightmares | Deal damage to a frightened target and heal half the amount.
-- Nullify Minor | | Cleric (Dusk) – Null | Reaction. Counter a tier 2 or lower spell.
-- Leech Magic | | Cleric (Dusk) – Null | On a failed wisdom save, drain a spell charge from a target; you may store it.
+- Borrowed luck |  | Cleric (Dusk) – Chaos | A roll you just failed passes instead. The DM takes a marker and may turn any one of your passes later this session into a fail.
+- Odd one out |  | Cleric (Dusk) – Chaos | Every creature within 20ft, you included, rolls 1d6. Until your next turn nobody can target the lowest roller, and the highest roller is the only creature anyone may target. Ties reroll.
+- Night shift |  | Cleric (Dusk) – Necromancy | Raise a corpse to work, not fight, until dawn: dig, row, carry or stand watch. On watch it screams once if anything approaches.
+- Rigor |  | Cleric (Dusk) – Necromancy | A target makes a strength save or one limb of your choice locks stiff for 1d3 turns. An arm drops what it holds; a leg cannot move. Cast on an undead, it mends 1d10 instead.
+- Sweet nothing |  | Cleric (Dusk) – Bliss | Whisper to a target. They hear what they most want to hear, in the voice they most want to hear it from, and lose their action smiling unless they pass a wisdom save. Either way you learn whose voice it was.
+- Happy place | Heal 2d8 | Cleric (Dusk) – Bliss | An ally vanishes into their fondest memory until their next turn. They cannot act or be targeted, and return healed 2d8 with fear removed.
+- Eat the dream |  | Cleric (Dusk) – Nightmares | Touch a sleeper and eat their nightmare. They wake rested; you gain 1d10 temp HP and learn what they fear most.
+- Unprepared |  | Cleric (Dusk) – Nightmares | A target becomes sure it has forgotten something vital. On a failed wisdom save it spends its action checking its gear. Out of combat it turns around and goes back for it.
+- Pocket (Reaction) |  | Cleric (Dusk) – Null | Catch a spell of tier 2 or lower as it is cast and keep it in the hollow of your hand until dawn. You hold one at a time and may throw it as your own.
+- Lighten |  | Cleric (Dusk) – Null | Take the weight out of an object for an hour: a portcullis, a chest, a boulder. Anyone can lift it. When the hour ends the weight returns all at once.
 - Invert | | Cleric (Dusk) – Eclipse | The next healing effect cast within your range deals its value as damage to the recipient instead.
 - Blind Faith | | Cleric (Dusk) – Eclipse | A target's own divine trait or domain ability fails on their next use, and they do not know it has failed until it does.
 
@@ -611,59 +611,59 @@
 - Last Rites (Revival) | | | Return an ally from unconsciousness or death (within 1 minute) to full HP, but permanently lose 5 HP plus your character level. The revived ally gains +1 to all rolls for the next hour.
 - Moonlit Passage | | | Step into a veil of night and instantly travel to any place within 500 metres that is in dim light or darkness.
 - Dusk's Shroud | | Cleric (Dusk) | Gain a shroud of dusk, making your min hit value 1d20 + 10 for 1d4 turns and rendering you dim and hard to see.
-- Entropy Bolt | 2d8 | Cleric (Dusk) – Chaos | Roll 1d4; on a 4 it ignores all resistance and armour.
-- Chaos Step | | Cleric (Dusk) – Chaos | Teleport to a random point within 30 ft, or choose the point if you accept disadvantage on your next roll.
-- Grave Bind | | Cleric (Dusk) – Necromancy | Bonus action. A target makes a strength save or is held by grasping hands for 1d3 turns.
-- Corpse Burst | 2d8 (10 ft) | Cleric (Dusk) – Necromancy | Detonate a corpse or minion for 2d8 in a 10 ft radius.
-- Slumber | | Cleric (Dusk) – Bliss | 1d3 targets make a wisdom save or fall asleep until damaged.
-- Euphoria | | Cleric (Dusk) – Bliss | An ally acts with advantage and immunity to control effects for one turn, then is fatigued (−2) the following turn.
-- Manifest Dread | 2d6 psychic | Cleric (Dusk) – Nightmares | Summon a phantasm of a foe's fear; it attacks them and they cannot tell it is not real.
-- Sleep Paralysis | | Cleric (Dusk) – Nightmares | A target makes a wisdom save or cannot move (may still act at disadvantage) for 1d3 turns.
-- Void Bolt | 2d8 | Cleric (Dusk) – Null | Damage that ignores magical resistances and shields.
-- Sever | | Cleric (Dusk) – Null | Reaction or bonus action. End one ongoing magical effect on a target or ally.
+- Entropy bolt | 2d8 | Cleric (Dusk) – Chaos | Before you roll 2d8 damage, the target calls odd or even. If they call the total correctly, you take the damage instead.
+- Unlucky heirloom |  | Cleric (Dusk) – Chaos | You curse an object you are holding for a month. Whoever carries it fails the first roll they make each day. The curse moves on only when the object is accepted as a gift.
+- Second opinion |  | Cleric (Dusk) – Necromancy | Take a corpse's head. For a day it talks, keeps what it knew and one skill it had in life, and you roll that skill as it did. It has opinions and does not have to like you.
+- Shallow grave |  | Cleric (Dusk) – Necromancy | The ground opens under a target and closes at the waist. They make a strength save each turn to climb out and sink deeper on each fail. On the third fail only the head shows and they cannot act until dug out.
+- Slumber party |  | Cleric (Dusk) – Bliss | 1d3 targets make a wisdom save or fall asleep until damaged. They share one dream; you choose its subject and may walk in and speak with them.
+- Euphoria |  | Cleric (Dusk) – Bliss | The first roll an ally fails this turn passes instead. Next turn they do nothing but grin.
+- Manifest dread | 2d6 psychic | Cleric (Dusk) – Nightmares | Summon a phantasm of what a foe fears. It attacks them for 2d6 psychic and only they can see it; to everyone else they are fighting empty air.
+- Sleep paralysis |  | Cleric (Dusk) – Nightmares | A target makes a wisdom save or cannot move or speak for 1d3 turns while fully aware. Each hit it takes allows a new save.
+- Subtract |  | Cleric (Dusk) – Null | Take one thing from a target for 1d3 turns unless it passes a wisdom save: its shadow (it cannot hide), its voice (it cannot speak or cast aloud), its scent (it cannot be tracked) or its balance (it falls prone if it moves more than 5ft).
+- Sever (Reaction/Bonus Action) |  | Cleric (Dusk) – Null | End one ongoing magical effect on a target or ally.
 - Occlusion | | Cleric (Dusk) – Eclipse | For 3 turns no divine, radiant or holy effect functions in 20m. Yours included.
 - Shadow of the Faithful | | Cleric (Dusk) – Eclipse | Copy any divine spell you have witnessed this encounter and cast it once, at your own tier.
 
 ## Tier 4
-- Pandemonium | | Cleric (Dusk) – Chaos | All combatants roll 1d4 at the start of their turn for 1d4 turns; on a 1 they attack the nearest creature, friend or foe.
-- Unmaking | | Cleric (Dusk) – Chaos | A target makes a wisdom save or has a random one of their abilities or spells sealed for 1d4 turns.
-- Twist of Fate | | Cleric (Dusk) – Chaos | Reaction. Convert a single roll anywhere in combat into its mirror (a 1 becomes 20, a 20 becomes 1, and so on).
-- Raise Greater | | Cleric (Dusk) – Necromancy | Raise a medium corpse as a strong minion (20 HP, deals 2d6) for the encounter.
-- Wave of Weakness | | Cleric (Dusk) – Necromancy | All enemies within 20 ft make a strength save or deal half damage for 1d4 turns.
-- Soul Tether | | Cleric (Dusk) – Necromancy | Bonus action. Bind to a minion; while it lives, the first time you would hit 0 HP you drop to 1 instead and the minion is destroyed.
-- Cradle | Heal 4d4 (all allies) | Cleric (Dusk) – Bliss | Heal all allies and end one mental status effect on each.
-- Surrender | | Cleric (Dusk) – Bliss | A non-boss makes a charisma save or lays down arms and withdraws from combat for 1d4 turns.
-- Drowning Calm | | Cleric (Dusk) – Bliss | A target makes a wisdom save each turn; after three failures across the fight they fall unconscious.
-- Mass Terror | | Cleric (Dusk) – Nightmares | All enemies within 20 ft make a wisdom save or flee for 1d4 turns.
-- Living Nightmare | 3d8 psychic | Cleric (Dusk) – Nightmares | A sleeping or downed target suffers psychic damage and wakes frightened.
-- Hall of Fears | | Cleric (Dusk) – Nightmares | Create a 15 ft zone of nightmare; enemies inside take all saves at disadvantage.
-- Null Zone | | Cleric (Dusk) – Null | Create a 15 ft anti-magic field for 1d4 turns; no spells of tier 4 or lower function inside.
-- Unmake Ward | | Cleric (Dusk) – Null | Strip all temporary magical buffs and barriers from a target.
-- Silence the Choir | | Cleric (Dusk) – Null | All enemy casters within 20 ft make a wisdom save or lose their highest available spell slot.
+- Pandemonium |  | Cleric (Dusk) – Chaos | Every creature within 30ft is picked up and dealt back out. The DM collects their positions and hands them out again at random; nobody keeps their own.
+- Twist of fate (Reaction) |  | Cleric (Dusk) – Chaos | Convert a single roll anywhere in combat into its mirror: a 1 becomes 20, a 20 becomes 1, and so on.
+- Double or nothing (Reaction) |  | Cleric (Dusk) – Chaos | When any attack or spell deals damage, flip. On a 2 the damage is dealt a second time. On a 1 it is undone entirely.
+- Skeleton key | 2d6 | Cleric (Dusk) – Necromancy | Pull the skeleton out of a creature that is dead or on death saves. It fights for you this combat (20 HP, deals 2d6). A creature on death saves dies, and what is left behind cannot be raised or revived by anyone.
+- Stand-in (Reaction) |  | Cleric (Dusk) – Necromancy | When you would be hit, swap places with one of your minions within 30ft. It takes the hit. If the hit would have dropped you to 0, the minion is destroyed.
+- Wake |  | Cleric (Dusk) – Necromancy | Hold a wake over someone who died today. Everyone who shares food or drink beside the body gains one thing the dead had for a day: a language, a skill, or 1d12 temp HP. The body cannot be raised afterwards.
+- Last orders |  | Cleric (Dusk) – Bliss | Every creature within 30ft, allies included, makes a wisdom save or puts their weapon away and spends the round sharing whatever food or drink is to hand. Anyone who attacks during that round takes disadvantage for the rest of the fight.
+- Cradle | Heal 4d4 | Cleric (Dusk) – Bliss | Heal all allies 4d4 and end fear, charm and madness on them. They cannot remember what frightened them.
+- Lotus |  | Cleric (Dusk) – Bliss | Name one thing the target wants: revenge, the gold, the crown, this fight. On a failed wisdom save they stop wanting it for a day. Bosses stop for 1d4 turns.
+- Endless corridor |  | Cleric (Dusk) – Nightmares | A doorway, corridor or path you can see becomes dream-long for 1d4 turns. Anyone moving along it gets no closer to the far end, and shots fired down it fall short.
+- Wrong house |  | Cleric (Dusk) – Nightmares | Inside a building, the rooms rearrange themselves for one creature for 10 minutes. Doors open onto the wrong rooms, and it needs a wisdom save for each attempt to find the way out.
+- Night terrors |  | Cleric (Dusk) – Nightmares | Mark a sleeping creature and write its dream. It wakes with no benefit from the rest and one dread lodged in it, such as "do not cross the bridge", which it obeys for a day unless it passes a wisdom save.
+- Quiet room |  | Cleric (Dusk) – Null | Create a 15ft field for 1d4 turns. No spell of tier 4 or lower works inside, no sound leaves it, and scrying sees an empty room.
+- Unnamed |  | Cleric (Dusk) – Null | A target makes a wisdom save or loses its name for a day. Tracking magic cannot find it, and marks, curses, oaths and bindings that name it lapse until the name returns. Its friends struggle to recall who it is. Cast it on a willing ally to shake a hunt or a curse.
+- Struck from the book |  | Cleric (Dusk) – Null | Name a spell you have seen cast this combat. Nobody within 60ft, you included, can cast it for the rest of the fight.
 - Total Eclipse | | Cleric (Dusk) – Eclipse | All enemies in 20m lose resistances, immunities and blessings for 1d4+2 turns. Undead and creatures of darkness are unaffected.
 - Take the Miracle | | Cleric (Dusk) – Eclipse | Steal a completed divine effect after it has resolved — a heal already given, a resurrection already performed, a ward already raised — and it is undone.
 - The Corona | | Cleric (Dusk) – Eclipse | Allies within 10m of you cannot be targeted by any divine effect, hostile or friendly. They also cannot be healed.
 
 ## Tier 5
-- Total Disorder | | Cleric (Dusk) – Chaos | For 1d4 turns, every roll you make is taken twice and you keep the better; every roll against you is taken twice and the enemy keeps the worse.
-- Collapse | 4d8 | Cleric (Dusk) – Chaos | If any two of the d8s match, the target is also stunned for 1 turn.
-- Army of the Grave | | Cleric (Dusk) – Necromancy | Raise all available corpses on the field at once for 1d4 turns.
-- Death's Door | | Cleric (Dusk) – Necromancy | A non-boss target makes a wisdom save or is reduced to 1 HP.
-- Oblivion's Embrace | | Cleric (Dusk) – Bliss | On a failed wisdom save a target believes the fight is already over and cannot take hostile actions for 1d3 turns (breaks if struck).
-- Gentle End | 2d10 temp HP | Cleric (Dusk) – Bliss | Bonus action. Grant a dying creature a painless passing; their peace flows through you, granting temp HP and +1 to a stat for the combat.
-- Become the Fear | | Cleric (Dusk) – Nightmares | For 1d4 turns you appear as each foe's worst terror: enemies attack you at disadvantage and may flee on a failed save, and your hits against them automatically crit above a 15.
-- Mind Break | | Cleric (Dusk) – Nightmares | A target makes a wisdom save at disadvantage or is stunned with terror for 1d3 turns and gains a lasting phobia.
-- Absolute Counter | | Cleric (Dusk) – Null | Reaction. Counter any single spell regardless of tier, once; you take damage equal to the spell's tier × 1d20.
-- Hollow | | Cleric (Dusk) – Null | A target makes a wisdom save or is cut off from all magic (cannot cast, loses magical traits) for 1d3 turns.
+- House rules |  | Cleric (Dusk) – Chaos | For 1d4 turns the fight follows a new rule that binds everyone, you included. Roll 1d6: 1: nobody may take the same action two turns running · 2: every hit also deals half its damage to the attacker · 3: damage dice are read upside down, so a 1 on a d8 counts as 8 · 4: healing spells harm and damaging spells heal · 5: every dodge passes, but nobody can move more than 5ft · 6: you choose one of the above.
+- Everything that can go wrong |  | Cleric (Dusk) – Chaos | A target makes a wisdom save. On a fail, for 1d3 turns they roll 1d4 before each action; on a 1 the action fails because something mundane gives out (a strap, a bowstring, a loose flagstone) and that piece of gear is damaged.
+- Mass grave | 1d6 | Cleric (Dusk) – Necromancy | The dead of this place rise for 1d4 turns (1d8 HP, deal 1d6). What comes depends on where you stand: 3d6 soldiers on a battlefield, 2d6 villagers in a graveyard, 1d6 beasts in the wild, 2d4 drowned sailors at sea. The DM decides who is buried here, and some may know the party.
+- Visiting hours |  | Cleric (Dusk) – Necromancy | Name a dead person and hold something they owned. A door opens and they step through as themselves for 10 minutes. You do not control them; they may talk, help or settle a score. Once per person, ever.
+- It was all a dream |  | Cleric (Dusk) – Bliss | On a failed wisdom save the target believes the fight is already won and acts like it for 1d3 turns: gloating, looting, walking home. Breaks if struck.
+- Gentle end (Bonus Action) |  | Cleric (Dusk) – Bliss | Grant a dying creature a painless passing. You gain 2d10 temp HP, +1 to a stat for the combat, and its happiest memory, which you may watch.
+- Become the fear |  | Cleric (Dusk) – Nightmares | For 1d4 turns you appear as each foe's worst terror, enemies attack you at disadvantage and may flee on a failed save. Your hits against them automatically crit above a 15.
+- Recurring dream |  | Cleric (Dusk) – Nightmares | A target makes a wisdom save. On a fail, for its next 1d3 turns it must repeat the last action it took, at the same target or in the same direction. If that is impossible it loses the turn.
+- Absolute counter (Reaction) |  | Cleric (Dusk) – Null | Counter any single spell regardless of tier, once; you take damage equal to the spell x 1d20.
+- Never was |  | Cleric (Dusk) – Null | An object no larger than a door stops existing for an hour: a lock, a bridge plank, a stretch of wall, an arrow in flight. It leaves a hole in its shape and returns when the hour ends. It cannot take creatures or anything being worn.
 - Devour the Light | | Cleric (Dusk) – Eclipse | A single Dawn-aligned, radiant or celestial creature takes 10d10 and is stripped of its divine nature for the encounter — no smites, no radiant damage, no consecrated ground.
 - Nightfall | | Cleric (Dusk) – Eclipse | For 1d4+2 turns, every creature that relies on sight, faith or divine power fights at disadvantage. Your side is exempt.
 
 ## Tier 6
-- Roll the Bones | 6d10 (30 ft) | Cleric (Dusk) – Chaos | Roll 1d6 for a catastrophe centred on a chosen point (meteor, rift, plague-burst, etc) dealing 6d10 in a 30 ft radius with a random secondary effect. Allies are not exempt.
-- Lich's Bargain | | Cleric (Dusk) – Necromancy | Reaction, once per session. When you die, rise at the start of your next turn with half HP as an undead for the rest of the combat (the DM tracks the long-term cost).
-- Eternal Rest | | Cleric (Dusk) – Bliss | All combatants make a wisdom save; on a fail they fall into a blissful sleep for 1d6 turns and are healed to full. On a pass they sleep one turn without healing.
-- Endless Night | 1d20 psychic per turn | Cleric (Dusk) – Nightmares | Plunge an 80 ft area into living darkness for 1d6 turns. Enemies inside take psychic damage each turn and are frightened; allies are unharmed and hidden.
-- The Great Silence | 5d10 to magical creatures | Cleric (Dusk) – Null | For 1d6 turns no magic of any tier functions within 120 ft of you, yours included. While active, magical creatures in the area take 5d10 and are stunned on a failed save.
+- Roll the bones | 6d10 | Cleric (Dusk) – Chaos | Choose a point and roll 1d6. The catastrophe deals 6d10 in a 30ft radius and allies are not exempt. 1 Sinkhole: everything in the area also drops 20ft and has to climb out · 2 Stampede: the nearest herd, crowd or swarm charges through; survivors are prone · 3 Clear-sky lightning: anyone carrying metal takes double · 4 Hiccup: no damage. Every creature in the area repeats its last turn exactly · 5 Windfall: half damage, and it rains 1d100 silver. The coins are real · 6: roll twice; both happen.
+- Lich's bargain (Reaction)(Once per session) |  | Cleric (Dusk) – Necromancy | When you die you rise at the start of your next turn with half HP as an undead for the rest of the combat. Each time, the DM rolls 1d6 for what death keeps: 1: your reflection · 2: your sense of taste · 3: your shadow · 4: your warmth; animals shy from you · 5: your sleep; no rest benefits for a week · 6: one memory of the DM's choosing.
+- Paradise |  | Cleric (Dusk) – Bliss | Open a door to your god's garden over a 30ft area for 1d6 turns. Nothing inside can be harmed and wounds close. Nobody wants to leave: any creature, ally or enemy, needs a wisdom save to step out. Everyone still inside when it shuts sleeps for an hour and wakes with a long rest.
+- Endless night | 1d20 psychic | Cleric (Dusk) – Nightmares | Plunge an 80ft area into living darkness for 1d6 turns. Enemies inside take 1d20 psychic per turn and are frightened; allies are unharmed and hidden. When it lifts, surviving enemies remember nothing that happened inside: who was there, what was said, what was taken.
+- The Great Silence | 5d10 | Cleric (Dusk) – Null | For 1d6 turns no magic of any tier works within 120ft of you, yours included, and there is no sound. Gods cannot hear prayers from inside, so divine abilities fail too. Magical creatures in the area take 5d10 and are stunned on a failed save.
 - Long Night | | Cleric (Dusk) – Eclipse | Extinguish the light over a region. For 1d4+2 turns, no divine power of any kind functions within a mile — gods do not answer, prayers do not land, paladin oaths go quiet, undead rise unbidden. It ends. What was left standing during it does not go back to how it was, and the local faithful will know who did it.
 
 # Earth Magic
@@ -674,12 +674,12 @@
 - Manalight | | | Using pure mana you create an orb of light.
 - Lesser Rock Ward | | | Stun whatever first touches this ward for 1d4 turns.
 - Rock | 1d6 as a weapon | | Turn a limb into stone for 1d4 turns. Deals 1d6 damage if used as a weapon.
-- Pebble | 1d6 | Mage (Earth) – Stone | Small chance (4 on a 1d4) to stagger.
-- Stone Fist | +1d8 | Mage (Earth) – Stone | Your next melee hit deals +1d8 and can knock the target prone.
-- Mend Stone | | Mage (Earth) – Stone | Repair stonework or shape a small barrier of rock.
-- Shard | 1d6 piercing | Mage (Earth) – Crystal | On a kill it leaves a crystal shard you can collect.
-- Prism | | Mage (Earth) – Crystal | Split a light or energy effect into two weaker beams.
-- Harden | | Mage (Earth) – Crystal | Crystallise a small object or surface, making it rigid and sharp.
+- Skipping stone |  | Mage (Earth) – Stone | 1d6, and the stone bounces on to a second target for half.
+- Stone fist |  | Mage (Earth) – Stone | Your next melee hit deals +1d8 and can knock the target prone.
+- Stone ear |  | Mage (Earth) – Stone | Press your ear to stone and hear anything said within 60ft through it.
+- Shard | 1d6 piercing | Mage (Earth) – Crystal | 1d6 piercing; on a kill it leaves a crystal shard you can collect.
+- Prism |  | Mage (Earth) – Crystal | Split a light or energy effect into two weaker beams.
+- Echo crystal |  | Mage (Earth) – Crystal | Speak into a crystal. The next time it is touched, it repeats your words once.
 - Knit | Regen 1/turn | Mage (Earth) – Root | A target regains 1 HP at the start of each of its turns for 10 turns, in or out of combat.
 - Rootsense | | Mage (Earth) – Root | Feel every footstep through the ground within 60 ft for 10 minutes — how many, how heavy, which way they are going.
 - Green Splint | | Mage (Earth) – Root | Set a broken bone in living wood. It heals completely over the next long rest instead of over weeks, and the limb can be used normally in the meantime.
@@ -692,10 +692,10 @@
 - Magical Earth Hand | 2d6 on contact | | Create a magical hand of earth magic, usable offensively or for utility.
 - Summon Earth Wisp | | | Summon a wisp of earth, similar to a lesser version of an elemental.
 - Stairs | | | For 1d4 turns you may create a staircase of up to 12 steps.
-- Stone Skin | 1d12 temp HP | Mage (Earth) – Stone | The target also resists the next physical hit.
-- Tremor | | Mage (Earth) – Stone | 1d3 targets make a DEX save or fall prone.
-- Refract | | Mage (Earth) – Crystal | Redirect an incoming spell to a new target (contested roll).
-- Crystal Armour | 1d10 temp HP | Mage (Earth) – Crystal | When it breaks it bursts for 1d6 to nearby foes.
+- Statue's pose (Reaction) |  | Mage (Earth) – Stone | An ally turns to stone for up to a minute. They take no damage and cannot act, and anyone who was not told they are there sees only a statue.
+- Tremor |  | Mage (Earth) – Stone | 1d3 targets make a dex save or fall prone.
+- Refract |  | Mage (Earth) – Crystal | Redirect an incoming spell to a new target (contested roll).
+- Glass eye |  | Mage (Earth) – Crystal | Leave a crystal somewhere. For a day you can see out of it.
 - Undergrowth | | Mage (Earth) – Root | A 15 ft area begins to grow. Next turn it is difficult terrain for enemies; the turn after, it is a thicket that gives allies inside half cover.
 - Deep Draught | Regen 1d4/turn | Mage (Earth) – Root | A target regenerates 1d4 HP at the start of each of its turns for 1d4+2 turns.
 - Dust Barrier | | Mage (Earth) | Surround yourself with a thin cloud of dust that weakens ranged projectile impacts.
@@ -705,36 +705,36 @@
 - Summon Earth Elemental | | | Summons an earth elemental bound to your will.
 - Dust Orb | 1d20 on contact | | Toss an orb of unstable earth magic. Lingers for 1d3 turns and grants disadvantage on perception.
 - The Tunnel | | | Open a gateway to the Ceaseless Caverns.
-- Stone Wall | 1d50 HP wall | Mage (Earth) – Stone | Raise a wall up to 10 ft tall and 20 ft wide.
-- Earthen Grasp | | Mage (Earth) – Stone | Hands of rock hold a target (STR save) for 1d3 turns.
-- Shard Volley | 2d8 (15 ft cone) | Mage (Earth) – Crystal | A cone of piercing shards.
-- Store Charge | | Mage (Earth) – Crystal | Bank a spell of tier 3 or lower in a gem for later, in addition to your Lattice feat.
+- Pebble golem | 2d6 | Mage (Earth) – Stone | Shape a cat-sized golem from loose stones (10 HP). For a day it carries, fetches and stands guard, and once you may throw it for 2d6.
+- Slow stone |  | Mage (Earth) – Stone | A target's legs begin to turn to stone: half speed. Each turn it fails a strength save it loses 5ft more; at 0 it is stuck until it passes one.
+- Geode |  | Mage (Earth) – Crystal | As a creature casts a spell of tier 3 or lower, seal it inside a geode (contested roll). Crack the geode later to cast that spell as your own.
+- Mirror maze |  | Mage (Earth) – Crystal | Grow a 20ft maze of mirrored crystal. Inside it, ranged attacks and spells hit a random creature in sight.
 - Mend the Broken | | Mage (Earth) – Root | Over ten minutes, heal a lasting injury — a broken bone, a torn tendon, a ruined eye, a maimed limb. It doesn't work in combat, and it doesn't restore anything that has been fully severed and lost.
 - Slow Waking | | Mage (Earth) – Root | A downed ally is stabilised, and 1d3 turns later they get back up with 1d10 HP. Only fire or tearing up the roots around them stops it.
 - Earthen Bulwark | | Mage (Earth) | Shape a shell of rock around your body that absorbs a large amount of damage before shattering.
 
 ## Tier 4
-- Bulwark | | Mage (Earth) – Stone | Encase an ally in rock — immune to damage but unable to act for 1 turn (they may end it early).
-- Boulder | 3d8 | Mage (Earth) – Stone | Knocks back and prone on a hit.
-- Fortress | | Mage (Earth) – Stone | Raise a ring of cover around the party (each segment 1d30 HP) for the combat.
-- Prismatic Beam | 3d8 random element | Mage (Earth) – Crystal | Roll 1d6 for the element; ignores resistance to it.
-- Crystal Prison | 2d8 on shatter | Mage (Earth) – Crystal | Encase a target in crystal (CON save) for 1d3 turns; shattering it deals 2d8 to them.
-- Resonance | +50% | Mage (Earth) – Crystal | Amplify the next spell cast by any ally by +50%.
+- Petrify |  | Mage (Earth) – Stone | A target makes a strength save or is petrified for 1d4 turns. On a pass, one limb turns to stone for the rest of the fight.
+- Boulder | 3d8 | Mage (Earth) – Stone | Hurl a boulder for 3d8; on a hit the target is knocked back and prone.
+- Old guard |  | Mage (Earth) – Stone | Wake a statue already standing nearby to fight for you this encounter (40 HP, 2d10). It has stood here for years and knows every way in and out.
+- Prismatic beam |  | Mage (Earth) – Crystal | 3d8 of a random element (roll 1d6); ignores resistance to that element.
+- Crystal prison | 2d8 | Mage (Earth) – Crystal | Encase a target in crystal (strength save) for 1d3 turns; shattering it deals 2d8 to them.
+- Resonance |  | Mage (Earth) – Crystal | Amplify the next spell cast by any ally by +50%.
 - Grove Hold | | Mage (Earth) – Root | For the rest of combat, enemies that start their turn in a 40 ft area make a strength save or are rooted in place for that turn. The save gets 1 harder each turn the grove stands.
 - Heartwood | Regen 2d6/turn | Mage (Earth) – Root | A target regenerates 2d6 HP at the start of each of its turns for 1d4+2 turns, and fights off any poison or disease while it lasts.
 - Fallow Hour | | Mage (Earth) – Root | During a short rest, you and your allies recover as if it were a long rest: all HP, one lasting injury each, and any disease or poison.
 
 ## Tier 5
-- Stone Golem | 2d10 | Mage (Earth) – Stone | Summon an immovable stone golem (60 HP) for the encounter.
-- Earthen Prison | 2d6 per turn | Mage (Earth) – Stone | Bury a target in rock (no save the first time) for 1d3 turns.
-- Gemheart Golem | 2d8 | Mage (Earth) – Crystal | Summon a crystal golem (50 HP) that reflects 1d6 of any spell damage it takes, for the encounter.
-- Shatterstorm | 2d8 per turn (20 ft) | Mage (Earth) – Crystal | A field of flying shards for 1d4 turns damages enemies inside.
+- Keeper of the house |  | Mage (Earth) – Stone | Wake a building's own stone as a golem (60 HP, 2d10, immovable). It obeys you, but it protects the building first.
+- Garden of statues |  | Mage (Earth) – Stone | Every enemy within 20ft makes a strength save or is petrified for 1d3 turns. Any still petrified when combat ends stay that way until someone undoes it.
+- Crown of facets |  | Mage (Earth) – Crystal | For 1d4 turns every spell you cast splits into 3 copies at half strength, each aimed at a different target.
+- Shatterstorm | 2d8 | Mage (Earth) – Crystal | A field of flying shards fills 20ft for 1d4 turns, dealing 2d8 per turn to enemies inside.
 - Roots Under the Road | | Mage (Earth) – Root | Spend an hour laying roots along up to a mile of road, wall or forest edge. For a day you feel everything that crosses them, and once you may raise a wall of roots or snare every creature on one stretch of it.
 - Renewal | Regen 2d6/turn (party) | Mage (Earth) – Root | Every ally in sight regenerates 2d6 HP a turn for the rest of combat. When the fight ends, they recover all HP and one lasting injury each.
 
 ## Tier 6
-- Mountain's Wrath | 5d10 (40 ft) | Mage (Earth) – Stone | Heave the earth — damage to enemies, permanently reshaped terrain (walls, chasms, high ground), and allies on your stone gain +5 defence for the fight.
-- The Cathedral | 1d20 per turn | Mage (Earth) – Crystal | Grow a 40 ft crystal lattice for 1d4 turns — every spell cast inside (yours and allies') is doubled and refracts to a second target, while enemies take 1d20 per turn and can't hide from the light.
+- Mountain's Wrath |  | Mage (Earth) – Stone | Heave the earth in a 40ft area: 5d10 to enemies, permanently reshaped terrain (walls, chasms, high ground), and allies on your stone gain +5 defence for the fight.
+- The Cathedral | 1d20 | Mage (Earth) – Crystal | Grow a 40ft lattice of crystal for 1d4 turns: every spell cast inside (yours and allies') is doubled and refracts to a second target, while enemies take 1d20 per turn from the shards and cannot hide from the light.
 - The Old Forest | Regen 3d10/turn | Mage (Earth) – Root | Wake the ground within 60 ft and let it grow over three turns. First it becomes difficult terrain for enemies; then enemies make a strength save each turn or are rooted; then allies regenerate 3d10 a turn and anyone downed gets back up. The forest stays after the fight, permanently.
 
 # Enhancement Magic
@@ -748,21 +748,21 @@
 - Bolster | +2 | Enhancer | Grant +2 to an ally's next roll.
 - Mend Bond | Heal 1d4 | Enhancer | Heal a target 1d4 and remove one minor debuff.
 - Mark Weakness | +1d4 | Enhancer | Reveal a foe's weak point; the next hit on it deals +1d4.
-- Channel | | Enhancer – Conduit | Move up to 10 HP between two linked creatures.
-- Relay | | Enhancer – Conduit | Pass a buff you receive to a linked ally instead.
-- Spark Link | +1 | Enhancer – Conduit | Linked allies gain +1 to rolls while within 30 ft of you.
-- Deaden | | Enhancer – Feel No Pain | An ally ignores pain for a turn: no flinch effects, no disadvantage from wounds.
-- Adrenaline | 1d6 temp HP | Enhancer – Feel No Pain | A target gains 1d6 temp HP and +half movement for a turn.
-- Steel Nerves | | Enhancer – Feel No Pain | Grant immunity to fear and stun for one turn.
-- Confront | | Enhancer – Face Your Fears | An ally facing a source of fear gains advantage against it.
-- Expose | | Enhancer – Face Your Fears | Reveal an enemy's fear or weakness to the party.
-- Harden | | Enhancer – Face Your Fears | Grant a target immunity to fear for 1d3 turns.
-- Weaken | −1d6 dmg | Enhancer – Enfeeblement | A target's next damage roll is reduced by 1d6.
-- Slow | | Enhancer – Enfeeblement | A target loses half their movement for a turn.
-- Fumble | | Enhancer – Enfeeblement | A target takes their next roll at disadvantage.
-- Drain | 1d6 / heal | Enhancer – Leech | Deal 1d6 and heal yourself or an ally for the amount.
-- Transfuse | | Enhancer – Leech | Move HP from a willing or unconscious enemy to an ally.
-- Sip | Heal 1d4 | Enhancer – Leech | Heal 1d4 by tapping a marked foe's vitality.
+- Ears on |  | Enhancer – Conduit | Hear what a linked ally hears, wherever they are, as if you stood beside them.
+- Relay |  | Enhancer – Conduit | Pass a buff you receive to a linked ally instead.
+- Ventriloquist |  | Enhancer – Conduit | Speak one sentence through a linked ally's mouth: your words, their lips.
+- Deaden |  | Enhancer – Feel No Pain | An ally ignores pain for a turn: no flinch effects, no disadvantage from wounds.
+- Walk it off |  | Enhancer – Feel No Pain | An ally pops a joint back in, pulls out an arrow and ignores one injury effect (a bleed, a limp, a broken arm) until the fight ends.
+- Steel nerves |  | Enhancer – Feel No Pain | Grant immunity to fear and stun for one turn.
+- Confront |  | Enhancer – Face Your Fears | An ally facing a fear source gains advantage against it.
+- Expose |  | Enhancer – Face Your Fears | Reveal an enemy's fear or weakness to the party.
+- Say it out loud |  | Enhancer – Face Your Fears | An ally names their fear. For the rest of the day they have advantage against it, and if it shows up the DM must warn them first.
+- Butterfingers |  | Enhancer – Enfeeblement | Whatever a target holds turns slippery until its next turn. It drops it on any roll of 1–5.
+- Slow |  | Enhancer – Enfeeblement | A target loses half its movement for a turn.
+- Tired eyes |  | Enhancer – Enfeeblement | A target sees double for a turn. Each attack it makes picks one of the two images at random (1d2), and the wrong one misses.
+- Pickpocket the senses |  | Enhancer – Leech | Take one sense from a target for a turn (sight, hearing or smell) and have it yourself, on top of your own.
+- Borrow a voice |  | Enhancer – Leech | Take a creature's voice for an hour. You speak as it does, and it speaks as you.
+- Take the edge | 1d4 bludgeoning | Enhancer – Leech | Steal the sharpness from a weapon you can see. Until your next turn it deals 1d4 bludgeoning, and your weapon gains its damage die.
 - Overclock | | Enhancer – Overload | An ally gains an additional action this turn. 1 Strain.
 - Hold Together | | Enhancer – Overload | Prevent a creature from dropping below 1 HP for 3 turns. They take the accumulated damage all at once when it ends.
 - Read the Limit | | Enhancer – Overload | Learn a creature's exact remaining capacity — HP, uses, spell slots, how much more it can take.
@@ -774,16 +774,16 @@
 - Masterful Dodge | | | 1d6 allies gain advantage on all dexterity and dodge rolls for one combat, or one hour outside of combat.
 - Empower | | Enhancer | An ally's next damage roll is maximised.
 - Sap | | Enhancer | A target's next damage roll is halved.
-- Shared Burden | | Enhancer – Conduit | For a turn, split a linked ally's incoming damage evenly across the link.
-- Conduct | | Enhancer – Conduit | Copy one ally's active buff onto another.
-- Push Through | | Enhancer – Feel No Pain | An ally who drops to 0 may finish their current turn before going down.
-- Dull Blade | | Enhancer – Feel No Pain | A target takes half damage from the next physical hit.
-- Turn the Tables | | Enhancer – Face Your Fears | Reflect a fear or intimidate effect back at its caster.
-- Trial | +1d6 | Enhancer – Face Your Fears | An ally gains +1d6 to their next roll, or an enemy makes a wisdom save or is shaken.
-- Enfeeble | −2 STR | Enhancer – Enfeeblement | A target's strength-based rolls take −2 for 1d3 turns.
-- Cloud the Mind | −2 WIS/INT | Enhancer – Enfeeblement | A target's wisdom and intelligence rolls take −2 for 1d3 turns.
-- Bloodlink | Heal 1d4 per hit | Enhancer – Leech | Mark an enemy; while marked, your party's hits on it heal the attacker 1d4.
-- Parasite | 1d6 per turn | Enhancer – Leech | A target loses 1d6 HP per turn, healed to you, for 1d3 turns.
+- Hot potato |  | Enhancer – Conduit | Move one status off a linked ally onto another linked creature, or onto an enemy you have Soul Pulled.
+- Conduct |  | Enhancer – Conduit | Copy one ally's active buff onto another.
+- Push through |  | Enhancer – Feel No Pain | An ally that drops to 0 may finish their current turn before going down.
+- Bite down |  | Enhancer – Feel No Pain | Give an ally something to bite on. Every hit they take before their next turn lands after they have acted, not before.
+- Turn the tables |  | Enhancer – Face Your Fears | Reflect a fear or intimidate effect back at its caster.
+- Dare |  | Enhancer – Face Your Fears | Dare an ally to do something reckless. If they do it this turn, they gain 2d8 temp HP and +2 to rolls until their next turn.
+- Lead boots |  | Enhancer – Enfeeblement | A target's feet weigh as much as an anvil for 1d3 turns: half speed, no jumping or climbing, and it sinks in water.
+- Cloud the mind |  | Enhancer – Enfeeblement | A target's wisdom and intelligence rolls take −2 for 1d3 turns.
+- Steal their footing |  | Enhancer – Leech | Take a target's speed until its next turn: it moves 0 and you move double.
+- Steal a title |  | Enhancer – Leech | Take a creature's rank or title for an hour. Its guards salute you, its servants obey you, and they look straight through it.
 - Redline | | Enhancer – Overload | An ally's damage triples for 1d3 turns. 2 Strain.
 - Borrowed Nerve | | Enhancer – Overload | Move Strain from one creature to another, including to yourself.
 
@@ -792,59 +792,59 @@
 - Summon Greater Demons | | | Bring a greater demon to your plane. You do not control it in any way.
 - Face of Pure Fear | | | You appear to all hostile or neutral creatures as their deepest, darkest fear. Lasts for one day.
 - Transfer | | Enhancer | Move a buff or debuff from one creature to another.
-- Power Surge | | Enhancer – Conduit | Channel your spell slots into an ally, granting them an extra action this turn.
-- Grounding | | Enhancer – Conduit | Redirect a debuff from a linked ally to yourself, reduced by half.
-- Second Wind | 2d8 temp HP | Enhancer – Feel No Pain | An ally below half HP gains 2d8 temp HP and ignores exhaustion.
-- No Flinching | | Enhancer – Feel No Pain | For 1d3 turns an ally can't be interrupted, knocked prone or forcibly moved.
-- Forge in Fire | | Enhancer – Face Your Fears | An ally who has taken damage this turn gains temp HP equal to that damage.
-- Mirror of Dread | | Enhancer – Face Your Fears | Show an enemy their worst fear; on a failed save they flee or freeze for 1d3 turns.
-- Cripple | | Enhancer – Enfeeblement | A target's defence is halved for 1d3 turns.
-- Drain Vigour | 2d6 max HP | Enhancer – Enfeeblement | Reduce a target's max HP by 2d6 until they rest; you gain that as temp HP.
-- Vampiric Burst | 2d8 (10 ft) | Enhancer – Leech | Deal damage to enemies within 10 ft and split the total as healing among allies.
-- Steal Vitality | 2d6 max HP | Enhancer – Leech | Transfer 2d6 max HP from a foe to an ally until the foe rests.
+- Power surge |  | Enhancer – Conduit | Channel your spell slots into an ally, granting them an extra action this turn.
+- Swap |  | Enhancer – Conduit | Two linked creatures anywhere in sight trade places instantly. Anything held stays with its holder.
+- Second wind |  | Enhancer – Feel No Pain | An ally below half HP gains 2d8 temp HP and ignores exhaustion.
+- No flinching |  | Enhancer – Feel No Pain | For 1d3 turns an ally cannot be interrupted, knocked prone or forcibly moved.
+- Forge in fire |  | Enhancer – Face Your Fears | An ally who has taken damage this turn gains temp HP equal to that damage.
+- Walk through it |  | Enhancer – Face Your Fears | An ally walks straight through a fear effect, a hazard or a wall of fire as if it were not there, and takes its damage afterwards, halved.
+- Cripple |  | Enhancer – Enfeeblement | A target's defence is halved for 1d3 turns.
+- Drain vigour |  | Enhancer – Enfeeblement | Reduce a target's max HP by 2d6 until they rest; you gain that as temp HP.
+- Hollow armour |  | Enhancer – Leech | Take a target's min hit value for 1d3 turns. Its own becomes 0.
+- Borrow a gift |  | Enhancer – Leech | Take one natural ability from a creature for 1d3 turns: flight, a breath weapon, climbing, a venomous bite. It cannot use it while you have it.
 - Everyone At Once | | Enhancer – Overload | Apply any tier 1 or 2 enhancement to the whole party simultaneously. Each takes 1 Strain.
 - Nothing Wasted | | Enhancer – Overload | A creature that would die instead acts one final turn at doubled effect, then dies regardless.
 
 ## Tier 4
-- Network | | Enhancer – Conduit | Link the whole party for 1d4 turns; any healing or buff cast on one is shared at half to all.
-- Overcharge | | Enhancer – Conduit | Double an ally's next ability or attack; they are then fatigued (−2) for a turn.
-- Lightning Rod | | Enhancer – Conduit | For 1 turn, all attacks against linked allies are redirected to you, halved.
-- Berserk Endurance | | Enhancer – Feel No Pain | An ally can't drop below 1 HP for 1d3 turns, then takes the stored damage as a lump (halved) when it ends.
-- Mass Numbing | | Enhancer – Feel No Pain | The whole party ignores all status effects for 1 turn.
-- Phantom Limb | | Enhancer – Feel No Pain | An ally fights at no penalty despite a crippled or lost limb for the scene.
-- Baptism | +5 | Enhancer – Face Your Fears | For 1d3 turns an ally gains +5 to all rolls but can't retreat.
-- Mass Courage | | Enhancer – Face Your Fears | The party becomes immune to fear and charm and gains +2 to saves for 1d4 turns.
-- Break Them | | Enhancer – Face Your Fears | An enemy that fails a wisdom save loses their next 2 turns to terror.
-- Mass Weakness | | Enhancer – Enfeeblement | All enemies within 20 ft deal half damage for 1d4 turns (CON save resists).
-- Unmake the Buff | | Enhancer – Enfeeblement | Strip all buffs and temp HP from a target and prevent more for 1d3 turns.
-- Leaden Limbs | | Enhancer – Enfeeblement | A target makes a strength save each turn or can't act, for 1d3 turns.
-- Feast | | Enhancer – Leech | For 1d4 turns, all party damage to a marked target heals the attacker for half.
-- Engorge | 3d8 → temp HP | Enhancer – Leech | Drain nearby foes for 3d8 and overheal an ally into temp HP (up to 25).
-- Sanguine Ward | | Enhancer – Leech | An ally gains a shield that heals them for half of all damage it absorbs (caps at 20).
+- Network |  | Enhancer – Conduit | Link the whole party for 1d4 turns; any healing or buff cast on one is shared at half to all.
+- Overcharge |  | Enhancer – Conduit | Double an ally's next ability or attack; they are then fatigued (−2) for a turn.
+- Lightning rod |  | Enhancer – Conduit | For 1 turn, all attacks against linked allies are redirected to you, halved.
+- Berserk endurance |  | Enhancer – Feel No Pain | An ally cannot drop below 1 HP for 1d3 turns, then takes the stored damage as a lump (halved) when it ends.
+- Mass numbing |  | Enhancer – Feel No Pain | The whole party ignores all status effects for 1 turn.
+- Phantom limb |  | Enhancer – Feel No Pain | An ally fights at no penalty despite a crippled or lost limb for the scene.
+- Baptism |  | Enhancer – Face Your Fears | For 1d3 turns an ally gains +5 to all rolls but cannot retreat.
+- Haunted house |  | Enhancer – Face Your Fears | A target's fear steps into the room as a real thing for 1d3 turns and attacks whoever is closest (2d8). If an ally kills it, the target loses that fear and any immunity to fear.
+- Break them |  | Enhancer – Face Your Fears | An enemy that fails a wisdom save loses their next 2 turns to terror.
+- Mass weakness |  | Enhancer – Enfeeblement | All enemies in 20ft deal half damage for 1d4 turns (strength save resists).
+- Old age |  | Enhancer – Enfeeblement | A target ages 30 years for 1d4 turns: −2 to strength and dex rolls and half speed. Anything that values its youth (elves, vampires, vain nobles) must pass a wisdom save or spend its turn staring at its hands.
+- Leaden limbs |  | Enhancer – Enfeeblement | A target makes a strength save each turn or cannot act, for 1d3 turns.
+- Strip mine |  | Enhancer – Leech | Take every buff currently on a target and wear them yourself for their remaining duration.
+- Taller |  | Enhancer – Leech | Take a creature's size for 1d4 turns. You grow and it shrinks; reach and weight swap with it.
+- Steal the moment |  | Enhancer – Leech | Take an enemy's next turn. It skips, and you or an ally of your choice act in its place in the initiative order.
 - Beyond Design | | Enhancer – Overload | For 1d4+2 turns an ally exceeds their class entirely — every trait, ability and daily use is unlimited and unrestricted. 4 Strain.
 - Pressure Valve | | Enhancer – Overload | Clear all Strain from the party instantly. You take the total, and it does not clear on a long rest.
 - Sympathetic Overload | | Enhancer – Overload | Overload an enemy's own buffs, tripling them and applying 3 Strain immediately. They rarely survive being helped.
 
 ## Tier 5
-- Unity | | Enhancer – Conduit | For 1d4 turns the linked party shares one HP pool; damage and healing apply to the whole.
-- Discharge | 1d8 per stored HP (max 5d8) | Enhancer – Conduit | Release banked channelled energy at enemies within 15 ft.
-- Feel Nothing | | Enhancer – Feel No Pain | For 1d4 turns an ally takes no penalties of any kind and halves all damage, then is incapacitated 1 turn as it catches up.
-- Share the Pain | | Enhancer – Feel No Pain | Split all damage an ally would take this turn between you and any willing allies.
-- Embrace the Dark | | Enhancer – Face Your Fears | For 1d4 turns an ally ignores all mental effects and crits on 18+.
-- Shatter the Will | | Enhancer – Face Your Fears | A non-boss makes a wisdom save at disadvantage or surrenders or flees for the rest of combat.
-- Total Enervation | | Enhancer – Enfeeblement | A non-boss is reduced to −5 on all rolls and half movement for 1d4 turns.
-- Sap the Champion | | Enhancer – Enfeeblement | Halve a boss's damage output for 1d3 turns (a save reduces the duration).
-- Exsanguinate | 4d8 → party heal | Enhancer – Leech | Deal 4d8 to a target and distribute the full amount as healing across the party.
-- Blood Pact | | Enhancer – Leech | For 1d3 turns, all damage a linked foe takes is also healed to a linked ally.
+- Ride along |  | Enhancer – Conduit | Your soul steps into a linked ally for 1d4 turns. Your body drops limp; you cast your spells from their position through their eyes, and they may use one of your feats.
+- Grand circuit |  | Enhancer – Conduit | For 1 turn, link every creature within 30ft, friend and foe. Choose one effect on the field (a burn, a buff, a stun) and copy it onto anyone you like in the circuit.
+- Feel nothing |  | Enhancer – Feel No Pain | For 1d4 turns an ally takes no penalties of any kind and halves all damage, then is incapacitated 1 turn as it catches up.
+- Pain postponed |  | Enhancer – Feel No Pain | For 1d4 turns, all damage an ally takes is written down instead of dealt. After the fight they take it all, halved, in their sleep, and cannot be woken for an hour.
+- Embrace the dark |  | Enhancer – Face Your Fears | For 1d4 turns an ally ignores all mental effects and crits on 18+.
+- Shatter the will |  | Enhancer – Face Your Fears | A non-boss makes a wisdom save at disadvantage or surrenders or flees for the rest of combat.
+- Total enervation |  | Enhancer – Enfeeblement | A non-boss is reduced to −5 on all rolls and half movement for 1d4 turns.
+- Sap the champion |  | Enhancer – Enfeeblement | Halve a boss's damage output for 1d3 turns (a save reduces the duration).
+- Wear them |  | Enhancer – Leech | Take every trait listed in your feat from one non-boss at once, plus one of its abilities, for 1d3 turns. It is left a sketch of itself: half damage and no special abilities.
+- Skill heist |  | Enhancer – Leech | Take one skill or proficiency from a creature for a day. It forgets how to do it until you give it back or the day ends.
 - The Whole Band | | Enhancer – Overload | Overload every ally at once for 1d4+2 turns — doubled stats, doubled damage, an extra action each, immune to fear and pain. Everyone takes 3 Strain, no exceptions, you included.
 - Refuse the Limit | | Enhancer – Overload | Name a limit affecting anyone — a cap, a cooldown, a spell slot, a wound, a curse. It does not apply for 1d4+2 turns.
 
 ## Tier 6
-- One Soul, Many Bodies | | Enhancer – Conduit | For 1d4 turns the party shares initiative, can't be individually controlled, and any ally may use any other ally's once-per-combat ability.
-- Beyond Pain | | Enhancer – Feel No Pain | For 1d4 turns the party won't go down (fighting at 1 HP if reduced lower); at the end each takes 2d10 as the agony returns.
-- No More Fear | +3 | Enhancer – Face Your Fears | The party sheds fear for the encounter and gains +3 to everything; every enemy makes a wisdom save or is paralysed by terror for 1d3 turns.
-- Husk | | Enhancer – Enfeeblement | On a failed CON save (at disadvantage) a non-boss becomes a feeble husk for 1d4 turns — minimum rolls, no special abilities, finishable at will.
-- Crimson Harvest | | Enhancer – Leech | For 1d4 turns every point of damage dealt to your enemies is also healed to the party, and any enemy that dies restores an ally to full.
+- One Soul, Many Bodies |  | Enhancer – Conduit | For 1d4 turns the party shares initiative, cannot be individually controlled, and any ally may use any other ally's once-per-combat ability.
+- Beyond Pain | 2d10 | Enhancer – Feel No Pain | For 1d4 turns the party will not go down (fighting at 1 HP if reduced lower); at the end each takes 2d10 as the agony returns.
+- No More Fear |  | Enhancer – Face Your Fears | The party sheds fear for the encounter and gains +3 to everything; every enemy makes a wisdom save or is paralysed by terror for 1d3 turns.
+- Husk |  | Enhancer – Enfeeblement | On a failed strength save at disadvantage, a non-boss is reduced to a feeble husk for 1d4 turns: minimum rolls, no special abilities, finishable at will.
+- The Great Theft |  | Enhancer – Leech | For 1d4 turns, whenever an enemy in sight uses an ability, spell or attack, you may take it. It fails for them, and you may use it once yourself before this spell ends.
 - Overload | | Enhancer – Overload | Choose one creature and remove the ceiling entirely. For 1d4+2 turns they are the strongest thing on the field by an unarguable margin — no cap, no cost, no resistance, no failure. When it ends they take 7 Strain. What happens at 7 is decided between the player and the GM before this spell is ever cast, and it should be permanent.
 
 # Fire Magic
@@ -1045,21 +1045,21 @@
 
 ## Tier 1
 - Ritual of Healing | Heal 1d2, doubling | Shaman | Heals 1d2, doubling each time it's used in a row. Resets to 1d2 on a fail or when you cast another spell on your turn.
-- Tongue of the First People | | Shaman – Primeval | Speak with and be understood by any primal creature or spirit.
-- Ancient Ward | | Shaman – Primeval | Inscribe an old sign; the next trap or hazard within 10 ft is revealed and disarmed.
-- Read the Bones | | Shaman – Primeval | Cast scattered bones or stones to glean a vague omen about the path ahead.
-- Spark | 1d8 elemental | Shaman – Primordial | Deal 1d8 of a chosen element (fire, cold or lightning).
-- Read the Skies | | Shaman – Primordial | Learn the weather for the next 24 hours and sense any incoming natural disaster.
-- Gust | | Shaman – Primordial | Push a target 10 ft and disrupt their next ranged attack.
-- Bone Shard | 1d6 piercing | Shaman – Bone | On a kill, harvest a usable bone.
-- Rattle | | Shaman – Bone | A target makes a wisdom save or is shaken (−2 to attacks) for one turn.
-- Marrow Spark | 1d6 necrotic + stored bones | Shaman – Bone | +1 per stored bone you currently hold.
-- Soothing Feather | Heal 1d4 | Shaman – Feather | Heal a target.
-- Lift the Spirit | | Shaman – Feather | Remove fear and grant +1 to a target's next roll.
-- Calm Plume | | Shaman – Feather | End one minor status effect on an ally.
-- Star's Light | +1 | Shaman – Stars | Create guiding light; allies near it gain +1 to rolls.
-- Minor Veil | Blocks 1d8 | Shaman – Stars | Block the next 1d8 damage to a target.
-- Night's Clarity | | Shaman – Stars | An ally gains advantage on their next save.
+- Tongue of the first people |  | Shaman – Primeval | Speak with and be understood by any primal creature or spirit.
+- Old fire |  | Shaman – Primeval | Light a fire by speaking to the wood. It gives no smoke, and no animal will cross it.
+- Read the bones |  | Shaman – Primeval | Cast scattered bones or stones to glean a vague omen about the path ahead.
+- Thunderclap | 1d8 thunder | Shaman – Primordial | 1d8 thunder, and glass within 10ft cracks. In a storm, every creature within 10ft is also deafened for a turn.
+- Read the skies |  | Shaman – Primordial | Learn the weather for the next 24 hours and sense any incoming natural disaster.
+- Dust devil |  | Shaman – Primordial | A small whirlwind follows a target for 1 turn. Its ranged attacks go wide on a 1 on a 1d2. In dry or sandy weather it is blinded as well.
+- Bone shard | 1d6 piercing | Shaman – Bone | 1d6 piercing; on a kill, harvest a usable bone.
+- Knucklebones |  | Shaman – Bone | Roll a handful of finger bones. The DM answers one question about what is buried or hidden within 30ft.
+- Marrow spark | 1d6 necrotic | Shaman – Bone | 1d6 necrotic, +1 per stored bone you currently hold.
+- Soothing feather | 1d4 | Shaman – Feather | Heal a target for 1d4.
+- Messenger feather |  | Shaman – Feather | Write a few words on a feather and let it go. It flies to a person you name anywhere within a day's travel.
+- Calm plume |  | Shaman – Feather | End one minor status effect on an ally.
+- Star's light |  | Shaman – Stars | Create guiding light; allies near it gain +1 to rolls.
+- Star chart |  | Shaman – Stars | Name a place you have seen. The stars show you which way it lies and how far, even underground.
+- Night's clarity |  | Shaman – Stars | An ally gains advantage on their next save.
 - Ask the Dead | | Shaman – Ancestor Shaman | Put a question to your line. One of them knows, and answers as they were in life — helpfully, partially, or not at all.
 - Hands That Knew | | Shaman – Ancestor Shaman | Gain proficiency in any craft, weapon, language or skill your tribe has ever practised, for one scene.
 - Old Blood | | Shaman – Ancestor Shaman | 3d8 to a creature, doubled if it belongs to a people your line has fought before.
@@ -1067,74 +1067,74 @@
 ## Tier 2
 - Free the Soul | | Shaman | Target a dead creature; if its soul still lingers it answers 1 question truthfully and 1 dishonestly.
 - Healing Ward | Heal 2d4 | Shaman | Place a ward; any creature on or passing over it heals 2d4. Lasts 3 turns.
-- Primal Recall | | Shaman – Primeval | Touch an object or place to witness the oldest significant memory tied to it.
-- Old Strength | | Shaman – Primeval | A target ignores fatigue and exhaustion and has advantage on STR rolls for 1d3 turns.
-- Elemental Ward | | Shaman – Primordial | Gain resistance to one element for 1d4 turns.
-- Chain Spark | 1d10 lightning | Shaman – Primordial | Arcs to a second target for half.
-- Bone Armour | 1d10 temp HP | Shaman – Bone | The temp HP hardens (resists physical) for 1d3 turns.
-- Splinter Volley | 2d4 (10 ft cone) | Shaman – Bone | A cone of bone shards.
-- Healing Down | Heal 1d6 ×2 | Shaman – Feather | Heal up to 2 allies for 1d6 each.
-- Gentle Gust | | Shaman – Feather | Move an ally 10 ft out of harm and grant advantage on their next dodge.
-- Astral Shield | 15-point barrier | Shaman – Stars | A target gains a 15-point barrier.
-- Guiding Constellation | | Shaman – Stars | Reveal hidden creatures and traps within 20 ft.
+- Primal recall |  | Shaman – Primeval | Touch an object or place to witness the oldest significant memory tied to it.
+- Mammoth's patience |  | Shaman – Primeval | For 1d3 turns a target cannot be hurried, pushed, frightened or charmed, but it acts last in initiative.
+- Lightning rod | 1d10 | Shaman – Primordial | Plant your staff. The next lightning within a minute, yours or the sky's, strikes it and arcs to every enemy within 10ft for 1d10.
+- Chain spark | 1d10 lightning | Shaman – Primordial | Deal 1d10 lightning that arcs to a second target for half.
+- Bone armour |  | Shaman – Bone | A target gains 1d10 temp HP that hardens (resists physical) for 1d3 turns.
+- Rattle charm |  | Shaman – Bone | Hang a bone charm on a door or tent. It rattles whenever anything with a skeleton comes within 30ft.
+- Healing down | 1d6 | Shaman – Feather | Heal up to 2 allies for 1d6 each.
+- Gentle gust |  | Shaman – Feather | Move an ally 10ft out of harm and grant advantage on their next dodge.
+- Astral shield |  | Shaman – Stars | A target gains a 15-point barrier.
+- Wishing star |  | Shaman – Stars | An ally makes a small wish aloud. The first time in the next day that luck could go either way for them, it goes their way.
 - Stand With Me | | Shaman – Ancestor Shaman | An ancestor manifests for 1d4 turns as a warrior spirit with its own action.
 - Inherited Wound | | Shaman – Ancestor Shaman | Learn how a creature's kind has been killed before, and gain +4 to all rolls exploiting it.
 
 ## Tier 3
 - Curse | | Shaman | Inflict a target with a random moderate or lower tier curse.
-- Stoneshape | | Shaman – Primeval | Reshape natural earth or stone into a simple form — a bridge, a wall, a tool.
-- Wild Road | | Shaman – Primeval | The party travels a hidden primal path, halving wilderness travel time for a day.
-- Call the Weather | | Shaman – Primordial | Summon a weather condition of your choice over the area, enabling your Icon feat.
-- Flood or Ember | 2d8 (15 ft line) | Shaman – Primordial | The fire version ignites; the water version knocks prone.
-- Bone Spear | 2d8 piercing | Shaman – Bone | If it kills, you instantly harvest the bone.
-- Animate Bones | 1d8 minion | Shaman – Bone | Raise a bone minion (15 HP) from harvested bones for the combat.
-- Renewing Wind | Heal 2d6 | Shaman – Feather | Heal an ally and clear one major condition.
-- Shared Breath | | Shaman – Feather | For 1d3 turns, healing you do echoes at half to a second ally.
-- Starfall Ward | | Shaman – Stars | Allies within 15 ft each resist the next attack against them for 1 turn.
-- Fated Step | | Shaman – Stars | An ally rerolls a failed roll, guided by the stars.
+- Stoneshape |  | Shaman – Primeval | Reshape natural earth or stone into a simple form: a bridge, a wall, a tool.
+- Wild road |  | Shaman – Primeval | The party travels a hidden primal path, halving wilderness travel time for a day.
+- Call the weather |  | Shaman – Primordial | Summon a weather condition of your choice over the area, enabling your Icon feat.
+- Flash flood | 2d8 | Shaman – Primordial | A 15ft line of water deals 2d8, knocks targets prone and carries them 15ft downhill or downstream.
+- Bone spear | 2d8 piercing | Shaman – Bone | 2d8 piercing; if it kills, you instantly harvest the bone.
+- Whistle bone |  | Shaman – Bone | Carve a flute from a fresh kill's bone and play it. Others of that creature's kind hear one of their own calling for help, and they come.
+- Moult |  | Shaman – Feather | An ally sheds a curse, poison or disease like an old feather. It drifts off and lands on the nearest creature of your choice.
+- Shared breath |  | Shaman – Feather | For 1d3 turns, healing you do echoes at half to a second ally.
+- Starfall ward |  | Shaman – Stars | Allies in 15ft each gain resistance to the next attack against them for 1 turn.
+- Fated step |  | Shaman – Stars | An ally rerolls a failed roll, guided by the stars.
 - The Forgotten Rite | | Shaman – Ancestor Shaman | Cast any spell of tier 3 or lower from any tradition, on the grounds that someone in the line knew it. Costs a Council member.
 - Weight of the Line | | Shaman – Ancestor Shaman | For 3 turns, enemies attacking you must first roll wisdom or find themselves facing someone else.
 
 ## Tier 4
-- Ancestral Echo | | Shaman – Primeval | Summon the echo of an ancient warrior or beast to answer questions or scout for 1d4 turns.
-- Unwritten Word | | Shaman – Primeval | Speak a word older than a magical effect to cancel it (counters up to tier 4).
-- Primal Surge | | Shaman – Primeval | Your next Ancient Magic Burst triggers automatically, and you choose the spell rather than rolling.
-- Storm Front | 3d8 lightning | Shaman – Primordial | Split among up to 3 enemies; each saves or is staggered.
-- Eye of Calm | | Shaman – Primordial | Create a 15 ft zone immune to weather and elemental damage for 1d4 turns.
-- Living Element | 2d6 | Shaman – Primordial | Summon a small elemental (25 HP) for the combat.
-- Bone Storm | 3d6 (15 ft) | Shaman – Bone | You may spend a stored bone to add its tier in d6.
-- Marrow Drain | 2d6 | Shaman – Bone | Also reduce the target's max HP by that amount until they rest.
-- Ossify | | Shaman – Bone | A target makes a CON save or is encased in their own hardening bones (held) for 1d3 turns.
-- Updraft of Life | Heal 3d4 (15 ft) | Shaman – Feather | Heal all allies within 15 ft and grant each 1d6 temp HP.
-- Featherlight | | Shaman – Feather | A target takes half physical knockback and falling damage and gains gliding flight for 1d3 turns.
-- Second Wind (Feather) | | Shaman – Feather | An ally below half HP gains an extra action this turn.
-- Canopy of Stars | | Shaman – Stars | The party gains +2 to all saves and immunity to fear for 1d4 turns.
-- Meteor Guard | 2d8 to attacker | Shaman – Stars | Intercept an attack on an ally with a falling star, negating it.
-- Realign | | Shaman – Stars | The party rerolls initiative and may set their order.
+- Ancestral echo |  | Shaman – Primeval | Summon the echo of an ancient warrior or beast to answer questions or scout for 1d4 turns.
+- Unwritten word |  | Shaman – Primeval | Speak a word older than a magical effect to cancel it (counters up to tier 4).
+- Primal surge |  | Shaman – Primeval | Your next Ancient magic burst triggers automatically and you choose the result instead of rolling.
+- Storm front | 3d8 lightning | Shaman – Primordial | 3d8 lightning split among up to 3 enemies; each saves or is staggered.
+- Eye of calm |  | Shaman – Primordial | Create a 15ft zone immune to weather and elemental damage for 1d4 turns.
+- Ride the storm | 3d8 | Shaman – Primordial | The current weather carries you up to 60ft through the air. Where you land, everything within 10ft takes 3d8 of that weather's element.
+- Bone storm |  | Shaman – Bone | 3d6 to enemies in 15ft; you may spend a stored bone to add its tier in d6.
+- Marrow drain |  | Shaman – Bone | 2d6 and reduce the target's max HP by that amount until they rest.
+- Ossify |  | Shaman – Bone | A target makes a strength save or is encased in its own hardening bones (held) for 1d3 turns.
+- Updraft of life | 3d4 | Shaman – Feather | Heal all allies in 15ft for 3d4 and grant each 1d6 temp HP.
+- Featherlight |  | Shaman – Feather | A target takes half knockback and falling damage and gains gliding flight for 1d3 turns.
+- Nest |  | Shaman – Feather | Weave a nest that holds up to 4 creatures. A long rest in it heals fully and removes one level of exhaustion, and nothing hostile notices it unless it steps inside.
+- Canopy of stars |  | Shaman – Stars | The party gains +2 to all saves and immunity to fear for 1d4 turns.
+- Meteor guard | 2d8 | Shaman – Stars | Intercept an attack on an ally with a falling star, negating it and dealing 2d8 to the attacker.
+- Constellation |  | Shaman – Stars | Draw lines between up to 5 allies. For 1d4 turns, any healing or veil on one ally is copied to the next ally along the line.
 - The Council Speaks | | Shaman – Ancestor Shaman | All remaining ancestors manifest for 1d4+2 turns, each with its own action, fighting as it did in life.
 - Adopted | | Shaman – Ancestor Shaman | Bring an ally into the line for the encounter. They gain your Council's knowledge and your tribe's protections, and the dead may speak to them.
 - Blood Debt | | Shaman – Ancestor Shaman | Name a wrong done to your tribe. Any creature responsible, descended from those responsible, or benefiting from it takes 10d10 and is cursed until it is answered for.
 
 ## Tier 5
-- Time-worn Body | | Shaman – Primeval | For 1d4 turns, incoming attacks and spells are treated as one tier weaker.
-- Call the Old Ones | 2d10 | Shaman – Primeval | Summon a primal guardian bound to the land (60 HP) for the encounter.
-- Tempest | 1d20 per turn | Shaman – Primordial | A 30 ft storm for 1d4 turns damages enemies inside, while allies gain cover.
-- Wrath of the Elements | 4d10 | Shaman – Primordial | Unleash the element matching the current weather on a target, doubled by your Icon feat.
-- Bone Golem | 2d8 | Shaman – Bone | Raise a golem from gathered bones (50 HP) for the encounter.
-- Reliquary Burst | | Shaman – Bone | Discharge every spell stored in your bones at once at a single target or area.
-- Phoenix Down | | Shaman – Feather | Revive a downed ally to half HP; they can't be downed again for 1 turn.
-- Sanctuary Breeze | Heal 1d6 per turn | Shaman – Feather | A 15 ft zone for 1d4 turns; allies inside heal each turn and resist fear.
-- Veil of the Heavens | | Shaman – Stars | For 1d4 turns the first hit on each ally per turn is reduced to 0; the veil heals 1d6 whenever it absorbs.
-- Wish-light | | Shaman – Stars | Once per session, grant an ally a guaranteed success on one roll.
+- Time-worn body |  | Shaman – Primeval | For 1d4 turns, attacks and spells that hit you are treated as one tier weaker.
+- Ice age | 2d8 cold | Shaman – Primeval | A 30ft area freezes as it was ten thousand years ago, for 1d4 turns. Everything inside is slowed and takes 2d8 cold per turn, and a house-sized glacier is left behind.
+- Pressure drop | 1d20 | Shaman – Primordial | The air pressure collapses in a 30ft area for 1d4 turns. Flying creatures fall, flames gutter out, and enemies take 1d20 a turn as their ears burst. Your Icon feat counts it as a storm.
+- Wrath of the elements | 4d10 | Shaman – Primordial | Unleash the element matching the current weather for 4d10 to a target, doubled by your Icon feat.
+- Wear the skull |  | Shaman – Bone | Wear the skull of a creature you harvested. For an hour you have its senses, its language and one of its fears.
+- Reliquary burst |  | Shaman – Bone | Discharge every spell stored in your bones at once at a single target or area.
+- Phoenix down |  | Shaman – Feather | Revive a downed ally to half HP; they cannot be downed again for 1 turn.
+- Sanctuary breeze | 1d6 | Shaman – Feather | A 15ft zone for 1d4 turns; allies inside heal 1d6 per turn and resist fear.
+- Veil of the heavens | Heal 1d6 | Shaman – Stars | For 1d4 turns the first hit on each ally per turn is reduced to 0; the veil heals 1d6 whenever it absorbs.
+- Wish-light |  | Shaman – Stars | Once per session, grant an ally a guaranteed success on one roll.
 - Wear Them | | Shaman – Ancestor Shaman | Take the form and full ability of a named ancestor for 1d4+2 turns — a great chief, a founder, a monster your tribe once was. You do not entirely control what they say while you wear them.
 - Ritual Without End | | Shaman – Ancestor Shaman | For the remainder of the encounter, Ritual Cast takes no time at all. Every spell you have is free and instant. Costs your entire Council.
 
 ## Tier 6
-- The First Magic | | Shaman – Primeval | For 1d4 turns every spell you cast triggers Ancient Magic Burst automatically; roll 1d100 each time for the bonus spell.
-- Cataclysm | 5d10 per turn | Shaman – Primordial | Call a natural disaster over a 40 ft area for 1d4 turns; you choose its type and may shelter allies.
-- Bonefield | 5d8 per turn | Shaman – Bone | A 40 ft area erupts with grasping bone for 1d4 turns; every creature that dies in it becomes a bone you may store or animate.
-- Wings of the Spirit | Heal 1d10 per turn | Shaman – Feather | For 1d4 turns the party heals at the start of each turn, gains gliding flight, and can't be reduced below 1 HP by a single hit.
-- Heaven's Aegis | | Shaman – Stars | For 1d4 turns the party can't drop below 1 HP, reduces all damage by 5, and any healing on an ally is doubled.
+- The First Magic |  | Shaman – Primeval | For 1d4 turns every spell you cast triggers Ancient magic burst automatically; roll on the table each time.
+- Cataclysm | 5d10 | Shaman – Primordial | Call a natural disaster over a 40ft area for 1d4 turns dealing 5d10 per turn; you choose its type and may shelter allies.
+- Bonefield | 5d8 | Shaman – Bone | A 40ft area erupts with grasping bone for 1d4 turns, 5d8 per turn, and every creature that dies in it becomes a bone you may store or animate.
+- Wings of the spirit | Heal 1d10 | Shaman – Feather | For 1d4 turns the party heals 1d10 at the start of each turn, gains gliding flight, and cannot be reduced below 1 HP by a single hit.
+- Falling star | 5d10 | Shaman – Stars | Call a star down on a 40ft area. Enemies take 5d10 (double at night), every ally inside gains a fresh Astral Protection veil, and the crater glows for a year.
 - The Whole Line Stands | | Shaman – Ancestor Shaman | Every ancestor you have ever had arrives — hundreds of them, filling the field, fighting, arguing, remembering. For 1d4+2 turns you have an army, you cannot be killed while any of them remain, and any question you ask is answered. When it ends, your Council is empty and you cannot rebuild it until you have done something the line considers worth their time.
 
 # Summoning Magic
@@ -1370,7 +1370,7 @@
 - Hydrate | | Mage (Water) – Tranquil Stream | Provide a day's worth of water for up to 5 people.
 - Undertow Grip | 1 Pressure | Mage (Water) – The Deep | A target within sight makes a strength save or gains 1 Pressure and has its movement halved until the end of its next turn.
 - Fathom Sense | | Mage (Water) – The Deep | Feel the weight of every breathing creature within 30 ft, through walls and floors, for 10 minutes. You know where each one is and roughly how large it is.
-- Wet Lungs | 1d4 | Mage (Water) – The Deep | A target within sight makes a constitution save or coughs up water for 1d4 damage and can't speak until the end of its next turn.
+- Wet Lungs | 1d4 | Mage (Water) – The Deep | A target within sight makes a strength save or coughs up water for 1d4 damage and can't speak until the end of its next turn.
 
 ## Tier 2
 - Spin Pool | 2d2 + 1d6/turn | | Create a small spinning pool of water under a foe, spinning them until they escape. If trapped for more than 1d4 turns, the target passes out.
@@ -1389,7 +1389,7 @@
 - Blot | | Mage (Water) – Ink | Erase a small area of text or drawing, leaving no trace.
 - Healing Stream | Heal 1d4 (AoE) | Mage (Water) – Tranquil Stream | Create a stream of water that heals all allies within a 10 ft radius.
 - Purify Water | | Mage (Water) – Tranquil Stream | Cleanse a body of water, making it safe to drink.
-- Crush Depth | 2 Pressure | Mage (Water) – The Deep | A target within sight makes a constitution save or gains 2 Pressure. On a pass it gains 1.
+- Crush Depth | 2 Pressure | Mage (Water) – The Deep | A target within sight makes a strength save or gains 2 Pressure. On a pass it gains 1.
 - Sealed Hatch | | Mage (Water) – The Deep | Press something shut: a door, a lid, a hatch, or a bleeding wound. It holds against anything short of strength 20 until you release it, and a sealed wound stops bleeding.
 
 ## Tier 3
@@ -1407,7 +1407,7 @@
 - Ink Shield | Absorbs 1d20 | Mage (Water) – Ink | Create a shield of ink blocking up to 1d20 damage to you or an ally this turn.
 - Mending Waters | Heal 2d4 | Mage (Water) – Tranquil Stream | Heal a target and cure one condition such as poison or disease.
 - Protective Bubble | | Mage (Water) – Tranquil Stream | Create a bubble of water around a target, granting immunity to the next status condition they would receive.
-- Drown on Dry Land | 2d8 per turn | Mage (Water) – The Deep | Fill a target's lungs. At the start of each of its turns it takes 2d8 and can't speak, and it makes a constitution save; the water clears on a pass. Creatures that don't breathe are immune.
+- Drown on Dry Land | 2d8 per turn | Mage (Water) – The Deep | Fill a target's lungs. At the start of each of its turns it takes 2d8 and can't speak, and it makes a strength save; the water clears on a pass. Creatures that don't breathe are immune.
 - Buckle | 2 Pressure | Mage (Water) – The Deep | Crush a target's armour or shield. It gains 2 Pressure and loses 1d4 defence until the gear is repaired. Non-magical shields simply fold.
 
 ## Tier 4

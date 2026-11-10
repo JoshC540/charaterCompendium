@@ -9,11 +9,12 @@
     spell: 'content/spells.md',
     adv: 'content/advancement.md',
     god: 'content/gods.md',
+    patch: 'content/patch-notes.md',
   };
-  const TYPES = ['race', 'class', 'subclass', 'spell', 'adv', 'god'];
-  const DOC_TYPES = ['adv', 'god'];
-  const TYPE_LABEL = { all: 'All', race: 'Races', class: 'Classes', subclass: 'Subclasses', spell: 'Spells', adv: 'Advancement', god: 'Gods', notes: 'Notes' };
-  const TYPE_ONE = { race: 'Race', class: 'Class', subclass: 'Subclass', spell: 'Spell', adv: 'Advancement', god: 'Book of Gods' };
+  const TYPES = ['race', 'class', 'subclass', 'spell', 'adv', 'god', 'patch'];
+  const DOC_TYPES = ['adv', 'god', 'patch'];
+  const TYPE_LABEL = { all: 'All', race: 'Races', class: 'Classes', subclass: 'Subclasses', spell: 'Spells', adv: 'Advancement', god: 'Gods', notes: 'Notes', patch: 'Patch Notes' };
+  const TYPE_ONE = { race: 'Race', class: 'Class', subclass: 'Subclass', spell: 'Spell', adv: 'Advancement', god: 'Book of Gods', patch: 'Patch notes' };
 
   const $ = (sel, root = document) => root.querySelector(sel);
   const el = (tag, attrs = {}, ...kids) => {
@@ -75,6 +76,7 @@
   }
 
   function table(rows) {
+    rows = rows.filter(r => !/^[\s|:-]+$/.test(r));   // ignore markdown separator rows like | --- |
     const cells = rows.map(r => r.replace(/^\s*\|/, '').replace(/\|\s*$/, '').split('|').map(c => c.trim()));
     const cols = Math.max(...cells.map(r => r.length));
     if (cols === 1) return `<div class="callout">${cells.map(r => `<p>${inline(r[0])}</p>`).join('')}</div>`;
@@ -141,7 +143,7 @@
 
   /* ---------------- data ---------------- */
 
-  const DB = { items: [], byId: new Map(), raceIntros: {}, subGroups: [], schools: [], sourceIndex: new Map(), classOrder: [], docs: { adv: [], god: [] } };
+  const DB = { items: [], byId: new Map(), raceIntros: {}, subGroups: [], schools: [], sourceIndex: new Map(), classOrder: [], docs: { adv: [], god: [], patch: [] } };
 
   // first readable paragraph of a body: skips tables, headings and lists
   const firstPara = body => {
@@ -227,7 +229,9 @@
           const it = add({
             type: t, id: `${t}/${slug(g.title)}${isIntro ? '' : '/' + slug(name)}`, name, chapter: g.title, body, heads,
             metaText: `${TYPE_LABEL[t]} ${g.title} ${heads.join(' ')}`, bodyText: body,
-            snippet: firstPara(body) || (heads.length ? heads.join(' · ') : ''),
+            snippet: t === 'patch'
+              ? plain(((body.match(/^\s*[-*] (.+)$/m) || [])[1]) || firstPara(body))
+              : firstPara(body) || (heads.length ? heads.join(' · ') : ''),
           });
           DB.docs[t].push(it);
         };
@@ -361,6 +365,7 @@
     if (item._name === qn) score += 200;
     else if (item._name.includes(qn)) score += 40;
     if (item.type === 'subclass' && item.upcoming) score -= 3;
+    if (item.type === 'patch') score -= 6;   // rules first, change logs after
     if (item.heads && item.heads.some(h => norm(h).includes(qn))) score += 25;
     return score;
   }
@@ -404,7 +409,7 @@
   function renderTabs() {
     const c = counts();
     const nav = $('#tabs');
-    nav.replaceChildren(...['all', ...TYPES, 'notes'].map(t => el('button', {
+    nav.replaceChildren(...['all', ...TYPES.filter(t => t !== 'patch'), 'notes', 'patch'].map(t => el('button', {
       class: 'tab', role: 'tab', 'aria-selected': String(state.tab === t),
       onclick: () => go({ tab: t, sel: state.tab === t ? state.sel : null }, true),
     }, TYPE_LABEL[t], DOC_TYPES.includes(t) || t === 'notes' ? null : el('span', { class: 'n' }, String(c[t])))));
@@ -469,7 +474,7 @@
       case 'class': return [i.category, i.meta.hp && `HP ${i.meta.hp}`, i.meta['hit die'] && `${i.meta['hit die']} hit die`].filter(Boolean).join(' · ');
       case 'subclass': return i.group.title;
       case 'spell': return `Tier ${i.tier} · ${i.school}${i.sources.length ? ' · ' + i.sources.join(', ') : ''}`;
-      case 'adv': case 'god': return i.name === i.chapter ? '' : i.chapter;
+      case 'adv': case 'god': case 'patch': return i.name === i.chapter ? '' : i.chapter;
     }
     return '';
   }
@@ -479,7 +484,7 @@
       return el('button', { class: 'card toc' + (state.sel === i.id ? ' sel' : ''), 'data-id': i.id, onclick: () => openItem(i.id) },
         el('span', { class: 'badge ' + i.type, hidden: true }),
         el('span', { class: 'card-name' }, i.name === i.chapter ? 'Overview' : i.name),
-        i.heads.length ? el('span', { class: 'card-sub' }, `${i.heads.length} entries`) : null);
+        i.heads.length && i.type !== 'patch' ? el('span', { class: 'card-sub' }, `${i.heads.length} ${i.heads.length === 1 ? 'entry' : 'entries'}`) : null);
     }
     return el('button', {
       class: 'card' + (state.sel === i.id ? ' sel' : '') + (i.upcoming ? ' dim' : ''),
@@ -506,7 +511,7 @@
       case 'class': return i.category;
       case 'subclass': return i.group.title;
       case 'spell': return `${i.school} · Tier ${i.tier}`;
-      case 'adv': case 'god': return i.chapter;
+      case 'adv': case 'god': case 'patch': return i.chapter;
     }
     return '';
   }
@@ -529,6 +534,13 @@
         tile('spell', `Across ${DB.schools.length} schools of magic`),
         tile('adv', 'Levelling, soft skills, feats and traits'),
         tile('god', 'The pantheon, courts and faith in play')),
+      DB.docs.patch.length ? (() => {
+        const latest = DB.docs.patch.find(x => x.name !== x.chapter) || DB.docs.patch[0];
+        return el('button', { class: 'home-notes patch', onclick: () => go({ tab: 'patch', sel: latest.id }, true) },
+          el('span', { class: 'lbl' }, 'Latest update · ' + latest.name),
+          el('span', { class: 'hint' }, latest.snippet || 'See what’s changed in the handbook.'),
+          el('span', { class: 'go' }, 'Patch notes →'));
+      })() : null,
       el('button', { class: 'home-notes', onclick: () => go({ tab: 'notes', sel: null }, true) },
         el('span', { class: 'lbl' }, 'Session notes'),
         el('span', { class: 'hint' }, 'The party’s shared notebook, by campaign and session. Sign in to read and write.'),
@@ -710,7 +722,7 @@
     if (i.upcoming) kicker.push(el('span', { class: 'badge soon' }, 'Coming soon'));
     if (i.sixth) kicker.push(lockBadge('sixth', 'Sixth'));
     if (i.prime) kicker.push(lockBadge('prime', 'Prime variant'));
-    const body = { race: detailRace, class: detailClass, subclass: detailSubclass, spell: detailSpell, adv: detailDoc, god: detailDoc }[i.type](i);
+    const body = { race: detailRace, class: detailClass, subclass: detailSubclass, spell: detailSpell, adv: detailDoc, god: detailDoc, patch: detailDoc }[i.type](i);
     pane.replaceChildren(
       el('button', { class: 'back', onclick: () => go({ sel: null }, true) }, '← Back to results'),
       el('div', { class: 'd-kicker' }, ...kicker),

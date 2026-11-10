@@ -668,3 +668,12 @@ textarea { resize: vertical; line-height: 1.5; }
   .acct.on { font-size: 13px; max-width: 42vw; overflow: hidden; text-overflow: ellipsis; }
   .note .tools { margin-left: 0; width: 100%; }
 }
+.dlg-sub { margin: 0; font: 700 11px var(--head); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.dlg-form.admin { background: var(--surface-2); border: 1px solid var(--gold-soft); border-radius: 4px; padding: 12px 14px; }
+.hb-dialog { max-height: calc(100vh - 32px); }
+.dlg { max-height: calc(100vh - 32px); overflow: auto; }
+.home-notes.patch { border-left-color: var(--gold); }
+.home-notes.patch .go { color: var(--gold); }
+.home-notes.patch .hint { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.badge.patch { --c: var(--gold); }
+.card.toc:has(.badge.patch) { --c: var(--gold); }
