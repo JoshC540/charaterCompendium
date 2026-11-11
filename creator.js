@@ -6,7 +6,7 @@
   'use strict';
 
   window.HandbookCreator = function (H) {
-    const { el, md, plain, state, go, render, $, DB, slug, Notes, openItem } = H;
+    const { el, md, plain, norm, state, go, render, $, DB, slug, Notes, openItem } = H;
 
     /* ================= rules (change here if the rules change) ================= */
     const BASE_STATS = ['STR', 'DEX', 'INT', 'WIS', 'PER', 'CHA'];
@@ -150,6 +150,7 @@
       buys: { general: {}, abil: {}, feat: {}, tiers: {} }, unlocked: {},
       lv: { stat: {}, hd: {}, skills: {}, feats: {}, boons: {}, fp: 0 },
       items: [], gear: '', equipment: '', notes: '',
+      guide: { step: 0, seen: 0, done: false },
     });
 
     let list = null, profiles = [], listError = '', loadingList = false;
@@ -182,6 +183,7 @@
           .map(name => ({ id: itemId(), name, qty: 1, notes: '', on: false }));
         c.gear = ''; c.equipment = '';
       } else c.items = src.items.map(x => ({ id: x.id || itemId(), name: String(x.name || ''), qty: Math.max(0, num(x.qty, 1)), notes: String(x.notes || ''), on: !!x.on }));
+      c.guide = src.guide && typeof src.guide === 'object' ? { step: Math.max(0, num(src.guide.step)), seen: Math.max(0, num(src.guide.seen), num(src.guide.step)), done: !!src.guide.done } : { step: 0, done: Object.keys(src).length > 0 };
       delete c.classId; delete c.groupKey;
       return c;
     }
@@ -249,9 +251,10 @@
 
     function summaryOf(c) {
       const d = derived(c);
-      const race = d.r ? (d.r2 ? `${d.r.name} / ${d.r2.name}` : d.r.name) : 'No race';
-      const cls = d.slots.filter(x => x.cls).map(x => x.label).join(' / ') || 'no class';
-      return `${race} ${cls} · Level ${num(c.level)}`;
+      const race = d.r ? (d.r2 ? `${d.r.name} / ${d.r2.name}` : d.r.name) : '';
+      const cls = d.slots.filter(x => x.cls).map(x => x.label).join(' / ');
+      const who = race && cls ? `${race} ${cls}` : race || cls || 'No race or class yet';
+      return `${who} · Level ${num(c.level)}`;
     }
 
     /* ================= accounts ================= */
@@ -294,14 +297,14 @@
       const want = state.char;
       if (!want) { cur = null; return; }
       if (want === 'new') {
-        if (!cur || cur.id) { cur = { id: null, data: normalize(loadDraft()), dirty: !!loadDraft(), readOnly: false }; lvlup = null; }
+        if (!cur || cur.id) { cur = { id: null, data: normalize(loadDraft()), dirty: !!loadDraft(), readOnly: false }; enterMode(); }
         return;
       }
       if (cur && cur.id === want) return;
-      lvlup = null;
       const row = list && list.find(x => x.id === want);
       if (row) cur = { id: row.id, owner_id: row.owner_id, data: normalize(row.data), dirty: false, readOnly: !!(user() && row.owner_id !== user().id) };
       else cur = null;
+      enterMode();
     }
 
     async function save() {
@@ -331,8 +334,193 @@
       go({ char: '' }, true);
     }
 
+    /* ================= editor state ================= */
+    let mode = 'edit';                 // 'sheet' (read), 'edit' (every section) or 'guide' (new-character steps)
+    let drawer = false, showAdjust = false;
+    const openSubs = new Set();        // subclasses expanded under Subclass points
+    function enterMode() {
+      lvlup = null; drawer = false; confirmDel = false; msg = '';
+      mode = !cur ? 'edit' : cur.readOnly || cur.id ? 'sheet' : cur.data.guide.done ? 'edit' : 'guide';
+    }
+    const pl = (n, one, many) => `${n} ${n === 1 ? one : (many || one + 's')}`;
+
+    /* ================= what's left to do ================= */
+    function todos(c, d) {
+      const t = [];
+      const add = (sec, text, bad) => t.push({ sec, text, bad: !!bad });
+      if (!c.name.trim()) add('Basics', 'Name your character');
+      if (!d.r) add('Race', 'Choose a race');
+      else if (c.half && !d.r2) add('Race', 'Choose the other parent’s race');
+      for (const s of d.slots) {
+        if (!s.cls) add('Class', s.i ? `Choose extra class ${s.i}` : 'Choose a class');
+        else if (!s.g) add('Class', `Choose a path for ${s.cls.name}`);
+      }
+      const un = BASE_STATS.filter(k => c.stats[k] === '' || c.stats[k] == null).length;
+      if (un) add('Stats', un === BASE_STATS.length ? 'Roll your stats' : `Roll ${pl(un, 'more stat')}`);
+      const cun = COMBAT_STATS.filter(k => c.stats[k] === '' || c.stats[k] == null).length;
+      if (cun) add('Stats', cun === COMBAT_STATS.length ? 'Roll your combat stats' : `Roll ${pl(cun, 'more combat stat')}`);
+      const st = d.G.stat.filter(x => !c.lv.stat[x.lvl]).length;
+      if (st) add('Level-ups', `Choose ${pl(st, 'stat improvement')}`);
+      const hd = d.G.hd.filter(n => c.lv.hd[n] == null).length;
+      if (hd) add('Level-ups', `Roll ${pl(hd, 'hit die', 'hit dice')}`);
+      const bo = d.boons.filter(b => !b.type).length;
+      if (bo) add('Level-ups', `Choose ${pl(bo, 'milestone boon')}`);
+      const rk = d.skillRanks - d.skillsUsed;
+      if (rk > 0) add('Soft skills', `Spend ${pl(rk, 'soft skill rank')}`);
+      if (rk < 0) add('Soft skills', `${pl(-rk, 'soft skill rank')} too many`, true);
+      const fs = d.featSlots.filter(s => !c.lv.feats[s.key]).length;
+      if (fs) add('Feats', `Choose ${pl(fs, 'feat')}`);
+      if (d.left < 0) add('Subclass points', `${d.left * -1} SP overspent`, true);
+      else if (d.left > 0 && d.slots.some(s => s.g)) add('Subclass points', `Spend ${d.left} SP`);
+      for (const s of d.slots) if (s.g && c.buys.general[s.g.key] && /Gain \d+d\d+ hit points/i.test(s.g.intro || '') && !(c.hpRolls[s.g.key] || []).length) add('Subclass points', `Roll ${s.g.title} HP`);
+      return t;
+    }
+
+    /* ================= sections ================= */
+    const SECTION_FNS = {
+      'Basics': basics, 'Race': raceSection, 'Class': classSection, 'Stats': statsSection,
+      'Drawbacks and quirks': traitsSection, 'Level-ups': levelSection, 'Soft skills': skillsSection, 'Feats': featsSection,
+      'Subclass points': spSection, 'Inventory': inventorySection, 'Notes': notesSection,
+    };
+    const editSections = d => Object.keys(SECTION_FNS).filter(t => !(d.L === 0 && (t === 'Soft skills' || t === 'Feats') && !d.skillsUsed && !d.featSlots.length));
+    function guideSteps(c, d) {
+      const s = [
+        { title: 'Basics', secs: ['Basics'], intro: 'Start with a name. Most characters start at level 0; set a higher level only if your DM is starting you further along.' },
+        { title: 'Race', secs: ['Race'], intro: 'Your race gives you HP, I.M.P., languages and traits.' },
+        { title: 'Class', secs: ['Class'], intro: 'Your starting class sets your hit die, weapons and class trait. You can add more classes later for 1 SP each.' },
+        { title: 'Stats', secs: ['Stats'], intro: 'Roll every stat and combat stat. You can reroll any of them, or type in what you rolled at the table.' },
+        { title: 'Drawbacks and quirks', secs: ['Drawbacks and quirks'], intro: 'Optional. Drawbacks give you SP back; quirks trade one stat for another.' },
+      ];
+      if (d.L > 0) s.push({ title: 'Level-ups', secs: ['Level-ups', 'Soft skills', 'Feats'], intro: `Choose what each level up to ${d.L} gave you.` });
+      s.push({ title: 'Subclass points', secs: ['Subclass points'], intro: 'Spend SP on your class’s benefits, abilities and spells. Class-wide benefits come first.' },
+        { title: 'Gear', secs: ['Inventory', 'Notes'], intro: 'Add your starting gear (your subclass page lists the options) and anything else you carry.' });
+      return s;
+    }
+
+    const secId = title => 'cc-' + title.toLowerCase().replace(/[^a-z]+/g, '-');
+    const section = (title, ...body) => el('section', { class: 'cc-sec', id: secId(title) }, el('h2', { class: 'cc-h' }, title), ...body);
+    const headH = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--head-h')) || 124;
+    const narrow = () => window.matchMedia('(max-width: 900px)').matches;
+    function scrollToEl(t) {
+      if (!t) return;
+      if (narrow()) { t.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+      const z = parseFloat(getComputedStyle(document.body).zoom) || 1;
+      window.scrollTo({ top: Math.max(0, t.getBoundingClientRect().top + window.scrollY - (headH() + 16) * z), behavior: 'smooth' });
+    }
+    const jump = title => scrollToEl(document.getElementById(secId(title)));
+    function toTop() {
+      requestAnimationFrame(() => {
+        const p = $('#detail'); if (!p) return;
+        if (narrow()) p.scrollTop = 0; else if (p.getBoundingClientRect().top < headH()) scrollToEl(p);
+      });
+    }
+    function jumpTo(sec) {
+      if (!cur || cur.readOnly) return;
+      drawer = false;
+      if (mode === 'guide') {
+        const i = guideSteps(cur.data, derived(cur.data)).findIndex(s => s.secs.includes(sec));
+        if (i >= 0) { cur.data.guide.step = i; cur.data.guide.seen = Math.max(num(cur.data.guide.seen), i); saveDraft(); }
+        render(); requestAnimationFrame(() => jump(sec)); return;
+      }
+      if (mode === 'sheet') mode = 'edit';
+      render(); requestAnimationFrame(() => jump(sec));
+    }
+    const changed = () => { cur.dirty = true; msg = ''; saveDraft(); };
+    const set = (k, v, rerender = true) => { cur.data[k] = v; changed(); if (rerender) render(); };
+
+    /* ================= status, save, menu ================= */
+    function statusInfo() {
+      if (cur.readOnly) return ['view', `${nameOf(cur.owner_id)}’s character · view only`];
+      if (saving) return ['busy', 'Saving…'];
+      if (!cur.id) return ['warn', user() ? 'Not saved yet' : 'Draft on this device'];
+      return cur.dirty ? ['warn', 'Unsaved changes'] : ['ok', 'Saved'];
+    }
+    const statusChip = () => { const [k, t] = statusInfo(); return el('span', { class: 'cc-status ' + k, role: 'status' }, t); };
+    function saveButton(extra = '') {
+      if (cur.readOnly) return null;
+      const clean = cur.id && !cur.dirty && user();
+      return el('button', { class: 'btn primary cc-save ' + extra, disabled: saving || !!clean, onclick: save },
+        saving ? 'Saving…' : !user() ? 'Sign in to save' : clean ? '✓ Saved' : 'Save');
+    }
+    function menu() {
+      const canDel = cur.id && (!cur.readOnly || admin());
+      return el('details', { class: 'cc-menu' },
+        el('summary', { class: 'btn small', 'aria-label': 'More actions', title: 'More actions' }, '⋯'),
+        el('div', { class: 'cc-menu-list' },
+          el('button', { onclick: e => { e.target.closest('details').open = false; printSheet(cur.data); } }, 'Download PDF'),
+          el('button', { onclick: e => { e.target.closest('details').open = false; downloadDocx(cur.data); } }, 'Download Word'),
+          canDel ? el('button', { class: 'danger', onclick: () => { confirmDel = true; render(); } }, 'Delete character…') : null));
+    }
+    document.addEventListener('click', e => {
+      for (const m of document.querySelectorAll('details.cc-menu[open]')) if (!m.contains(e.target)) m.open = false;
+    });
+
+    function modeBar(c, d) {
+      if (cur.readOnly) return el('div', { class: 'cc-modebar' },
+        el('button', { class: 'btn small', onclick: () => printSheet(c) }, 'Download PDF'),
+        el('button', { class: 'btn small', onclick: () => downloadDocx(c) }, 'Download Word'), admin() ? menu() : null);
+      if (mode === 'guide') {
+        const n = guideSteps(c, d).length;
+        return el('div', { class: 'cc-modebar' },
+          el('span', { class: 'cc-guide-tag' }, `New character · step ${Math.min(c.guide.step, n - 1) + 1} of ${n}`),
+          el('button', { class: 'mini', onclick: () => { c.guide.done = true; mode = 'edit'; changed(); render(); toTop(); } }, 'Skip to the full editor'),
+          menu());
+      }
+      const segBtn = (m, label) => el('button', { class: 'cc-seg-b', role: 'tab', 'aria-selected': String(mode === m), onclick: () => { if (mode !== m) { mode = m; render(); toTop(); } } }, label);
+      return el('div', { class: 'cc-modebar' },
+        el('div', { class: 'cc-seg', role: 'tablist', 'aria-label': 'View' }, segBtn('sheet', 'Sheet'), segBtn('edit', 'Edit')),
+        lvlup ? null : el('button', { class: 'btn small', onclick: startLevelUp }, `Level up to ${d.L + 1}`),
+        menu());
+    }
+
+    /* ================= rail (left column) and phone bar ================= */
+    function nums(c, d) {
+      const ranks = d.skillRanks - d.skillsUsed;
+      const n = (k, v, bad, title) => el('div', { class: 'cc-num' + (bad ? ' bad' : ''), title: title || '' }, el('span', { class: 'v' }, String(v)), el('span', { class: 'k' }, k));
+      return el('div', { class: 'cc-nums' },
+        n('HP', d.hp), n('Renown', d.R), n('SP left', d.left, d.left < 0, `${d.spent} spent of ${d.total}`), n('Ranks left', ranks, ranks < 0, 'Soft skill ranks'));
+    }
+    function todoList(T) {
+      if (!T.length) return el('p', { class: 'cc-alldone' }, '✓ Nothing left to do');
+      return el('ul', { class: 'cc-todo' }, ...T.map(t => el('li', {}, el('button', { class: t.bad ? 'bad' : '', onclick: () => jumpTo(t.sec) },
+        el('span', { class: 'dot', 'aria-hidden': 'true' }), el('span', {}, t.text), el('span', { class: 'sec' }, t.sec)))));
+    }
+    function navList(c, d, T) {
+      const items = mode === 'guide' ? guideSteps(c, d).map((s, i) => ({ i, title: s.title, secs: s.secs, cur: i === Math.min(c.guide.step, guideSteps(c, d).length - 1) }))
+        : editSections(d).map(t => ({ title: t, secs: [t] }));
+      return el('nav', { class: 'cc-nav', 'aria-label': 'Character sections' }, ...items.map(it => {
+        const done = (mode !== 'guide' || it.i <= num(c.guide.seen)) && !T.some(t => it.secs.includes(t.sec));
+        return el('button', { class: (done ? 'done' : '') + (it.cur ? ' cur' : ''), 'aria-current': it.cur ? 'step' : null, onclick: () => jumpTo(it.secs[0]) },
+          el('span', { class: 'mk', 'aria-hidden': 'true' }, done ? '✓' : '○'), it.title);
+      }));
+    }
+    function rail(c, d) {
+      const T = cur.readOnly ? [] : todos(c, d);
+      return el('div', { class: 'cc-rail' },
+        el('button', { class: 'mini cc-rail-back', onclick: () => go({ char: '' }, true) }, '← All characters'),
+        el('div', { class: 'cc-rail-id' }, el('strong', {}, c.name || 'New character'), el('span', {}, summaryOf(c))),
+        nums(c, d),
+        cur.readOnly ? null : [el('h3', { class: 'cc-h3' }, T.length ? `To do · ${T.length}` : 'To do'), todoList(T)],
+        cur.readOnly || mode === 'sheet' ? null : [el('h3', { class: 'cc-h3' }, mode === 'guide' ? 'Steps' : 'Sections'), navList(c, d, T)],
+        cur.readOnly ? null : el('div', { class: 'cc-rail-save' }, saveButton(), statusChip()));
+    }
+    function phoneBar(c, d) {
+      if (cur.readOnly) return null;
+      const T = todos(c, d);
+      return el('div', { class: 'cc-pbar' },
+        drawer ? el('div', { class: 'cc-pbar-drawer' }, nums(c, d), el('h3', { class: 'cc-h3' }, 'To do'), todoList(T),
+          mode === 'sheet' ? null : [el('h3', { class: 'cc-h3' }, mode === 'guide' ? 'Steps' : 'Sections'), navList(c, d, T)]) : null,
+        el('div', { class: 'cc-pbar-row' },
+          el('button', { class: 'btn small', 'aria-expanded': String(drawer), onclick: () => { drawer = !drawer; render(); } },
+            drawer ? 'Close' : T.length ? `To do · ${T.length}` : 'Overview'),
+          el('span', { class: 'cc-pbar-nums' }, `${d.left} SP · ${d.skillRanks - d.skillsUsed} ranks`),
+          saveButton('small')));
+    }
+
     /* ================= list pane ================= */
     function renderList(box, meta) {
+      ensureCurrent();
+      if (cur) { meta.textContent = ''; box.replaceChildren(rail(cur.data, derived(cur.data))); return; }
       meta.textContent = '';
       const kids = [el('div', { class: 'notes-bar' },
         el('button', { class: 'btn small primary', onclick: () => { cur = null; open('new'); } }, '+ New character'),
@@ -382,62 +570,100 @@
     function renderDetail(pane) {
       ensureCurrent();
       document.body.classList.toggle('has-detail', !!cur);
+      document.body.classList.toggle('cc-open', !!cur);
       pane.classList.toggle('placeholder', !cur);
       if (!cur) {
         pane.replaceChildren(el('div', { class: 'empty' }, el('strong', {}, 'Character builder'),
           'Start a new character, or open one you’ve saved.'));
         return true;
       }
+      if (cur.readOnly) mode = 'sheet';
       const c = cur.data, d = derived(c);
       document.title = `${c.name || 'New character'} · Player’s Handbook`;
-      const kids = [
-        el('button', { class: 'back', onclick: () => go({ char: '' }, true) }, '← Back to characters'),
-        el('div', { class: 'd-kicker' }, el('span', { class: 'badge notes' }, 'Character'),
-          cur.readOnly ? `Belongs to ${nameOf(cur.owner_id)} · view only` : (cur.id ? (cur.dirty ? 'Unsaved changes' : 'Saved') : 'Not saved yet')),
+      const head = [
+        el('button', { class: 'back', onclick: () => go({ char: '' }, true) }, '← All characters'),
+        el('div', { class: 'd-kicker' }, el('span', { class: 'badge notes' }, 'Character'), statusChip()),
         el('h1', { class: 'd-title' }, c.name || 'New character'),
-        toolbar(),
+        el('p', { class: 'cc-subtitle' }, summaryOf(c)),
+        modeBar(c, d),
+        confirmDel ? el('div', { class: 'notice cc-confirm', role: 'alert' }, el('span', {}, 'Delete this character for good? '),
+          el('button', { class: 'btn small danger', onclick: remove }, 'Delete'),
+          el('button', { class: 'btn small ghost', onclick: () => { confirmDel = false; render(); } }, 'Keep')) : null,
         msg ? el('p', { class: 'notes-msg' + (msg === 'Saved.' ? ' ok' : ''), role: 'status' }, msg) : null,
-        cur.readOnly ? null : levelUpPanel(c, d),
       ];
-      if (cur.readOnly) kids.push(sheet(c, d));
-      else kids.push(
-        section('Basics', basics(c)),
-        section('Race', raceSection(c, d)),
-        section('Class', classSection(c, d)),
-        section('Stats', statsSection(c, d)),
-        section('Level-ups', levelSection(c, d)),
-        section('Soft skills', skillsSection(c, d)),
-        section('Feats', featsSection(c, d)),
-        section('Drawbacks and quirks', traitsSection(c, d)),
-        section('Subclass points', spSection(c, d)),
-        section('Inventory', inventorySection(c)),
-        section('Notes', notesSection(c)),
-        section('Character sheet', sheet(c, d)),
-        toolbar());
-      pane.replaceChildren(...kids.filter(Boolean));
+      let body;
+      if (mode === 'sheet') body = [el('div', { class: 'cc-sheetview' }, sheet(c, d))];
+      else if (mode === 'guide') body = guideView(c, d);
+      else body = [levelUpPanel(c, d), ...editSections(d).map(t => section(t, SECTION_FNS[t](c, d)))];
+      pane.replaceChildren(...[...head, ...body].flat().filter(Boolean), phoneBar(c, d) || '');
       return true;
     }
 
-    const secId = title => 'cc-' + title.toLowerCase().replace(/[^a-z]+/g, '-');
-    const section = (title, ...body) => el('section', { class: 'cc-sec', id: secId(title) }, el('h2', { class: 'cc-h' }, title), ...body);
-    const jump = title => { const t = document.getElementById(secId(title)); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
-    const changed = () => { cur.dirty = true; msg = ''; saveDraft(); };
-    const set = (k, v, rerender = true) => { cur.data[k] = v; changed(); if (rerender) render(); };
-
-    function toolbar() {
-      return el('div', { class: 'cc-tools' },
-        cur.readOnly ? null : el('button', { class: 'btn primary', disabled: saving, onclick: save }, saving ? 'Saving…' : (user() ? 'Save' : 'Sign in to save')),
-        cur.readOnly || lvlup ? null : el('button', { class: 'btn', onclick: startLevelUp }, `Level up to ${num(cur.data.level) + 1}`),
-        el('button', { class: 'btn', onclick: () => printSheet(cur.data) }, 'Download PDF'),
-        el('button', { class: 'btn', onclick: () => downloadDocx(cur.data) }, 'Download Word'),
-        cur.id && !cur.readOnly || (cur.id && admin()) ? (confirmDel
-          ? el('span', { class: 'confirm' }, 'Delete this character? ',
-            el('button', { class: 'btn small danger', onclick: remove }, 'Delete'),
-            el('button', { class: 'btn small ghost', onclick: () => { confirmDel = false; render(); } }, 'Keep'))
-          : el('button', { class: 'mini danger', onclick: () => { confirmDel = true; render(); } }, 'Delete')) : null);
+    function guideView(c, d) {
+      const steps = guideSteps(c, d);
+      const i = Math.min(c.guide.step, steps.length - 1);
+      const T = todos(c, d);
+      const goStep = j => { c.guide.step = j; c.guide.seen = Math.max(num(c.guide.seen), j); changed(); render(); toTop(); };
+      const st = steps[i];
+      const left = T.filter(t => st.secs.includes(t.sec));
+      return [
+        el('ol', { class: 'cc-stepper' }, ...steps.map((s, j) => {
+          const done = j <= num(c.guide.seen) && !T.some(t => s.secs.includes(t.sec));
+          return el('li', { class: (j === i ? 'cur' : '') + (done ? ' done' : '') },
+            el('button', { 'aria-current': j === i ? 'step' : null, onclick: () => goStep(j) },
+              el('span', { class: 'n' }, done && j !== i ? '✓' : String(j + 1)), el('span', { class: 't' }, s.title)));
+        })),
+        el('p', { class: 'cc-intro' }, st.intro),
+        ...st.secs.map(t => section(t, SECTION_FNS[t](c, d))),
+        el('div', { class: 'cc-guide-nav' },
+          i > 0 ? el('button', { class: 'btn', onclick: () => goStep(i - 1) }, `← ${steps[i - 1].title}`) : el('span'),
+          el('div', { class: 'cc-guide-next' },
+            left.length ? el('span', { class: 'hint' }, `Still to do here: ${left.map((t, k) => k ? t.text[0].toLowerCase() + t.text.slice(1) : t.text).join(', ')}. You can come back to it.`) : null,
+            i < steps.length - 1
+              ? el('button', { class: 'btn primary', onclick: () => goStep(i + 1) }, `Next: ${steps[i + 1].title} →`)
+              : el('button', { class: 'btn primary', onclick: () => { c.guide.done = true; mode = 'sheet'; changed(); render(); toTop(); } }, 'Finish and view the sheet'))),
+      ];
     }
 
+    /* ================= picker (search a list, pick one) ================= */
+    function picker({ title, note, groups, onPick, empty }) {
+      let showAll = false;
+      const dlg = el('dialog', { class: 'hb-dialog cc-picker', 'aria-label': title });
+      const q = el('input', { type: 'search', class: 'cc-pk-q', placeholder: 'Search…', 'aria-label': 'Search', autocomplete: 'off' });
+      const list = el('div', { class: 'cc-pk-list' });
+      const blocked = groups.reduce((a, g) => a + g.options.filter(o => o.why).length, 0);
+      const allBox = blocked ? el('label', { class: 'toggle cc-pk-all' }, el('input', { type: 'checkbox', onchange: e => { showAll = e.target.checked; draw(); } }), ` Show ${blocked} you can’t take yet`) : null;
+      function draw() {
+        const toks = norm(q.value).split(' ').filter(Boolean);
+        const hit = o => toks.every(t => norm(`${o.name} ${o.meta || ''} ${o.text || ''}`).includes(t));
+        const kids = [];
+        for (const g of groups) {
+          const os = g.options.filter(o => (showAll || !o.why) && hit(o));
+          if (!os.length) continue;
+          if (g.label) kids.push(el('div', { class: 'cc-pk-g' }, g.label));
+          for (const o of os) kids.push(el('button', { class: 'cc-pk-opt', disabled: !!o.why, onclick: () => { dlg.close(); onPick(o.value); } },
+            el('span', { class: 'nm' }, o.name, o.meta ? el('span', { class: 'meta' }, o.meta) : null),
+            o.text ? el('span', { class: 'tx' }, o.text) : null,
+            o.why ? el('span', { class: 'why' }, o.why) : null));
+        }
+        list.replaceChildren(...(kids.length ? kids : [el('p', { class: 'd-note' }, toks.length ? 'Nothing matches that search.' : (empty || 'Nothing you can take right now.'))]));
+      }
+      q.addEventListener('input', draw);
+      q.addEventListener('keydown', e => { if (e.key === 'Enter') { const f = list.querySelector('.cc-pk-opt:not(:disabled)'); if (f) { e.preventDefault(); f.click(); } } });
+      dlg.append(el('div', { class: 'dlg cc-pk' },
+        el('button', { class: 'dlg-x', 'aria-label': 'Close', onclick: () => dlg.close() }, '×'),
+        el('h2', {}, title), note ? el('p', { class: 'dlg-note' }, note) : null, q, allBox, list));
+      dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+      dlg.addEventListener('close', () => dlg.remove());
+      document.body.append(dlg);
+      draw(); dlg.showModal(); q.focus();
+    }
+    const card = (cls, head, ...body) => el('div', { class: 'cc-card ' + cls }, el('div', { class: 'cc-card-h' }, ...[].concat(head).filter(Boolean)), ...body.filter(Boolean));
+    const tag = t => el('span', { class: 'cc-tag' }, t);
+    const btns = (...b) => el('span', { class: 'cc-card-btns' }, ...b.filter(Boolean));
+
     const field = (label, input, hint) => el('label', { class: 'cc-field' }, el('span', { class: 'k' }, label), input, hint ? el('span', { class: 'hint' }, hint) : null);
+
     function textInput(key, attrs = {}) {
       return el('input', Object.assign({ type: 'text', value: cur.data[key] || '', oninput: e => { cur.data[key] = e.target.value; changed(); if (key === 'name') { const t = $('#detail .d-title'); if (t) t.textContent = e.target.value || 'New character'; } } }, attrs));
     }
@@ -446,12 +672,13 @@
     }
 
     function basics(c) {
-      return el('div', { class: 'cc-grid' },
-        field('Name', textInput('name', { maxlength: '80', placeholder: 'Character name' })),
-        field('Level', el('input', { type: 'number', min: '0', value: String(num(c.level)), onchange: e => set('level', Math.max(0, num(e.target.value))) })),
-        field('Age', textInput('age', { maxlength: '20' })),
+      return el('div', { class: 'cc-grid cc-basics' },
+        el('div', { class: 'cc-b-name' }, field('Name', textInput('name', { maxlength: '80', placeholder: 'Character name' }))),
+        field('Level', el('input', { type: 'number', min: '0', class: 'cc-small', title: 'To add one level with its choices, use Level up', value: String(num(c.level)), onchange: e => set('level', Math.max(0, num(e.target.value))) })),
+        field('Age', textInput('age', { maxlength: '20', class: 'cc-small' })),
         el('div', { class: 'cc-wide' }, field('Background', area('background', 3, 'Where they come from, who they were before the adventure…'))));
     }
+
 
     function raceOptions(selected, exclude) {
       const groups = {};
@@ -470,7 +697,7 @@
       if (d.r.prime) kids.push(el('p', { class: 'd-note' }, '🔒 Prime races are unlocked in play. Check with your DM before choosing one.'));
       const t1 = raceTraits(d.r), t2 = d.r2 ? raceTraits(d.r2) : null;
       kids.push(el('div', { class: 'stats' },
-        stat('HP', d.r.meta.hp || '—'), stat('IMP', d.r.meta.imp || '—'),
+        stat('HP', d.r.meta.hp || '—'), stat('I.M.P.', d.r.meta.imp || '—'),
         stat('Languages', [d.r.meta.languages, d.r2 && d.r2.meta.languages].filter(Boolean).join(', ') || '—')));
       const traits = t2 ? [t1.traits[0], t2.traits[1] || t2.traits[0]].filter(Boolean) : t1.traits;
       const feats = t2 ? [t1.feats.find(f => f.n === 3), t2.feats.find(f => f.n === 4)].filter(Boolean) : t1.feats;
@@ -538,62 +765,63 @@
       cur.data.rolls[k] = dice; cur.data.stats[k] = dice.slice(0, keep).reduce((a, x) => a + x, 0);
     }
 
-    function statTable(c, d, keys, label) {
-      const { sides, keep } = RULES.statDice;
-      const rows = d.stats.filter(s => keys.includes(s.k)).map(s => {
-        const dice = c.rolls[s.k];
-        const q = s.mod - num(c.adjust[s.k]);
-        return el('tr', {},
-          el('th', {}, s.k),
-          el('td', {}, el('input', { type: 'number', min: String(keep), max: String(keep * sides), class: 'num', value: c.stats[s.k] === '' || c.stats[s.k] == null ? '' : String(c.stats[s.k]), 'aria-label': `${s.k} rolled`, onchange: e => { cur.data.stats[s.k] = e.target.value === '' ? '' : num(e.target.value); delete cur.data.rolls[s.k]; changed(); render(); } })),
-          el('td', { class: 'dice-cell' }, dice ? el('span', { html: dice.map((x, i) => i < keep ? String(x) : `<s>${x}</s>`).join(' ') }) : el('span', { class: 'hint' }, '—'),
-            el('button', { class: 'mini', onclick: () => { rollStat(s.k); changed(); render(); } }, 'Roll')),
-          el('td', {}, el('input', { type: 'number', class: 'num', value: String(num(c.adjust[s.k])), title: '−1 improves the stat, +1 worsens it', 'aria-label': `${s.k} adjustment`, onchange: e => { cur.data.adjust[s.k] = num(e.target.value); changed(); render(); } })),
-          keys === BASE_STATS ? el('td', { class: 'mod' }, q ? fmt(q) : '') : null,
-          el('td', { class: 'mod' }, s.lvlMod ? fmt(s.lvlMod) : ''),
-          el('td', { class: 'final' }, s.final == null ? '—' : String(s.final)));
+    /* ---- stats: one card per stat ---- */
+    const STAT_NAMES = { STR: 'Strength', DEX: 'Dexterity', INT: 'Intelligence', WIS: 'Wisdom', PER: 'Perception', CHA: 'Charisma' };
+    function statCards(c, d, keys, label) {
+      const { keep, sides } = RULES.statDice;
+      const cards = d.stats.filter(s => keys.includes(s.k)).map(s => {
+        const dice = c.rolls[s.k], adj = num(c.adjust[s.k]), q = s.mod - adj;
+        const parts = [s.base != null ? `rolled ${s.base}` : null, q ? `quirks ${fmt(q)}` : null, adj ? `adjust ${fmt(adj)}` : null, s.lvlMod ? `levels ${fmt(s.lvlMod)}` : null].filter(Boolean);
+        return el('div', { class: 'cc-stat' + (s.final == null ? ' empty' : '') },
+          el('span', { class: 'k', title: STAT_NAMES[s.k] || s.k }, s.k),
+          el('span', { class: 'v' }, s.final == null ? '—' : String(s.final)),
+          el('span', { class: 'bd' }, parts.length > 1 || s.base == null ? (parts.join(' · ') || 'Not rolled') : '\u00a0'),
+          dice ? el('span', { class: 'dice', title: `Rolled ${dice.join(', ')}; the highest is dropped`, html: dice.map((x, i) => i < keep ? String(x) : `<s>${x}</s>`).join(' ') }) : null,
+          showAdjust ? el('div', { class: 'cc-stat-edit' },
+            el('label', {}, 'Rolled', el('input', { type: 'number', class: 'num', min: String(keep), max: String(keep * sides), value: s.base == null ? '' : String(s.base), 'aria-label': `${s.k} rolled`, onchange: e => { cur.data.stats[s.k] = e.target.value === '' ? '' : num(e.target.value); delete cur.data.rolls[s.k]; changed(); render(); } })),
+            el('label', {}, 'Adjust', el('input', { type: 'number', class: 'num', value: String(adj), title: '−1 improves the stat, +1 worsens it', 'aria-label': `${s.k} adjustment`, onchange: e => { cur.data.adjust[s.k] = num(e.target.value); changed(); render(); } }))) : null,
+          el('button', { class: 'mini', 'aria-label': `${s.base == null ? 'Roll' : 'Reroll'} ${s.k}`, onclick: () => { rollStat(s.k); changed(); render(); } }, s.base == null ? 'Roll' : 'Reroll'));
       });
-      const heads = ['Rolled', 'Dice', 'Adjust', ...(keys === BASE_STATS ? ['Quirks'] : []), 'Levels', 'Final'];
-      const rolledAny = keys.some(k => c.rolls[k]);
+      const rolledAny = keys.some(k => c.stats[k] !== '' && c.stats[k] != null);
       return [
-        el('h3', { class: 'cc-h3' }, label),
-        el('div', { class: 'table-wrap' }, el('table', { class: 'cc-stats' },
-          el('thead', {}, el('tr', {}, el('th', {}, label === 'Stats' ? 'Stat' : 'Combat stat'), ...heads.map(h => el('th', {}, h)))),
-          el('tbody', {}, ...rows))),
-        el('button', { class: 'btn small cc-rollall', onclick: () => { keys.forEach(rollStat); changed(); render(); } }, `${rolledAny ? 'Reroll' : 'Roll'} all ${label.toLowerCase()}`),
+        el('div', { class: 'cc-stat-head' }, el('h3', { class: 'cc-h3' }, label),
+          el('button', { class: 'btn small' + (rolledAny ? '' : ' primary'), onclick: () => { keys.forEach(rollStat); changed(); render(); } }, `${rolledAny ? 'Reroll' : 'Roll'} all ${label.toLowerCase()}`)),
+        el('div', { class: 'cc-statgrid' + (keys.length === 5 ? ' five' : '') }, ...cards),
       ];
     }
-
     function statsSection(c, d) {
       const { n, sides, keep } = RULES.statDice;
       return [
-        el('p', { class: 'd-note' }, `Roll ${n}d${sides} for each stat and add the lowest ${keep}. Stats are roll-under, so lower is better. Use Adjust for changes from your race or class-wide benefits (−1 improves a stat). Level-up improvements are chosen under Level-ups and applied for you.`),
-        ...statTable(c, d, BASE_STATS, 'Stats'),
-        ...statTable(c, d, COMBAT_STATS, 'Combat stats'),
+        el('p', { class: 'd-note' }, `Each stat is ${n}d${sides}, keeping the lowest ${keep}. Lower is better. Level-up improvements are added for you.`),
+        ...statCards(c, d, BASE_STATS, 'Stats'),
+        ...statCards(c, d, COMBAT_STATS, 'Combat stats'),
+        el('label', { class: 'toggle cc-adjust-t' }, el('input', { type: 'checkbox', checked: showAdjust, onchange: e => { showAdjust = e.target.checked; render(); } }),
+          ' Enter rolls by hand, or adjust a stat for your race or class (−1 improves it)'),
       ];
     }
     const fmt = v => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v);
 
+    /* ---- drawbacks and quirks ---- */
     function traitsSection(c, d) {
       const { drawbacks, quirks } = traitLists();
-      const dCount = c.drawbacks.length, qCount = c.quirks.length;
-      const toggle = (key, name, max) => e => {
-        const arr = cur.data[key];
-        if (e.target.checked) { if (arr.length >= max) { e.target.checked = false; return; } arr.push(name); }
-        else cur.data[key] = arr.filter(x => x !== name);
-        changed(); render();
-      };
+      const dFull = c.drawbacks.length >= RULES.maxDrawbacks, qFull = c.quirks.length >= RULES.maxQuirks;
+      const drop = (key, name) => () => { cur.data[key] = cur.data[key].filter(x => x !== name); changed(); render(); };
+      const add = (key, v) => { cur.data[key].push(v); changed(); render(); };
       return [
-        el('p', { class: 'd-note' }, `Drawbacks give SP back: take up to ${RULES.maxDrawbacks}, for at most ${RULES.maxDrawbackSP} SP. Quirks trade one stat for another at no SP cost: take up to ${RULES.maxQuirks}.`),
+        el('p', { class: 'd-note' }, `Both are optional. Take up to ${RULES.maxDrawbacks} drawbacks (they give back at most ${RULES.maxDrawbackSP} SP) and up to ${RULES.maxQuirks} quirks.`),
         el('div', { class: 'cc-cols' },
-          el('div', {}, el('h3', { class: 'cc-h3' }, `Drawbacks (${dCount}/${RULES.maxDrawbacks}) · ${d.refund} SP back`),
-            ...drawbacks.map(x => el('label', { class: 'cc-opt' + (!c.drawbacks.includes(x.name) && dCount >= RULES.maxDrawbacks ? ' off' : '') },
-              el('input', { type: 'checkbox', checked: c.drawbacks.includes(x.name), disabled: !c.drawbacks.includes(x.name) && dCount >= RULES.maxDrawbacks, onchange: toggle('drawbacks', x.name, RULES.maxDrawbacks) }),
-              el('span', {}, el('strong', {}, x.name), ` · ${x.sp} SP`, el('span', { class: 'hint' }, x.text))))),
-          el('div', {}, el('h3', { class: 'cc-h3' }, `Quirks (${qCount}/${RULES.maxQuirks})`),
-            ...quirks.map(x => el('label', { class: 'cc-opt' + (!c.quirks.includes(x.name) && qCount >= RULES.maxQuirks ? ' off' : '') },
-              el('input', { type: 'checkbox', checked: c.quirks.includes(x.name), disabled: !c.quirks.includes(x.name) && qCount >= RULES.maxQuirks, onchange: toggle('quirks', x.name, RULES.maxQuirks) }),
-              el('span', {}, el('strong', {}, x.name), el('span', { class: 'hint' }, `${x.gain}; ${x.cost}`)))))),
+          el('div', {}, el('h3', { class: 'cc-h3' }, `Drawbacks · ${c.drawbacks.length} of ${RULES.maxDrawbacks}${d.refund ? ` · ${d.refund} SP back` : ''}`),
+            ...d.dSel.map(x => card('', [el('strong', {}, x.name), tag(`${x.sp} SP back`), btns(el('button', { class: 'mini danger', onclick: drop('drawbacks', x.name) }, 'Remove'))], el('p', { class: 'cc-card-t' }, x.text))),
+            el('button', { class: 'btn small cc-add', disabled: dFull, onclick: () => picker({
+              title: 'Add a drawback', note: d.refund >= RULES.maxDrawbackSP ? `You already get the most SP back (${RULES.maxDrawbackSP}); another drawback won’t give more.` : `Drawbacks give back at most ${RULES.maxDrawbackSP} SP in total.`,
+              groups: [{ options: drawbacks.filter(x => !c.drawbacks.includes(x.name)).map(x => ({ value: x.name, name: x.name, meta: `${x.sp} SP back`, text: x.text })) }],
+              onPick: v => add('drawbacks', v) }) }, dFull ? `Drawbacks full (${RULES.maxDrawbacks})` : '+ Add a drawback')),
+          el('div', {}, el('h3', { class: 'cc-h3' }, `Quirks · ${c.quirks.length} of ${RULES.maxQuirks}`),
+            ...d.qSel.map(x => card('', [el('strong', {}, x.name), btns(el('button', { class: 'mini danger', onclick: drop('quirks', x.name) }, 'Remove'))], el('p', { class: 'cc-card-t' }, `${x.gain}; ${x.cost}`))),
+            el('button', { class: 'btn small cc-add', disabled: qFull, onclick: () => picker({
+              title: 'Add a quirk', note: 'Quirks trade one stat for another, at no SP cost.',
+              groups: [{ options: quirks.filter(x => !c.quirks.includes(x.name)).map(x => ({ value: x.name, name: x.name, text: `${x.gain}; ${x.cost}` })) }],
+              onPick: v => add('quirks', v) }) }, qFull ? `Quirks full (${RULES.maxQuirks})` : '+ Add a quirk'))),
       ];
     }
 
@@ -612,7 +840,7 @@
 
     function levelSection(c, d) {
       const kids = [el('div', { class: 'stats' }, stat('Level', d.L), stat('Renown', d.R)),
-        lvlup ? null : el('p', { class: 'cc-lvl-cta' }, el('button', { class: 'btn small primary', onclick: startLevelUp }, `Level up to ${d.L + 1}`),
+        lvlup || mode === 'guide' ? null : el('p', { class: 'cc-lvl-cta' }, el('button', { class: 'btn small primary', onclick: startLevelUp }, `Level up to ${d.L + 1}`),
           el('span', { class: 'hint' }, d.L ? ' Walks you through what the next level gives. Earlier levels can be changed below.' : ' Walks you through what level 1 gives.'))];
       if (!d.L) { kids.push(el('p', { class: 'd-note' }, 'Level 0 is your starting character. Raise the level under Basics to plan what each level gives: stat improvements at X1 and X4, hit dice at X2 and X10, soft skill ranks at X4 and X6, a feat at X8, and a milestone boon every tenth level.')); return kids; }
       const lv = c.lv;
@@ -647,14 +875,14 @@
 
     /* ---- level up: one level at a time ---- */
     function startLevelUp() {
-      lvlup = { to: num(cur.data.level) + 1, snap: JSON.parse(JSON.stringify(cur.data)), wasDirty: cur.dirty, skills: [], fp: false };
-      cur.data.level = lvlup.to; changed(); render();
+      lvlup = { to: num(cur.data.level) + 1, snap: JSON.parse(JSON.stringify(cur.data)), wasDirty: cur.dirty, skills: [], fp: false, back: mode };
+      mode = 'edit'; cur.data.level = lvlup.to; changed(); render();
       requestAnimationFrame(() => { const p = $('#cc-levelup'); if (p) { p.scrollIntoView({ behavior: 'smooth', block: 'start' }); p.focus({ preventScroll: true }); } });
     }
     function cancelLevelUp() {
-      cur.data = lvlup.snap; cur.dirty = lvlup.wasDirty; lvlup = null; saveDraft(); render();
+      const back = lvlup.back; cur.data = lvlup.snap; cur.dirty = lvlup.wasDirty; lvlup = null; mode = back || 'edit'; saveDraft(); render(); toTop();
     }
-    function finishLevelUp() { lvlup = null; render(); }
+    function finishLevelUp() { const back = lvlup.back; lvlup = null; mode = back || 'edit'; render(); toTop(); }
 
     function levelGains(N) {
       const k = N % 10, out = [];
@@ -724,16 +952,10 @@
       // soft skill ranks (from this level, a boon, or any left over)
       const leftRanks = d.skillRanks - d.skillsUsed;
       if (leftRanks > 0 || lvlup.skills.length) {
-        const opts = skillList().filter(sk => !skillCheck(c, d, sk, num(lv.skills[sk.name]) + 1));
-        const fams = [...new Set(opts.map(x => x.family))];
         steps.push(step(`Spend soft skill ranks${leftRanks > 0 ? ` · ${leftRanks} left` : ''}`, [
           lvlup.skills.length ? el('ul', { class: 'cc-added' }, ...lvlup.skills.map((x, i) => el('li', {}, `${x.n} → ${RANKS[x.to]} `,
             i === lvlup.skills.length - 1 ? el('button', { class: 'mini', onclick: () => { const r = num(lv.skills[x.n]) - 1; if (r > 0) lv.skills[x.n] = r; else delete lv.skills[x.n]; lvlup.skills.pop(); changed(); render(); } }, 'Undo') : null))) : null,
-          leftRanks > 0 ? el('label', { class: 'cc-row' },
-            el('select', { class: 'select', onchange: e => { const n = e.target.value; if (!n) return; lv.skills[n] = num(lv.skills[n]) + 1; lvlup.skills.push({ n, to: lv.skills[n] }); changed(); render(); } },
-              el('option', { value: '' }, '— add a rank to a skill —'),
-              ...fams.map(f => el('optgroup', { label: f }, ...opts.filter(x => x.family === f).map(sk => el('option', { value: sk.name }, `${sk.name} → ${RANKS[num(lv.skills[sk.name]) + 1]}`))))),
-            el('span', { class: 'hint' }, 'Only skills you can raise right now are listed.')) : null], leftRanks <= 0));
+          leftRanks > 0 ? el('button', { class: 'btn small primary', onclick: () => skillPicker(c, d, n => { lv.skills[n] = num(lv.skills[n]) + 1; lvlup.skills.push({ n, to: lv.skills[n] }); changed(); render(); }) }, '+ Add a skill rank') : null], leftRanks <= 0));
         if (leftRanks > 0) todo.push(`${leftRanks} soft skill rank${leftRanks === 1 ? '' : 's'}`);
       }
       // SP (or FP)
@@ -780,7 +1002,6 @@
         b.type === 'retrain' || b.type === 'mark' ? el('input', { type: 'text', class: 'cc-note', placeholder: b.type === 'mark' ? 'Which mark, for what deed' : 'What you swapped', value: b.note || '', onchange: e => setB({ note: e.target.value }) }) : null);
     }
 
-    /* ---- soft skills ---- */
     function skillCheck(c, d, sk, to) {
       const R = d.R, ranks = c.lv.skills;
       if (to > 5) return 'Legendary is the highest rank.';
@@ -793,83 +1014,97 @@
       return '';
     }
 
+    /* ---- soft skills ---- */
+    function skillPicker(c, d, onPick) {
+      const fams = [...new Set(skillList().map(x => x.family))];
+      picker({
+        title: 'Add a soft skill rank',
+        note: `One rank is Trained, two Expert, three Master (Renown ${RULES.rankRenown[3]}). You have ${pl(d.skillRanks - d.skillsUsed, 'rank')} to spend.`,
+        groups: fams.map(f => ({ label: f, options: skillList().filter(x => x.family === f).map(sk => {
+          const r = num(c.lv.skills[sk.name]);
+          return { value: sk.name, name: sk.name, meta: r ? `${RANKS[r]} → ${RANKS[r + 1] || '—'}` : 'New · Trained', text: sk.renown > 1 ? `Renown ${sk.renown} skill` : '', why: skillCheck(c, d, sk, r + 1) };
+        }) })),
+        onPick,
+      });
+    }
+    const pips = r => el('span', { class: 'cc-pips', 'aria-hidden': 'true' }, ...[1, 2, 3, 4, 5].map(i => el('i', { class: i <= r ? 'on' : '' })));
     function skillsSection(c, d) {
       const left = d.skillRanks - d.skillsUsed;
       const kids = [el('div', { class: 'sp-bar' }, stat('Ranks', d.skillRanks), stat('Used', d.skillsUsed),
         el('div', { class: 'stat sp-left' + (left < 0 ? ' bad' : '') }, el('span', { class: 'k' }, 'Left'), el('span', { class: 'v' }, String(left))),
         d.pastMaster ? stat('Past Master', `${d.pastUsed}/${d.pastMaster}`) : null)];
       if (!d.skillRanks && !d.skillsUsed) { kids.push(el('p', { class: 'd-note' }, 'You gain soft skill ranks at levels X4 and X6, and from milestone boons. Your first comes at level 4.')); return kids; }
-      kids.push(el('p', { class: 'd-note' }, 'One rank is Trained, two Expert, three Master (Renown 2). Grandmaster and Legendary come later and need a milestone boon.'));
-      const fams = [...new Set(skillList().map(x => x.family))];
-      for (const f of fams) {
-        const list = skillList().filter(x => x.family === f);
-        const held = list.filter(x => num(c.lv.skills[x.name]) > 0).length;
-        kids.push(el('details', { class: 'cc-fam', open: held > 0 || undefined },
-          el('summary', {}, f, held ? el('span', { class: 'hint' }, ` · ${held} skill${held === 1 ? '' : 's'}`) : null),
-          el('div', { class: 'cc-skills' }, ...list.map(sk => {
-            const r = num(c.lv.skills[sk.name]);
-            const why = skillCheck(c, d, sk, r + 1);
-            return el('div', { class: 'cc-skill' + (r ? ' on' : '') },
-              el('span', { class: 'nm' }, sk.name, sk.renown > 1 ? el('span', { class: 'hint' }, ` (Renown ${sk.renown})`) : null),
-              el('span', { class: 'rk' }, r ? RANKS[r] : ''),
-              el('button', { class: 'mini', disabled: !r, 'aria-label': `Remove a rank from ${sk.name}`, onclick: () => { const v = r - 1; if (v > 0) c.lv.skills[sk.name] = v; else delete c.lv.skills[sk.name]; changed(); render(); } }, '−'),
-              el('button', { class: 'mini', disabled: !!why, title: why || `Raise to ${RANKS[r + 1]}`, 'aria-label': `Add a rank to ${sk.name}`, onclick: () => { c.lv.skills[sk.name] = r + 1; changed(); render(); } }, '+'));
-          }))));
-      }
+      const byFam = skillList();
+      const held = Object.entries(c.lv.skills).filter(([, r]) => num(r) > 0)
+        .map(([n, r]) => ({ n, r: num(r), sk: byFam.find(x => x.name === n) || { name: n, family: '', renown: 1 } }))
+        .sort((a, b) => b.r - a.r || a.n.localeCompare(b.n));
+      if (held.length) kids.push(el('div', { class: 'cc-skillrows' }, ...held.map(h => {
+        const why = skillCheck(c, d, h.sk, h.r + 1);
+        return el('div', { class: 'cc-skillrow' },
+          el('span', { class: 'nm' }, el('strong', {}, h.n), h.sk.family ? el('span', { class: 'fam' }, h.sk.family) : null),
+          pips(h.r), el('span', { class: 'rk' }, RANKS[h.r]),
+          el('span', { class: 'cc-card-btns' },
+            el('button', { class: 'mini', 'aria-label': `Remove a rank from ${h.n}`, onclick: () => { const v = h.r - 1; if (v > 0) c.lv.skills[h.n] = v; else delete c.lv.skills[h.n]; changed(); render(); } }, '−'),
+            el('button', { class: 'mini', disabled: !!why, title: why || `Raise to ${RANKS[h.r + 1]}`, 'aria-label': `Add a rank to ${h.n}`, onclick: () => { c.lv.skills[h.n] = h.r + 1; changed(); render(); } }, '+')));
+      })));
+      kids.push(el('button', { class: 'btn small cc-add' + (left > 0 && !held.length ? ' primary' : ''), disabled: left <= 0, onclick: () => skillPicker(c, d, n => { c.lv.skills[n] = num(c.lv.skills[n]) + 1; changed(); render(); }) },
+        left > 0 ? '+ Add a skill rank' : 'No ranks left to spend'));
       return kids;
     }
 
     /* ---- feats ---- */
-    const takenFeats = c => Object.values(c.lv.feats).filter(Boolean);
-    function featOk(c, d, f, slot) {
-      if (f.tier > slot.max || (slot.min && f.tier < slot.min)) return false;
-      if (RULES.renownAt(slot.lvl) < RULES.tierRenown[f.tier]) return false;
+    function featWhy(c, d, f, slot) {
+      if (f.tier > slot.max) return `Tier ${romanOf(f.tier)} is above this slot`;
+      if (slot.min && f.tier < slot.min) return `This slot needs a Tier ${romanOf(slot.min)} feat`;
+      if (RULES.renownAt(slot.lvl) < RULES.tierRenown[f.tier]) return `Tier ${romanOf(f.tier)} needs Renown ${RULES.tierRenown[f.tier]}`;
       const taken = Object.entries(c.lv.feats).filter(([k]) => k !== slot.key).map(([, v]) => v);
-      if (taken.includes(f.name)) return false;
-      if (f.needs.some(n => !taken.includes(n))) return false;
-      if (f.caster && !d.slots.some(x => x.magic)) return false;
-      return true;
+      if (taken.includes(f.name)) return 'You already have this feat';
+      const miss = f.needs.filter(n => !taken.includes(n));
+      if (miss.length) return `Needs ${miss.join(', ')}`;
+      if (f.caster && !d.slots.some(x => x.magic)) return 'Needs a spellcasting class';
+      return '';
     }
+    const featOk = (c, d, f, slot) => !featWhy(c, d, f, slot);
     function featsSection(c, d) {
       if (!d.featSlots.length) return [el('p', { class: 'd-note' }, 'You gain a feat at every level X8 (8, 18, 28…), and Tier IV or V feats from milestone boons at high Renown. Your first comes at level 8.')];
-      const kids = [el('p', { class: 'd-note' }, 'Each slot lists only the feats you qualify for at that level: the tier must be open at that Renown, you need any feat it builds on, and "caster" feats need a spellcasting class.')];
-      for (const slot of d.featSlots) kids.push(featSlotRow(c, d, slot));
-      return kids;
+      return [el('p', { class: 'd-note' }, 'Each slot offers the feats you qualify for at that level.'), ...d.featSlots.map(slot => featSlotRow(c, d, slot))];
     }
     function featSlotRow(c, d, slot) {
-      {
-        const chosen = featList().find(f => f.name === c.lv.feats[slot.key]);
-        const opts = featList().filter(f => featOk(c, d, f, slot) || (chosen && f.name === chosen.name));
-        const cats = [...new Set(opts.map(f => f.cat))];
-        const maxOpen = Math.min(slot.max, ...[5, 4, 3, 2, 1].filter(t => RULES.renownAt(slot.lvl) >= RULES.tierRenown[t]).slice(0, 1));
-        return (el('div', { class: 'cc-buy' + (chosen ? ' on' : '') },
-          el('label', { class: 'cc-row' },
-            el('span', { class: 'k' }, slot.label),
-            el('select', { class: 'select', onchange: e => lvSet('feats', slot.key, e.target.value) },
-              el('option', { value: '' }, `— choose a Tier ${slot.min ? romanOf(slot.min) : 'I' + (maxOpen > 1 ? '–' + romanOf(maxOpen) : '')} feat —`),
-              ...cats.map(cat => el('optgroup', { label: cat }, ...opts.filter(f => f.cat === cat).map(f => el('option', { value: f.name, selected: chosen && f.name === chosen.name }, `${f.name} (${romanOf(f.tier)}${f.caster ? ', caster' : ''})`)))))),
-          chosen ? el('p', { class: 'hint' }, chosen.effect) : null));
-      }
+      const chosen = featList().find(f => f.name === c.lv.feats[slot.key]);
+      const cats = [...new Set(featList().map(f => f.cat))];
+      const maxOpen = [5, 4, 3, 2, 1].find(t => t <= slot.max && RULES.renownAt(slot.lvl) >= RULES.tierRenown[t]) || 1;
+      const open = () => picker({
+        title: `Choose a feat · ${slot.label}`,
+        note: slot.min ? `This slot takes a Tier ${romanOf(slot.min)} feat.` : `This slot takes a Tier I${maxOpen > 1 ? '–' + romanOf(maxOpen) : ''} feat.`,
+        groups: cats.map(cat => ({ label: cat, options: featList().filter(f => f.cat === cat && f.tier <= slot.max).map(f => ({
+          value: f.name, name: f.name, meta: `Tier ${romanOf(f.tier)}${f.caster ? ' · caster' : ''}`, text: f.effect, why: chosen && f.name === chosen.name ? '' : featWhy(c, d, f, slot) })) })),
+        onPick: v => lvSet('feats', slot.key, v),
+      });
+      return card('cc-slot' + (chosen ? ' on' : ' empty'),
+        [tag(slot.label), chosen ? el('strong', {}, chosen.name) : el('span', { class: 'hint' }, 'No feat chosen yet'), chosen ? tag(`Tier ${romanOf(chosen.tier)}`) : null,
+          btns(el('button', { class: 'btn small' + (chosen ? '' : ' primary'), onclick: open }, chosen ? 'Change' : 'Choose a feat'),
+            chosen ? el('button', { class: 'mini danger', onclick: () => lvSet('feats', slot.key, '') }, 'Remove') : null)],
+        chosen ? el('p', { class: 'cc-card-t' }, chosen.effect) : null);
     }
 
     /* ---- subclass points ---- */
     function spSection(c, d) {
       const kids = [el('div', { class: 'sp-bar' },
         stat('From level', d.earned), stat('Drawbacks', d.refund),
-        el('label', { class: 'stat sp-adj' }, el('span', { class: 'k' }, 'Adjust'),
-          el('input', { type: 'number', class: 'num', value: String(num(c.spAdjust)), title: 'SP your DM has awarded, or SP traded for FP', onchange: e => set('spAdjust', num(e.target.value)) })),
+        el('label', { class: 'stat sp-adj' }, el('span', { class: 'k' }, 'DM bonus'),
+          el('input', { type: 'number', class: 'num', value: String(num(c.spAdjust)), title: 'SP your DM has awarded', onchange: e => set('spAdjust', num(e.target.value)) })),
         d.G.fpLevels ? el('label', { class: 'stat sp-adj' }, el('span', { class: 'k' }, 'As FP'),
           el('input', { type: 'number', class: 'num', min: '0', max: String(d.G.fpLevels), value: String(d.fp), title: `From level 11 you may take FP instead of SP on an SP level (up to ${d.G.fpLevels} so far)`, onchange: e => { cur.data.lv.fp = Math.min(Math.max(0, num(e.target.value)), d.G.fpLevels); changed(); render(); } })) : null,
         stat('Spent', d.spent), el('div', { class: 'stat sp-left' + (d.left < 0 ? ' bad' : '') }, el('span', { class: 'k' }, 'Left'), el('span', { class: 'v' }, String(d.left))))];
-      if (d.left < 0) kids.push(el('p', { class: 'notes-msg' }, 'You’ve spent more SP than you have. Untick something, or raise your level.'));
+      if (d.left < 0) kids.push(el('p', { class: 'notes-msg' }, 'You’ve spent more SP than you have. Remove something, or raise your level.'));
       if (!d.cls) { kids.push(el('p', { class: 'd-note' }, 'Choose a class first.')); return kids; }
-      if (d.total === 0 && d.spent === 0) kids.push(el('p', { class: 'd-note' }, 'Level 0 characters start with 0 SP. Raise your level, take a drawback, or add SP your DM has given you to start buying.'));
+      if (d.total === 0 && d.spent === 0) kids.push(el('p', { class: 'd-note' }, 'Level 0 characters start with 0 SP. Level up, take a drawback, or add SP your DM has given you to start buying.'));
       const can = cost => d.left >= cost;
       for (const slot of d.slots) {
         if (d.slots.length > 1) kids.push(el('h3', { class: 'cc-h3 cc-classhead' }, slot.label || `Extra class ${slot.i}`, slot.i ? el('span', { class: 'hint' }, ` · added for ${RULES.costClass} SP`) : null));
         if (!slot.g) { kids.push(el('p', { class: 'd-note' }, slot.cls ? 'Choose a path for this class first.' : 'Choose a class first.')); continue; }
         kids.push(generalBuy(c, slot, can));
-        for (const sub of slot.g.items) kids.push(subBuy(c, slot, sub, can));
+        kids.push(el('div', { class: 'cc-subs' }, ...slot.g.items.map(sub => subBuy(c, slot, sub, can))));
       }
       return kids;
     }
@@ -878,80 +1113,83 @@
       const b = c.buys, g = slot.g, on = !!b.general[g.key];
       const hpDice = (g.intro || '').match(/Gain (\d+d\d+) hit points/i);
       const rolls = c.hpRolls[g.key] || [];
-      return el('div', { class: 'cc-buy general' + (on ? ' on' : '') },
-        el('label', { class: 'cc-opt' },
-          el('input', { type: 'checkbox', checked: on, disabled: !on && !can(RULES.costGeneral), onchange: e => { if (!e.target.checked) clearGroup(g.key); else b.general[g.key] = true; changed(); render(); } }),
-          el('span', {}, el('strong', {}, `${g.title}: class-wide benefits`), ` · ${RULES.costGeneral} SP`, el('span', { class: 'hint' }, 'Required before anything else in this class.'))),
-        el('details', {}, el('summary', {}, 'What you get'), el('div', { class: 'prose', html: md(g.intro || '') })),
+      return card('cc-general' + (on ? ' on' : ''),
+        [el('strong', {}, `${g.title}: class-wide benefits`), tag(`${RULES.costGeneral} SP`),
+          btns(on ? el('span', { class: 'cc-own' }, '✓ Bought') : null,
+            on ? el('button', { class: 'mini danger', title: 'Also removes everything bought in this class', onclick: () => { clearGroup(g.key); changed(); render(); } }, 'Remove')
+              : el('button', { class: 'btn small primary', disabled: !can(RULES.costGeneral), onclick: () => { b.general[g.key] = true; changed(); render(); } }, `Buy · ${RULES.costGeneral} SP`))],
+        on ? null : el('p', { class: 'cc-card-t' }, can(RULES.costGeneral) ? 'Buy this first: everything else in this class needs it.' : `Buy this first: everything else in this class needs it. You need ${RULES.costGeneral} SP left.`),
+        el('details', { class: 'cc-what' }, el('summary', {}, 'What you get'), el('div', { class: 'prose', html: md(g.intro || '') })),
         on && hpDice ? el('div', { class: 'cc-hp' },
-          rolls.length ? `Rolled ${hpDice[1]}: ${rolls.join(' + ')} HP ` : '',
-          el('button', { class: 'btn small', onclick: () => { const [n, sd] = hpDice[1].split('d').map(Number); cur.data.hpRolls[g.key] = roll(n, sd); changed(); render(); } }, rolls.length ? `Reroll ${hpDice[1]} HP` : `Roll ${hpDice[1]} HP`)) : null);
+          rolls.length ? `Rolled ${hpDice[1]}: ${rolls.join(' + ')} = ${rolls.reduce((a, x) => a + x, 0)} HP` : `Roll ${hpDice[1]} for extra HP.`,
+          el('button', { class: 'btn small' + (rolls.length ? '' : ' primary'), onclick: () => { const [n, sd] = hpDice[1].split('d').map(Number); cur.data.hpRolls[g.key] = roll(n, sd); changed(); render(); } }, rolls.length ? 'Reroll' : `Roll ${hpDice[1]}`)) : null);
     }
 
     function subBuy(c, slot, sub, can) {
       const b = c.buys;
       const locked = sub.sixth && !c.unlocked[sub.id];
-      const ready = !!b.general[slot.g.key] && !sub.upcoming && !locked;
-      const head = el('div', { class: 'cc-subhead' },
+      const hasGeneral = !!b.general[slot.g.key];
+      const ready = hasGeneral && !sub.upcoming && !locked;
+      const reason = sub.upcoming ? 'Not released yet' : locked ? 'Sixth: your DM unlocks it' : !hasGeneral ? 'Buy class-wide benefits first' : '';
+      const abil = slot.magic ? [] : abilities(sub);
+      const ownedA = b.abil[sub.id] || [], tiers = b.tiers[sub.id] || [], hasFeat = !!b.feat[sub.id];
+      const spells = slot.magic ? spellsWith(sub.spellsTag) : [];
+      const tierList = [1, 2, 3, 4, 5, 6].filter(t => spells.some(s => s.tier === t));
+      const count = slot.magic
+        ? (hasFeat ? `Feat ✓${tiers.length ? ` · tier${tiers.length > 1 ? 's' : ''} ${tiers.join(', ')}` : ''}` : 'Nothing bought')
+        : (ownedA.length ? `${ownedA.length} of ${abil.length} bought` : `${abil.length} abilit${abil.length === 1 ? 'y' : 'ies'}`);
+      const isOpen = openSubs.has(sub.id);
+      const head = el('button', { class: 'cc-sub-h', 'aria-expanded': String(isOpen), onclick: () => { isOpen ? openSubs.delete(sub.id) : openSubs.add(sub.id); render(); } },
+        el('span', { class: 'chev', 'aria-hidden': 'true' }, isOpen ? '▾' : '▸'),
         el('strong', {}, sub.name),
         sub.sixth ? el('span', { class: 'badge sixth' }, 'Sixth') : null,
         sub.upcoming ? el('span', { class: 'badge soon' }, 'Coming soon') : null,
-        el('button', { class: 'mini', onclick: () => openItem(sub.id) }, 'Read'),
-        sub.sixth ? el('label', { class: 'toggle' }, el('input', { type: 'checkbox', checked: !!c.unlocked[sub.id], onchange: e => { if (e.target.checked) c.unlocked[sub.id] = true; else { delete c.unlocked[sub.id]; delete b.abil[sub.id]; delete b.feat[sub.id]; delete b.tiers[sub.id]; } changed(); render(); } }), 'My DM has unlocked this') : null);
-      const box = el('div', { class: 'cc-buy' + (ready ? '' : ' wait') }, head);
-      if (sub.upcoming) { box.append(el('p', { class: 'hint' }, 'Not released yet.')); return box; }
+        el('span', { class: 'cnt' + ((slot.magic ? hasFeat : ownedA.length) ? ' has' : '') }, count),
+        reason ? el('span', { class: 'why' }, reason) : null);
+      const box = el('div', { class: 'cc-sub' + (isOpen ? ' open' : '') + ((slot.magic ? hasFeat : ownedA.length) ? ' has' : '') + (reason ? ' wait' : '') }, head);
+      if (!isOpen) return box;
+      const inner = el('div', { class: 'cc-sub-body' },
+        el('div', { class: 'cc-sub-tools' },
+          el('button', { class: 'mini', onclick: () => openItem(sub.id) }, `Read ${sub.name} →`),
+          sub.sixth ? el('label', { class: 'toggle' }, el('input', { type: 'checkbox', checked: !!c.unlocked[sub.id], onchange: e => { if (e.target.checked) c.unlocked[sub.id] = true; else { delete c.unlocked[sub.id]; delete b.abil[sub.id]; delete b.feat[sub.id]; delete b.tiers[sub.id]; } changed(); render(); } }), ' My DM has unlocked this') : null));
+      box.append(inner);
+      if (sub.upcoming) { inner.append(el('p', { class: 'hint' }, 'Not released yet.')); return box; }
+      const buyRow = (name, text, has, cost, onBuy, onDrop, html) => el('div', { class: 'cc-buyrow' + (has ? ' on' : '') },
+        el('div', { class: 'tx' }, el('strong', {}, name), text ? el('span', html ? { class: 'hint', html: text } : { class: 'hint' }, html ? undefined : text) : null),
+        has ? btns(el('span', { class: 'cc-own' }, '✓'), el('button', { class: 'mini danger', onclick: onDrop }, 'Remove'))
+          : el('button', { class: 'btn small', disabled: !ready || !can(cost), title: !ready ? reason : !can(cost) ? `Needs ${cost} SP left` : '', onclick: onBuy }, `Buy · ${cost} SP`));
       if (!slot.magic) {
-        const owned = b.abil[sub.id] || [];
-        for (const a of abilities(sub)) {
-          const has = owned.includes(a.key);
-          box.append(el('label', { class: 'cc-opt' + (!has && (!ready || !can(RULES.costAbility)) ? ' off' : '') },
-            el('input', {
-              type: 'checkbox', checked: has, disabled: !has && (!ready || !can(RULES.costAbility)), onchange: e => {
-                const arr = b.abil[sub.id] = (b.abil[sub.id] || []).filter(k => k !== a.key);
-                if (e.target.checked) arr.push(a.key);
-                if (!arr.length) delete b.abil[sub.id];
-                changed(); render();
-              },
-            }),
-            el('span', {}, el('strong', {}, a.name), ` · ${RULES.costAbility} SP`, el('span', { class: 'hint', html: md(a.text).replace(/^<p>|<\/p>$/g, '') }))));
+        for (const a of abil) {
+          const has = ownedA.includes(a.key);
+          inner.append(buyRow(a.name, md(a.text).replace(/^<p>|<\/p>$/g, ''), has, RULES.costAbility,
+            () => { (b.abil[sub.id] = b.abil[sub.id] || []).push(a.key); changed(); render(); },
+            () => { b.abil[sub.id] = (b.abil[sub.id] || []).filter(k => k !== a.key); if (!b.abil[sub.id].length) delete b.abil[sub.id]; changed(); render(); }, true));
         }
         return box;
       }
-      // magic: feat, then tiers
-      const hasFeat = !!b.feat[sub.id];
-      box.append(el('label', { class: 'cc-opt' + (!hasFeat && (!ready || !can(RULES.costFeat)) ? ' off' : '') },
-        el('input', {
-          type: 'checkbox', checked: hasFeat, disabled: !hasFeat && (!ready || !can(RULES.costFeat)), onchange: e => {
-            if (e.target.checked) b.feat[sub.id] = true; else { delete b.feat[sub.id]; delete b.tiers[sub.id]; }
-            changed(); render();
-          },
-        }),
-        el('span', {}, el('strong', {}, `${sub.name} feat`), ` · ${RULES.costFeat} SP`, el('span', { class: 'hint' }, 'Required before this subclass’s spells.'))));
-      const tiers = b.tiers[sub.id] || [];
-      const spells = spellsWith(sub.spellsTag);
-      const tierBoxes = [1, 2, 3, 4, 5, 6].filter(t => spells.some(s => s.tier === t)).map(t => {
-        const has = tiers.includes(t);
-        const delta = has ? 0 : RULES.tierCost(tiers.length + 1) - RULES.tierCost(tiers.length);
-        const ok = has || (hasFeat && can(delta));
-        return el('label', { class: 'cc-tier' + (ok ? '' : ' off') + (has ? ' on' : '') },
-          el('input', {
-            type: 'checkbox', checked: has, disabled: !ok, onchange: e => {
-              let arr = (b.tiers[sub.id] || []).filter(x => x !== t);
-              if (e.target.checked) arr.push(t);
-              arr.sort((x, y) => x - y);
-              if (arr.length) b.tiers[sub.id] = arr; else delete b.tiers[sub.id];
-              changed(); render();
-            },
-          }), `Tier ${t}`);
-      });
-      if (tierBoxes.length) {
+      inner.append(buyRow(`${sub.name} feat`, 'Needed before this subclass’s spells.', hasFeat, RULES.costFeat,
+        () => { b.feat[sub.id] = true; changed(); render(); },
+        () => { delete b.feat[sub.id]; delete b.tiers[sub.id]; changed(); render(); }));
+      if (tierList.length) {
         const free = tiers.length % 3 ? 3 - (tiers.length % 3) : 0;
-        box.append(el('div', { class: 'cc-tiers' }, el('span', { class: 'k' }, 'Spell tiers'), ...tierBoxes,
-          el('span', { class: 'hint' }, `2 SP for any three tiers${tiers.length ? ` · ${RULES.tierCost(tiers.length)} SP spent here` : ''}${free ? ` · ${free} more tier${free === 1 ? '' : 's'} included` : ''}`)));
+        inner.append(el('div', { class: 'cc-tiers' }, el('span', { class: 'k' }, 'Spell tiers'),
+          ...tierList.map(t => {
+            const has = tiers.includes(t);
+            const delta = has ? 0 : RULES.tierCost(tiers.length + 1) - RULES.tierCost(tiers.length);
+            const ok = has || (hasFeat && can(delta));
+            return el('label', { class: 'cc-tier' + (ok ? '' : ' off') + (has ? ' on' : ''), title: !hasFeat ? 'Buy the feat first' : !ok ? `Needs ${delta} SP left` : '' },
+              el('input', { type: 'checkbox', checked: has, disabled: !ok, onchange: e => {
+                let arr = (b.tiers[sub.id] || []).filter(x => x !== t);
+                if (e.target.checked) arr.push(t);
+                arr.sort((x, y) => x - y);
+                if (arr.length) b.tiers[sub.id] = arr; else delete b.tiers[sub.id];
+                changed(); render();
+              } }), `Tier ${t}`);
+          }),
+          el('span', { class: 'hint' }, `2 SP for any three tiers${tiers.length ? ` · ${RULES.tierCost(tiers.length)} SP spent here` : ''}${free && tiers.length ? ` · ${free} more tier${free === 1 ? '' : 's'} included` : ''}`)));
       }
       return box;
     }
-
 
     function inventorySection(c) {
       const items = c.items;

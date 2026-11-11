@@ -747,6 +747,7 @@
   function renderDetail() {
     const pane = $('#detail');
     const layout = $('.layout');
+    if (state.tab !== 'chars') document.body.classList.remove('cc-open');
     if (state.tab === 'settings') {
       layout.classList.add('no-detail');
       pane.replaceChildren();

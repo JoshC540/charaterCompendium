@@ -16,6 +16,13 @@
 - **Dark mode:** follows the device only → Match device, Light or Dark
 - **Level-ups:** one form for every level → Level up button that walks through the next level: what you gain, each choice to make, finish or cancel
 - **Inventory:** starting gear and equipment text boxes → item list with quantity, notes and equipped, listed on the character sheet
+- **Character builder layout:** one long form in the reading pane → full-width editor with a side panel: HP, Renown, SP and ranks left, a to-do list and section links (a bar at the bottom on phones)
+- **New characters:** one long form → step-by-step setup: Basics, Race, Class, Stats, Drawbacks and quirks, Subclass points, Gear
+- **Saved characters:** open in the editor → open on the character sheet, with Edit and Level up
+- **Stats:** table of rolls and adjustments → a card per stat showing the final score and how it got there
+- **Drawbacks, quirks, feats, soft skills:** full lists with tick boxes → what you've taken, plus a searchable picker of what you qualify for
+- **Subclass points:** every ability listed at once → one line per subclass, opened to buy; locked ones say why
+- **Download and delete buttons:** top and bottom of the page → ⋯ menu
 
 ## 10 Nov 2026
 

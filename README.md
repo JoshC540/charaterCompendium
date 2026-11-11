@@ -130,6 +130,8 @@ classes, subclasses, spells, drawbacks and quirks show up in it automatically.
   document. Signed-in players can also save characters to their account. Players see only their own;
   the admin sees everyone's, read-only.
 - Unsaved work is kept in the browser as a draft until it's saved.
+- New characters start in a step-by-step setup (it can be skipped). Saved characters open on their sheet;
+  **Edit** shows every section, with a side panel of what's left to do.
 - **Level up** raises the character one level and lists what that level gives, with each choice in one
   place (stat, hit die, soft skill ranks, feat, milestone boon, SP or FP). **Cancel level-up** puts
   everything back. Earlier levels can still be changed in the Level-ups section.
