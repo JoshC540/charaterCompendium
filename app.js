@@ -13,7 +13,7 @@
   };
   const TYPES = ['race', 'class', 'subclass', 'spell', 'adv', 'god', 'patch'];
   const DOC_TYPES = ['adv', 'god', 'patch'];
-  const TYPE_LABEL = { all: 'All', race: 'Races', class: 'Classes', subclass: 'Subclasses', spell: 'Spells', adv: 'Advancement', god: 'Gods', notes: 'Notes', patch: 'Patch Notes' };
+  const TYPE_LABEL = { all: 'All', race: 'Races', class: 'Classes', subclass: 'Subclasses', spell: 'Spells', adv: 'Advancement', god: 'Gods', notes: 'Notes', chars: 'Characters', patch: 'Patch Notes', settings: 'Settings' };
   const TYPE_ONE = { race: 'Race', class: 'Class', subclass: 'Subclass', spell: 'Spell', adv: 'Advancement', god: 'Book of Gods', patch: 'Patch notes' };
 
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -284,7 +284,7 @@
   /* ---------------- state ---------------- */
 
   const state = {
-    tab: 'all', q: '', sel: null, ses: '',
+    tab: 'all', q: '', sel: null, ses: '', char: '',
     classCat: '', subClass: '', showUpcoming: true, school: '', tier: 0, source: '',
   };
 
@@ -300,6 +300,7 @@
     state.source = p.get('source') || '';
     state.showUpcoming = p.get('announced') !== '0';
     state.ses = state.tab === 'notes' ? (p.get('ses') || '') : '';
+    state.char = state.tab === 'chars' ? (p.get('char') || '') : '';
   }
   function hashFor(s = state) {
     const p = new URLSearchParams();
@@ -313,6 +314,7 @@
     if (!s.showUpcoming) p.set('announced', '0');
     if (s.sel) p.set('item', s.sel);
     if (s.tab === 'notes' && s.ses) p.set('ses', s.ses);
+    if (s.tab === 'chars' && s.char) p.set('char', s.char);
     const h = p.toString();
     return h ? '#' + h : location.pathname + location.search;
   }
@@ -406,15 +408,46 @@
 
   /* ---------------- rendering ---------------- */
 
+  // Top-level groups; the active group shows its own sections in a second row.
+  const GROUPS = [
+    { key: 'character', label: 'Character', tabs: ['race', 'class', 'subclass', 'spell'] },
+    { key: 'rules', label: 'Rules', tabs: ['adv', 'god'] },
+    { key: 'table', label: 'Your table', tabs: ['chars', 'notes'] },
+  ];
+  const lastInGroup = {};
+  const groupFor = t => GROUPS.find(g => g.tabs.includes(t)) || null;
+
   function renderTabs() {
     const c = counts();
-    const nav = $('#tabs');
-    nav.replaceChildren(...['all', ...TYPES.filter(t => t !== 'patch'), 'notes', 'patch'].map(t => el('button', {
-      class: 'tab', role: 'tab', 'aria-selected': String(state.tab === t),
+    const nav = $('#tabs'), sub = $('#subtabs');
+    const cur = groupFor(state.tab);
+    if (cur) lastInGroup[cur.key] = state.tab;
+    nav.replaceChildren(...GROUPS.map(g => el('button', {
+      class: 'tab', role: 'tab', 'aria-selected': String(cur === g),
+      onclick: () => { const t = lastInGroup[g.key] || g.tabs[0]; go({ tab: t, sel: state.tab === t ? state.sel : null }, true); },
+    }, g.label)));
+    const subTabs = cur ? cur.tabs : ['patch', 'settings'].includes(state.tab) ? [state.tab] : [];
+    sub.hidden = !subTabs.length;
+    sub.replaceChildren(...subTabs.map(t => el('button', {
+      class: 'subtab', 'aria-current': state.tab === t ? 'page' : null,
       onclick: () => go({ tab: t, sel: state.tab === t ? state.sel : null }, true),
-    }, TYPE_LABEL[t], DOC_TYPES.includes(t) || t === 'notes' ? null : el('span', { class: 'n' }, String(c[t])))));
-    const on = nav.querySelector('[aria-selected="true"]');
-    if (on && (on.offsetLeft < nav.scrollLeft || on.offsetLeft + on.offsetWidth > nav.scrollLeft + nav.clientWidth)) nav.scrollLeft = Math.max(0, on.offsetLeft - 40);
+    }, TYPE_LABEL[t], c[t] != null && !DOC_TYPES.includes(t) ? el('span', { class: 'n' }, String(c[t])) : null)));
+    const on = sub.querySelector('[aria-current="page"]');
+    if (on && (on.offsetLeft < sub.scrollLeft || on.offsetLeft + on.offsetWidth > sub.scrollLeft + sub.clientWidth)) sub.scrollLeft = Math.max(0, on.offsetLeft - 40);
+    const gear = $('#gear');
+    if (gear) gear.setAttribute('aria-current', state.tab === 'settings' ? 'page' : 'false');
+    const head = $('.top');
+    if (head) document.documentElement.style.setProperty('--head-h', head.offsetHeight + 'px');
+  }
+
+  function renderFoot() {
+    const f = $('#foot');
+    if (!f) return;
+    const latest = (DB.docs.patch || []).find(x => x.name !== x.chapter);
+    f.replaceChildren(el('div', { class: 'foot-inner' },
+      el('span', { class: 'foot-brand' }, 'Player’s Handbook'),
+      el('button', { class: 'foot-link', onclick: () => { go({ tab: 'patch', sel: latest ? latest.id : null, q: '' }, true); window.scrollTo(0, 0); } }, 'Patch notes', latest ? el('span', { class: 'n' }, ` · latest ${latest.name}`) : null),
+      el('button', { class: 'foot-link', onclick: openSettings }, 'Settings')));
   }
 
   function select(options, value, onchange, label) {
@@ -432,7 +465,7 @@
   function renderFilters() {
     const f = $('#filters');
     const kids = [];
-    if (state.tab === 'notes') { f.replaceChildren(); return; }
+    if (['notes', 'chars', 'settings'].includes(state.tab)) { f.replaceChildren(); return; }
     if (state.tab === 'class') {
       for (const cat of ['', 'Melee', 'Ranged', 'Magic', 'Other']) {
         kids.push(el('button', { class: 'chip' + (state.classCat === cat ? ' on' : ''), onclick: () => go({ classCat: cat }, false) }, cat || 'All'));
@@ -541,6 +574,10 @@
           el('span', { class: 'hint' }, latest.snippet || 'See what’s changed in the handbook.'),
           el('span', { class: 'go' }, 'Patch notes →'));
       })() : null,
+      el('button', { class: 'home-notes chars', onclick: () => go({ tab: 'chars', sel: null }, true) },
+        el('span', { class: 'lbl' }, 'Character builder'),
+        el('span', { class: 'hint' }, 'Roll stats, pick a race and class, spend SP, and download a sheet.'),
+        el('span', { class: 'go' }, 'Build →')),
       el('button', { class: 'home-notes', onclick: () => go({ tab: 'notes', sel: null }, true) },
         el('span', { class: 'lbl' }, 'Session notes'),
         el('span', { class: 'hint' }, 'The party’s shared notebook, by campaign and session. Sign in to read and write.'),
@@ -550,8 +587,21 @@
   }
 
   function renderResults() {
+    renderResultsInner();
+    const meta = $('#result-meta');
+    if (state.q.trim() && !['all', 'notes', 'settings'].includes(state.tab) && TYPE_LABEL[state.tab]) {
+      meta.append(' ', el('button', { class: 'mini', onclick: () => go({ tab: 'all', sel: null }, true) }, `Search everything for “${state.q.trim()}”`));
+    }
+  }
+  function renderResultsInner() {
     const box = $('#results');
     const meta = $('#result-meta');
+    if (state.tab === 'settings') { renderSettings(box, meta); return; }
+    if (state.tab === 'chars') {
+      if (Creator) Creator.renderList(box, meta);
+      else { meta.textContent = ''; box.replaceChildren(el('div', { class: 'empty' }, el('strong', {}, 'The character builder is unavailable'), 'creator.js didn’t load.')); }
+      return;
+    }
     if (state.tab === 'notes') {
       if (Notes) Notes.renderList(box, meta);
       else { meta.textContent = ''; box.replaceChildren(el('div', { class: 'empty' }, el('strong', {}, 'Notes are unavailable'), 'notes.js didn’t load.')); }
@@ -697,6 +747,19 @@
   function renderDetail() {
     const pane = $('#detail');
     const layout = $('.layout');
+    if (state.tab === 'settings') {
+      layout.classList.add('no-detail');
+      pane.replaceChildren();
+      document.body.classList.remove('has-detail');
+      document.title = 'Settings · Player’s Handbook';
+      return;
+    }
+    if (state.tab === 'chars') {
+      const shown = Creator ? Creator.renderDetail(pane) : false;
+      layout.classList.toggle('no-detail', !shown);
+      if (!state.char) document.title = 'Characters · Player’s Handbook';
+      return;
+    }
     if (state.tab === 'notes') {
       const shown = Notes ? Notes.renderDetail(pane) : false;
       layout.classList.toggle('no-detail', !shown);
@@ -739,6 +802,55 @@
     renderFilters();
     renderResults();
     renderDetail();
+    renderFoot();
+  }
+
+
+  /* ---------------- settings ---------------- */
+
+  const SETTINGS = window.HandbookSettings || null;
+  function openSettings() { go({ tab: 'settings', sel: null, q: '' }, true); window.scrollTo(0, 0); }
+  const SETTING_ROWS = [
+    { group: 'Appearance', rows: [
+      { key: 'theme', label: 'Theme', options: [['system', 'Match device'], ['light', 'Light'], ['dark', 'Dark']] },
+      { key: 'contrast', label: 'Contrast', help: 'Darker text and stronger borders.', options: [['normal', 'Standard'], ['high', 'High']] },
+      { key: 'texture', label: 'Decoration', help: 'Minimal drops the paper texture, corner flourishes and drop caps.', options: [['full', 'Illuminated'], ['minimal', 'Minimal']] },
+    ] },
+    { group: 'Reading', rows: [
+      { key: 'text', label: 'Text size', options: [['small', 'Small'], ['normal', 'Standard'], ['large', 'Large'], ['xl', 'Extra large']] },
+      { key: 'font', label: 'Font', help: 'Easy-read uses Atkinson Hyperlegible, a typeface designed for low vision readers. “All” uses it for headings too.', options: [['tome', 'Tome'], ['easy', 'Easy-read'], ['easy-all', 'Easy-read all']] },
+      { key: 'spacing', label: 'Line spacing', options: [['normal', 'Standard'], ['relaxed', 'Relaxed']] },
+    ] },
+    { group: 'Motion', rows: [
+      { key: 'motion', label: 'Animations', help: 'Match device follows your system’s reduce motion setting.', options: [['system', 'Match device'], ['reduce', 'Reduce']] },
+    ] },
+  ];
+  function renderSettings(box, meta) {
+    meta.textContent = '';
+    if (!SETTINGS) { box.replaceChildren(el('div', { class: 'empty' }, el('strong', {}, 'Settings are unavailable'), 'Reload the page and try again.')); return; }
+    const cur = SETTINGS.get();
+    const status = el('span', { class: 'set-status', role: 'status' }, 'Saved on this device.');
+    const seg = row => el('fieldset', { class: 'set-row' },
+      el('legend', {}, row.label),
+      row.help ? el('span', { class: 'help' }, row.help) : null,
+      el('div', { class: 'seg' }, ...row.options.map(([v, label]) => el('label', {},
+        el('input', { type: 'radio', name: 'set-' + row.key, value: v, checked: cur[row.key] === v, onchange: () => {
+          const ok = SETTINGS.set({ [row.key]: v });
+          status.textContent = ok ? 'Saved on this device.' : 'Applied, but this browser won’t let the site save it, so it resets when you reload.';
+          renderTabs();
+        } }),
+        el('span', {}, label)))));
+    box.replaceChildren(el('div', { class: 'set-page' },
+      el('h1', {}, 'Settings'),
+      el('p', {}, 'Change how the handbook looks and reads. Changes apply straight away and are kept on this device.'),
+      ...SETTING_ROWS.flatMap(g => [el('h2', { class: 'section-head' }, g.group), el('div', { class: 'set-group' }, ...g.rows.map(seg))]),
+      el('h2', { class: 'section-head' }, 'Preview'),
+      el('div', { class: 'set-preview prose' },
+        el('h2', {}, 'Ember Lash'),
+        el('p', { html: '<strong>Tier 1 · Mage (Fire)</strong>. A whip of flame cracks out to 20ft and deals <strong>1d6 fire</strong>. On a hit the target must make a <em>strength save</em> or be pulled 10ft towards you.' })),
+      el('div', { class: 'set-foot' },
+        el('button', { class: 'mini', onclick: () => { SETTINGS.reset(); renderTabs(); renderSettings(box, meta); } }, 'Reset to defaults'),
+        status)));
   }
 
   /* ---------------- boot ---------------- */
@@ -765,8 +877,10 @@
     $('#q').addEventListener('input', e => {
       clearTimeout(t);
       const v = e.target.value;
-      t = setTimeout(() => go({ q: v }, false), 80);
+      t = setTimeout(() => go(['chars', 'patch', 'settings'].includes(state.tab) && v.trim() ? { q: v, tab: 'all', sel: null } : { q: v }, false), 80);
     });
+    const gearBtn = $('#gear');
+    if (gearBtn) gearBtn.addEventListener('click', openSettings);
     $('#q').addEventListener('keydown', e => {
       if (e.key === 'Escape') { e.target.value = ''; go({ q: '' }, false); }
       if (e.key === 'Enter') { const first = $('#results .card'); if (first) first.click(); }
@@ -778,14 +892,18 @@
       if (e.key === 'Escape' && document.activeElement !== $('#q') && !document.querySelector('dialog[open]')) {
         if (state.sel) go({ sel: null }, true);
         else if (state.ses && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) go({ ses: '' }, true);
+        else if (state.char && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) go({ char: '' }, true);
       }
     });
     $('#home-link').addEventListener('click', e => { e.preventDefault(); go({ tab: 'all', q: '', sel: null, ses: '', classCat: '', subClass: '', school: '', tier: 0, source: '' }, true); });
+    window.addEventListener('resize', () => { const h = $('.top'); if (h) document.documentElement.style.setProperty('--head-h', h.offsetHeight + 'px'); });
     if (Notes) Notes.init();
+    if (Creator) Creator.init();
     window.addEventListener('popstate', () => { readHash(); render(); });
     window.addEventListener('hashchange', () => { readHash(); render(); });
   }
 
   const Notes = window.HandbookNotes ? window.HandbookNotes({ el, md, esc, plain, norm, highlight, state, go, render: () => render(), $, createClient: window.__mockCreateClient }) : null;
+  const Creator = window.HandbookCreator ? window.HandbookCreator({ el, md, esc, plain, norm, slug, state, go, render: () => render(), $, DB, Notes, openItem: id => { const i = DB.byId.get(id); go({ tab: i ? i.type : 'all', sel: id }, true); } }) : null;
   boot();
 })();

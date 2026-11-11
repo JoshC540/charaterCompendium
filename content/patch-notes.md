@@ -7,8 +7,21 @@
 
 # 2026
 
+## 11 Nov 2026
+
+- **Navigation:** one row of ten tabs → Character, Rules and Your table, each with its own row of pages
+- **All tab:** tab → search covers every section from the home page; section searches offer "Search everything"
+- **Patch notes:** top-bar tab → home page banner and footer link
+- **Settings:** — → settings page (gear button and footer link): theme, contrast, decoration, text size, easy-read font, line spacing, animations
+- **Dark mode:** follows the device only → Match device, Light or Dark
+- **Level-ups:** one form for every level → Level up button that walks through the next level: what you gain, each choice to make, finish or cancel
+- **Inventory:** starting gear and equipment text boxes → item list with quantity, notes and equipped, listed on the character sheet
+
 ## 10 Nov 2026
 
+- **Combat stats:** Melee, Ranged, Dodge, Disengage → Melee, Ranged, Dodge, Disengage, Casting
+- **X1 and X4 improvements:** any one stat → any one stat or combat stat
+- **Characters tab:** — → character builder: roll stats and combat stats, choose race and class, add extra classes for 1 SP each, spend SP, plan level-ups (stat improvements, hit dice, soft skills, feats, milestone boons), save to your account, download as PDF or Word
 - **Cleric (Dusk) spells:** previous lists → new lists for Chaos, Necromancy, Bliss, Nightmares, Null
 - **Seer spells:** previous lists → new lists for Past Regrets, Future Mistakes, Guided Strikes, Trickster, Path of Guidance
 - **Enhancer spells:** previous lists → new lists for Conduit, Feel No Pain, Face Your Fears, Enfeeblement, Leech

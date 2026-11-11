@@ -6,6 +6,50 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Player’s Handbook</title>
   <meta name="description" content="Races, classes, subclasses, spells, advancement and the gods for our homebrew campaign — searchable.">
+  <script>
+    /* Settings are applied before the page paints, so there is no flash of the wrong theme or size. */
+    (function () {
+      var KEY = 'hb-settings', root = document.documentElement;
+      var DEFAULTS = { theme: 'system', text: 'normal', font: 'tome', spacing: 'normal', contrast: 'normal', texture: 'full', motion: 'system' };
+      var dark = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
+      function read() {
+        var s = {};
+        try { s = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { s = {}; }
+        var out = {};
+        for (var k in DEFAULTS) out[k] = typeof s[k] === 'string' ? s[k] : DEFAULTS[k];
+        return out;
+      }
+      function apply(s) {
+        root.setAttribute('data-resolved', s.theme === 'light' || s.theme === 'dark' ? s.theme : (dark && dark.matches ? 'dark' : 'light'));
+        for (var k in DEFAULTS) {
+          if (k === 'theme') continue;
+          if (s[k] === DEFAULTS[k]) root.removeAttribute('data-' + k); else root.setAttribute('data-' + k, s[k]);
+        }
+      }
+      var current = read();
+      apply(current);
+      if (dark) {
+        var onChange = function () { if (current.theme === 'system') apply(current); };
+        if (dark.addEventListener) dark.addEventListener('change', onChange); else if (dark.addListener) dark.addListener(onChange);
+      }
+      window.HandbookSettings = {
+        defaults: DEFAULTS,
+        get: function () { return Object.assign({}, current); },
+        set: function (patch) {
+          current = Object.assign({}, current, patch);
+          var saved = true;
+          try { localStorage.setItem(KEY, JSON.stringify(current)); } catch (e) { saved = false; }
+          apply(current);
+          return saved;
+        },
+        reset: function () {
+          current = Object.assign({}, DEFAULTS);
+          try { localStorage.removeItem(KEY); } catch (e) {}
+          apply(current);
+        }
+      };
+    })();
+  </script>
   <link rel="preload" href="fonts/cinzel-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/eb-garamond-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="style.css">
@@ -23,9 +67,11 @@
         <input id="q" type="search" placeholder="Search the handbook…" autocomplete="off" spellcheck="false" aria-label="Search">
         <kbd>/</kbd>
       </label>
+      <button class="gear" id="gear" type="button" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/><circle cx="12" cy="12" r="6.6"/></svg></button>
       <div class="account" id="account"></div>
     </div>
-    <nav class="tabs" id="tabs" role="tablist"></nav>
+    <nav class="tabs" id="tabs" role="tablist" aria-label="Sections"></nav>
+    <nav class="subtabs" id="subtabs" aria-label="Pages in this section" hidden></nav>
   </header>
 
   <main class="layout">
@@ -36,9 +82,11 @@
     </section>
     <aside class="detail-pane" id="detail" aria-live="polite"></aside>
   </main>
+  <footer class="foot" id="foot"></footer>
 
   <noscript><p class="noscript">This handbook needs JavaScript to load.</p></noscript>
   <script src="notes.js"></script>
+  <script src="creator.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

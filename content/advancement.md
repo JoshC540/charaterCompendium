@@ -51,7 +51,7 @@ When an effect says "+Renown" or "2×Renown", use your current Renown. A level 3
 ## Stats and terms
 
   - **Stats:** STR, DEX, INT, WIS, PER, CHA.
-  - **Combat stats:** Melee, Ranged, Dodge, Disengage.
+  - **Combat stats:** Melee, Ranged, Dodge, Disengage, Casting.
   - **Save:** a stat roll you make to resist something (a "WIS save" is a WIS roll to resist).
   - **Reaction:** one action per round taken outside your own turn.
   - **Per rest:** recharges after a short or long rest. **Per long rest**, **per day**, **per session** and **per arc** mean exactly that.
@@ -64,10 +64,10 @@ Levelling runs in levels of ten. Levels 1–10 set the pattern, and it repeats f
 ## Each decade
 
 | Level | You gain |
-| **X1** | 1 SP. Improve any one stat by 1, but not below 10. |
+| **X1** | 1 SP. Improve any one stat or combat stat by 1, but not below 10. |
 | **X2** | Roll your class hit die and add it to your max HP. |
 | **X3** | 1 SP. |
-| **X4** | Improve any one stat by 1, but not below 5. Gain 1 soft skill rank. |
+| **X4** | Improve any one stat or combat stat by 1, but not below 5. Gain 1 soft skill rank. |
 | **X5** | 1 SP. |
 | **X6** | Gain 1 soft skill rank. |
 | **X7** | 1 SP. |
@@ -85,7 +85,7 @@ From level 11 onwards, you may take FP instead of SP on any SP level, if you can
 
 At every level 10, 20, 30 and so on, choose one:
 
-  - Improve one combat stat (Melee, Ranged, Dodge or Disengage) by 1, but not below 5.
+  - Improve one combat stat (Melee, Ranged, Dodge, Disengage or Casting) by 1, but not below 5.
   - Gain 2 soft skill ranks.
   - Retrain: swap one feat for another you qualify for, and move up to 2 soft skill ranks to different skills.
   - **Renown 6 or higher:** gain one soft skill rank past Master (Grandmaster or Legendary, if you meet its Renown).

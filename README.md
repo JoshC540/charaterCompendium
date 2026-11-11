@@ -53,8 +53,8 @@ section players can open and search. Inside a section you can use `###` sub-head
 `1.` numbered lists and `|` tables (the first row of a table is its header; a one-column table becomes a
 highlighted callout box).
 
-The two DM-only passages of the Book of Gods (reading Pluras's blot, and why the Namewright was erased)
-were left out on purpose — don't paste them back in.
+Some DM-only passages of the Book of Gods were left out on purpose — keep DM-only material out of
+these files, since everything in `content/` is visible to players.
 
 ## Session notes and sign-in (Supabase)
 
@@ -67,6 +67,14 @@ doesn't depend on another CDN), `supabase/setup.sql` (the database). The project
 "anon" key are at the top of `notes.js`. The anon key is meant to be public; never put the
 `service_role` key in this repo.
 
+### One-time setup
+
+1. **Create the tables.** Supabase dashboard → **SQL Editor** → New query → paste all of
+   `supabase/setup.sql` → **Run**. It's safe to run again whenever this file is updated.
+2. **Stop strangers signing up.** Authentication → **Sign In / Providers** → turn off
+   **Allow new users to sign up**. Leave the Email provider itself switched on.
+3. **Create your own account.** Authentication → **Users** → **Add user** → **Create new user**, with
+   the admin email set in `supabase/setup.sql` and a password, and tick **Auto Confirm User**.
 
 ### Adding a player
 
@@ -78,6 +86,19 @@ notes from the account button once signed in.
 **Admin · reset a player's password**. No email is involved. Avoid Supabase's "Send password recovery"
 emails: they expire quickly, some mail apps use them up by previewing them, and they only work once the
 Site URL below is set.
+
+**If you're locked out of your own account,** run this in the SQL Editor:
+
+```sql
+update auth.users
+set encrypted_password = extensions.crypt('NEW-PASSWORD-HERE', extensions.gen_salt('bf'))
+where email = 'YOUR-EMAIL-HERE';
+```
+
+**Site URL:** Authentication → **URL Configuration** → set **Site URL** to the GitHub Pages address
+(e.g. `https://YOUR-USERNAME.github.io/charaterCompendium/`) and add the same address under
+**Redirect URLs**. Supabase defaults to `http://localhost:3000`, which is why email links go nowhere.
+
 ### Who can do what
 
 | | Players | Admin (you) |
@@ -94,7 +115,45 @@ These rules are enforced by the database (row-level security in `setup.sql`), no
 
 ## Patch notes
 
-`content/patch-notes.md` holds the changelog players see in the **Patch Notes** tab, newest first. The top
-update is also shown on the home page as "Latest update". Add a new `## Date — Title` block at the top
-(under the current year's `#` heading, or start a new `# 2027`), with `### New`, `### Changed` and
-`### Fixed` lists as needed.
+`content/patch-notes.md` holds the changelog players see under **Patch notes**, newest first. The top
+update is also shown on the home page as "Latest update". Add a new `## D Mon YYYY` block at the top
+(under the current year's `#` heading, or start a new `# 2027`), with one line per change:
+`- **Thing:** from → to` (use — when something is new or removed).
+
+
+## Character builder
+
+The **Characters** tab (`creator.js`) builds characters from the handbook content itself, so new races,
+classes, subclasses, spells, drawbacks and quirks show up in it automatically.
+
+- Anyone can build a character and download it as a PDF (the browser's print → Save as PDF) or a Word
+  document. Signed-in players can also save characters to their account. Players see only their own;
+  the admin sees everyone's, read-only.
+- Unsaved work is kept in the browser as a draft until it's saved.
+- **Level up** raises the character one level and lists what that level gives, with each choice in one
+  place (stat, hit die, soft skill ranks, feat, milestone boon, SP or FP). **Cancel level-up** puts
+  everything back. Earlier levels can still be changed in the Level-ups section.
+- **Inventory** is a list of items with quantity, notes and an Equipped tick. Older characters' gear text
+  is turned into items, one per line, when they're opened.
+- Saving needs the `characters` table: run the latest `supabase/setup.sql` once more.
+
+The rules it applies are at the top of `creator.js` (`RULES`), so they're easy to change:
+
+| Rule | Value |
+| --- | --- |
+| Stats | 6d4, add the lowest 5 (roll-under) |
+| HP | race HP + class HP (+ the class-wide hit dice, rolled in the builder, + any extra) |
+| SP | 1 on every level ending 1, 3, 5, 7, 9 and 0; 0 at level 0; plus drawbacks (max 2, max 3 SP) |
+| Extra classes (multiclassing) | 1 SP each, no limit; each class then has its own class-wide benefits, abilities, feats and spells to buy. HP comes from the starting class |
+| Class-wide subclass benefits | 1 SP per class, before anything else in that class |
+| Non-magic classes | any ability from any of the class's subclasses, 1 SP each |
+| Magic classes | a subclass's feat, 1 SP, before its spells; any three tiers of its spells, 2 SP |
+| Level-ups | from Advancement's Each decade table: stat improvements at X1 (not below 10) and X4 (not below 5), class hit die at X2 and X10, soft skill ranks at X4 and X6, a Tier I–III feat at X8, a milestone boon at X10 |
+| Renown | 1 + level ÷ 10; opens feat tiers (II at 3, III at 6, IV at 8, V at 11) and soft skill ranks (Master 2, Grandmaster 6, Legendary 9) |
+| Soft skills | one Master per family until Renown 5, one Legendary until Renown 11; ranks past Master only from the milestone boon |
+| FP | from level 11, any SP level can be taken as FP instead |
+| Sixth subclasses, Prime races | locked until the player ticks "My DM has unlocked this" (sixths) or with a warning (Primes) |
+
+## Settings
+
+The gear button in the header (and the footer link) opens **Settings**: theme (match device, light, dark), contrast, decoration (illuminated or minimal), text size, an easy-read font (Atkinson Hyperlegible), line spacing and animations. Choices are saved in the browser on each device, so there is nothing to set up. They are applied by a small script at the top of `index.html` before the page draws, so the page never flashes the wrong theme.

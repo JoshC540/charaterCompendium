@@ -138,3 +138,32 @@ begin
 end $$;
 revoke all on function public.admin_set_password(text, text) from public, anon;
 grant execute on function public.admin_set_password(text, text) to authenticated;
+
+-- ---------- characters (character builder) ----------
+-- Each player sees and edits their own characters; the admin can see (and delete) everyone's.
+create table if not exists public.characters (
+  id         uuid primary key default gen_random_uuid(),
+  owner_id   uuid not null default auth.uid() references public.profiles(id) on delete cascade,
+  name       text not null check (length(trim(name)) between 1 and 80),
+  summary    text check (summary is null or length(summary) <= 200),
+  data       jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists characters_owner_idx on public.characters(owner_id);
+drop trigger if exists characters_touch on public.characters;
+create trigger characters_touch before update on public.characters
+  for each row execute function public.touch_updated_at();
+
+alter table public.characters enable row level security;
+revoke all on public.characters from anon;
+revoke update on public.characters from authenticated;
+grant  update (name, summary, data) on public.characters to authenticated;
+drop policy if exists "owner or admin reads" on public.characters;
+drop policy if exists "owner adds"          on public.characters;
+drop policy if exists "owner edits"         on public.characters;
+drop policy if exists "owner/admin deletes" on public.characters;
+create policy "owner or admin reads" on public.characters for select to authenticated using (owner_id = auth.uid() or public.is_admin());
+create policy "owner adds"          on public.characters for insert to authenticated with check (owner_id = auth.uid());
+create policy "owner edits"         on public.characters for update to authenticated using (owner_id = auth.uid());
+create policy "owner/admin deletes" on public.characters for delete to authenticated using (owner_id = auth.uid() or public.is_admin());

@@ -14,6 +14,7 @@
     let user = null, me = null;    // auth user, profile row
     let data = null;               // { campaigns, sessions, notes, profiles }
     let loadingData = false, loadError = '';
+    const authListeners = [];
     let ui = { editing: null, confirmDelete: null, addSession: null, addCampaign: false, renaming: null, busy: false, msg: '' };
 
     const admin = () => !!(me && me.is_admin);
@@ -78,6 +79,7 @@
         console.warn('Sign-in unavailable:', e);
         status = 'offline';
         renderAccount();
+        authListeners.forEach(f => { try { f(); } catch (e) { console.error(e); } });
         if (state.tab === 'notes') render();
       }
     }
@@ -89,6 +91,7 @@
         me = prof || { id: u.id, display_name: u.email.split('@')[0], is_admin: false };
       }
       renderAccount();
+      authListeners.forEach(f => { try { f(); } catch (e) { console.error(e); } });
       if (state.tab === 'notes') { if (u) await refresh(); render(); }
     }
 
@@ -477,6 +480,9 @@
 
     return {
       init, renderList, renderDetail,
+      // shared with the character builder
+      client: () => sb, user: () => user, profile: () => me, isAdmin: admin, status: () => status,
+      onAuth: f => authListeners.push(f), openSignIn: reason => openSignIn(reason), friendly: e => friendly(e),
       isReady: () => status === 'ready',
       signedIn: () => !!user,
       validSession: id => !!(data && data.sessions.some(s => s.id === id)),
