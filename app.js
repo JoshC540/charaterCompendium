@@ -13,7 +13,7 @@
   };
   const TYPES = ['race', 'class', 'subclass', 'spell', 'adv', 'god', 'patch'];
   const DOC_TYPES = ['adv', 'god', 'patch'];
-  const TYPE_LABEL = { all: 'All', race: 'Races', class: 'Classes', subclass: 'Subclasses', spell: 'Spells', adv: 'Advancement', god: 'Gods', notes: 'Notes', chars: 'Characters', patch: 'Patch Notes', settings: 'Settings' };
+  const TYPE_LABEL = { all: 'All', race: 'Races', class: 'Classes', subclass: 'Subclasses', spell: 'Spells', adv: 'Advancement', god: 'Gods', notes: 'Notes', chars: 'Characters', bank: 'Party money', patch: 'Patch Notes', settings: 'Settings' };
   const TYPE_ONE = { race: 'Race', class: 'Class', subclass: 'Subclass', spell: 'Spell', adv: 'Advancement', god: 'Book of Gods', patch: 'Patch notes' };
 
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -284,7 +284,7 @@
   /* ---------------- state ---------------- */
 
   const state = {
-    tab: 'all', q: '', sel: null, ses: '', char: '',
+    tab: 'all', q: '', sel: null, ses: '', char: '', camp: '', acct: '',
     classCat: '', subClass: '', showUpcoming: true, school: '', tier: 0, source: '',
   };
 
@@ -301,6 +301,8 @@
     state.showUpcoming = p.get('announced') !== '0';
     state.ses = state.tab === 'notes' ? (p.get('ses') || '') : '';
     state.char = state.tab === 'chars' ? (p.get('char') || '') : '';
+    state.camp = state.tab === 'bank' ? (p.get('camp') || '') : '';
+    state.acct = state.tab === 'bank' ? (p.get('acct') || '') : '';
   }
   function hashFor(s = state) {
     const p = new URLSearchParams();
@@ -315,6 +317,8 @@
     if (s.sel) p.set('item', s.sel);
     if (s.tab === 'notes' && s.ses) p.set('ses', s.ses);
     if (s.tab === 'chars' && s.char) p.set('char', s.char);
+    if (s.tab === 'bank' && s.camp) p.set('camp', s.camp);
+    if (s.tab === 'bank' && s.acct) p.set('acct', s.acct);
     const h = p.toString();
     return h ? '#' + h : location.pathname + location.search;
   }
@@ -412,7 +416,7 @@
   const GROUPS = [
     { key: 'character', label: 'Character', tabs: ['race', 'class', 'subclass', 'spell'] },
     { key: 'rules', label: 'Rules', tabs: ['adv', 'god'] },
-    { key: 'table', label: 'Your table', tabs: ['chars', 'notes'] },
+    { key: 'table', label: 'Your table', tabs: ['chars', 'bank', 'notes'] },
   ];
   const lastInGroup = {};
   const groupFor = t => GROUPS.find(g => g.tabs.includes(t)) || null;
@@ -465,7 +469,7 @@
   function renderFilters() {
     const f = $('#filters');
     const kids = [];
-    if (['notes', 'chars', 'settings'].includes(state.tab)) { f.replaceChildren(); return; }
+    if (['notes', 'chars', 'bank', 'settings'].includes(state.tab)) { f.replaceChildren(); return; }
     if (state.tab === 'class') {
       for (const cat of ['', 'Melee', 'Ranged', 'Magic', 'Other']) {
         kids.push(el('button', { class: 'chip' + (state.classCat === cat ? ' on' : ''), onclick: () => go({ classCat: cat }, false) }, cat || 'All'));
@@ -600,6 +604,11 @@
     if (state.tab === 'chars') {
       if (Creator) Creator.renderList(box, meta);
       else { meta.textContent = ''; box.replaceChildren(el('div', { class: 'empty' }, el('strong', {}, 'The character builder is unavailable'), 'creator.js didn’t load.')); }
+      return;
+    }
+    if (state.tab === 'bank') {
+      if (Bank) Bank.renderList(box, meta);
+      else { meta.textContent = ''; box.replaceChildren(el('div', { class: 'empty' }, el('strong', {}, 'Party money is unavailable'), 'bank.js didn’t load.')); }
       return;
     }
     if (state.tab === 'notes') {
@@ -761,6 +770,12 @@
       if (!state.char) document.title = 'Characters · Player’s Handbook';
       return;
     }
+    if (state.tab === 'bank') {
+      const shown = Bank ? Bank.renderDetail(pane) : false;
+      layout.classList.toggle('no-detail', !shown);
+      if (!shown) document.title = 'Party money · Player’s Handbook';
+      return;
+    }
     if (state.tab === 'notes') {
       const shown = Notes ? Notes.renderDetail(pane) : false;
       layout.classList.toggle('no-detail', !shown);
@@ -878,7 +893,7 @@
     $('#q').addEventListener('input', e => {
       clearTimeout(t);
       const v = e.target.value;
-      t = setTimeout(() => go(['chars', 'patch', 'settings'].includes(state.tab) && v.trim() ? { q: v, tab: 'all', sel: null } : { q: v }, false), 80);
+      t = setTimeout(() => go(['chars', 'bank', 'patch', 'settings'].includes(state.tab) && v.trim() ? { q: v, tab: 'all', sel: null } : { q: v }, false), 80);
     });
     const gearBtn = $('#gear');
     if (gearBtn) gearBtn.addEventListener('click', openSettings);
@@ -894,17 +909,20 @@
         if (state.sel) go({ sel: null }, true);
         else if (state.ses && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) go({ ses: '' }, true);
         else if (state.char && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) go({ char: '' }, true);
+        else if (state.acct && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) go({ acct: '' }, true);
       }
     });
     $('#home-link').addEventListener('click', e => { e.preventDefault(); go({ tab: 'all', q: '', sel: null, ses: '', classCat: '', subClass: '', school: '', tier: 0, source: '' }, true); });
     window.addEventListener('resize', () => { const h = $('.top'); if (h) document.documentElement.style.setProperty('--head-h', h.offsetHeight + 'px'); });
     if (Notes) Notes.init();
     if (Creator) Creator.init();
+    if (Bank) Bank.init();
     window.addEventListener('popstate', () => { readHash(); render(); });
     window.addEventListener('hashchange', () => { readHash(); render(); });
   }
 
   const Notes = window.HandbookNotes ? window.HandbookNotes({ el, md, esc, plain, norm, highlight, state, go, render: () => render(), $, createClient: window.__mockCreateClient }) : null;
   const Creator = window.HandbookCreator ? window.HandbookCreator({ el, md, esc, plain, norm, slug, state, go, render: () => render(), $, DB, Notes, openItem: id => { const i = DB.byId.get(id); go({ tab: i ? i.type : 'all', sel: id }, true); } }) : null;
+  const Bank = window.HandbookBank ? window.HandbookBank({ el, state, go, render: () => render(), Notes }) : null;
   boot();
 })();

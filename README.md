@@ -159,3 +159,28 @@ The rules it applies are at the top of `creator.js` (`RULES`), so they're easy t
 ## Settings
 
 The gear button in the header (and the footer link) opens **Settings**: theme (match device, light, dark), contrast, decoration (illuminated or minimal), text size, an easy-read font (Atkinson Hyperlegible), line spacing and animations. Choices are saved in the browser on each device, so there is nothing to set up. They are applied by a small script at the top of `index.html` before the page draws, so the page never flashes the wrong theme.
+
+## Party money
+
+The **Party money** tab (under Your table) gives each campaign a shared **party account** and each character a **purse**.
+
+**Setting it up (once):** run `supabase/setup.sql` again in the Supabase SQL editor. It's safe to re-run; it adds the new tables and leaves existing notes and characters alone. Then, signed in as the admin:
+
+1. Create the campaign on the **Notes** tab, if it doesn't exist yet.
+2. Open **Party money**, and use **+ Add a player…** to add each player to the campaign.
+3. Each player opens **Party money** and adds their saved character to the campaign. That gives the character a purse.
+
+**Rules (enforced by the database, not just the page):**
+
+- Anyone in the party can put coin from their purse into the party account.
+- Taking coin out is a request. Asking counts as one approval; it pays out when one other player approves it. If the party account is short at that moment, it pays out once there's enough and someone presses **Try paying out**.
+- Whoever asked can cancel a request; the DM can turn any request down.
+- The DM can approve any request at once, and add or remove coin from any account (loot, rewards, fines).
+- Players can give coin to another character in the same campaign, and spend from their own purse.
+- Players see the party account and their own purses; only the DM sees every purse.
+- Amounts are kept in copper: 100 cp = 1 sp, 100 sp = 1 gp, 100 gp = 1 pp.
+
+## Item list
+
+`content/items.json` is the item list from the Market Price Ledger (items, materials, qualities and crafting recipes). The character builder's inventory suggests items from it as you type.
+

@@ -59,16 +59,27 @@
     const spellsWith = tag => tag ? DB.items.filter(s => s.type === 'spell' && s.sources.includes(tag)) : [];
     const num = (v, d = 0) => { const n = parseInt(v, 10); return Number.isFinite(n) ? n : d; };
 
+    // A subclass's abilities. Entries that share a name, like "Final Blow (Active)" and "Final Blow (Passive)",
+    // are one ability with two parts: bought together for one SP.
     function abilities(sub) {
       const out = [];
       for (const l of (sub.body || '').split('\n')) {
         const m = l.match(/^- \*\*(.+?)\*\*\s*(.*)$/);
-        if (m) {
-          const name = m[1].replace(/\.$/, '').trim();
-          out.push({ key: slug(name), name, text: m[2] });
+        if (!m) continue;
+        const full = m[1].replace(/\.$/, '').trim();
+        const pm = full.match(/^(.*?)\s*\(([^)]*)\)$/);
+        const base = pm && pm[1] ? pm[1].trim() : full;
+        const same = out.find(a => a.base.toLowerCase() === base.toLowerCase());
+        if (same) {
+          if (same.parts.length === 1) { const p = same.parts[0]; same.text = `**${p.label}:** ${p.text}`; }
+          same.parts.push({ label: pm ? pm[2] : full, text: m[2], key: slug(full) });
+          same.text += ` **${pm ? pm[2] : full}:** ${m[2]}`;
+          same.name = same.base; same.key = slug(same.base);
+          continue;
         }
+        out.push({ key: slug(full), name: full, base, text: m[2], parts: [{ label: pm ? pm[2] : full, text: m[2], key: slug(full) }] });
       }
-      if (!out.length && sub.body) out.push({ key: 'all', name: sub.name, text: plain(sub.body.split('\n\n')[0]) });
+      if (!out.length && sub.body) out.push({ key: 'all', name: sub.name, base: sub.name, text: plain(sub.body.split('\n\n')[0]), parts: [] });
       return out;
     }
 
@@ -171,10 +182,18 @@
       const src = data || {};
       if (!Array.isArray(src.classes) || !src.classes.length) c.classes = [{ classId: src.classId || '', groupKey: src.groupKey || '' }];
       else c.classes = src.classes.map(x => ({ classId: x.classId || '', groupKey: x.groupKey || '' }));
+      for (const x of c.classes) if (x.classId && !x.groupKey) { const gs = groupsOf(byId(x.classId)); if (gs.length === 1) x.groupKey = gs[0].key; }   // single-path classes
       const first = c.classes[0].groupKey;
       const b = c.buys = Object.assign({ general: {}, abil: {}, feat: {}, tiers: {} }, c.buys || {});
       if (typeof b.general === 'boolean') b.general = b.general && first ? { [first]: true } : {};
       if (Array.isArray(c.hpRolls)) c.hpRolls = c.hpRolls.length && first ? { [first]: c.hpRolls } : {};
+      // saves from before two-part abilities were merged: "final-blow-active" + "final-blow-passive" → "final-blow"
+      for (const [id, keys] of Object.entries(b.abil || {})) {
+        const sub = DB.byId.get(id); if (!sub || !Array.isArray(keys)) continue;
+        const merged = abilities(sub).filter(a => a.parts.length > 1);
+        if (!merged.length) continue;
+        b.abil[id] = [...new Set(keys.map(k => (merged.find(a => a.parts.some(p => p.key === k)) || { key: k }).key))];
+      }
       c.hpRolls = c.hpRolls || {}; c.unlocked = c.unlocked || {};
       c.lv = Object.assign({ stat: {}, hd: {}, skills: {}, feats: {}, boons: {}, fp: 0 }, c.lv || {});
       // older saves kept gear as two text boxes; turn each line into an inventory item
@@ -182,7 +201,7 @@
         c.items = [c.gear, c.equipment].flatMap(t => String(t || '').split(/\n+/)).map(t => t.replace(/^\s*[-•*]\s*/, '').trim()).filter(Boolean)
           .map(name => ({ id: itemId(), name, qty: 1, notes: '', on: false }));
         c.gear = ''; c.equipment = '';
-      } else c.items = src.items.map(x => ({ id: x.id || itemId(), name: String(x.name || ''), qty: Math.max(0, num(x.qty, 1)), notes: String(x.notes || ''), on: !!x.on }));
+      } else c.items = src.items.map(x => ({ id: x.id || itemId(), name: String(x.name || ''), qty: Math.max(0, num(x.qty, 1)), notes: String(x.notes || ''), on: !!x.on, ...(x.ref ? { ref: String(x.ref) } : {}) }));
       c.guide = src.guide && typeof src.guide === 'object' ? { step: Math.max(0, num(src.guide.step)), seen: Math.max(0, num(src.guide.seen), num(src.guide.step)), done: !!src.guide.done } : { step: 0, done: Object.keys(src).length > 0 };
       delete c.classId; delete c.groupKey;
       return c;
@@ -1191,6 +1210,16 @@
       return box;
     }
 
+    // the shared item catalogue (from the Market Price Ledger), loaded the first time the inventory is shown
+    let catalogue = null, catLoading = false;
+    const NOT_CARRIED = new Set(['services', 'hire', 'craft', 'temple', 'arcane', 'info', 'leisure']);
+    function catalogueItems() {
+      if (!catalogue && !catLoading) {
+        catLoading = true;
+        fetch('content/items.json').then(r => r.json()).then(j => { catalogue = j; if (state.tab === 'chars') render(); }).catch(() => {});
+      }
+      return catalogue ? catalogue.items.filter(i => !NOT_CARRIED.has(i.cat)) : [];
+    }
     function inventorySection(c) {
       const items = c.items;
       const touch = () => changed();
@@ -1204,13 +1233,15 @@
           el('button', { class: 'mini', disabled: i === 0, 'aria-label': `Move ${it.name || 'item'} up`, onclick: () => move(i, -1) }, '↑'),
           el('button', { class: 'mini', disabled: i === items.length - 1, 'aria-label': `Move ${it.name || 'item'} down`, onclick: () => move(i, 1) }, '↓'),
           el('button', { class: 'mini danger', 'aria-label': `Remove ${it.name || 'item'}`, onclick: () => { items.splice(i, 1); changed(); render(); } }, 'Remove'))));
-      const name = el('input', { type: 'text', id: 'cc-inv-add', maxlength: '120', placeholder: 'Add an item, e.g. Darksteel Greataxe', 'aria-label': 'New item',
+      const known = catalogueItems();
+      const name = el('input', { type: 'text', id: 'cc-inv-add', list: 'cc-catalogue', maxlength: '120', placeholder: 'Add an item: type to search the item list, or write your own', 'aria-label': 'New item',
         onkeydown: e => { if (e.key === 'Enter') { e.preventDefault(); add(); } } });
       const qty = el('input', { type: 'number', class: 'num', min: '1', value: '1', 'aria-label': 'Quantity', title: 'Quantity',
         onkeydown: e => { if (e.key === 'Enter') { e.preventDefault(); add(); } } });
       function add() {
         const n = name.value.trim(); if (!n) { name.focus(); return; }
-        items.push({ id: itemId(), name: n, qty: Math.max(1, num(qty.value, 1)), notes: '', on: false });
+        const ref = known.find(k => k.name.toLowerCase() === n.toLowerCase());
+        items.push({ id: itemId(), name: ref ? ref.name : n, qty: Math.max(1, num(qty.value, 1)), notes: '', on: false, ...(ref ? { ref: ref.id } : {}) });
         changed(); render();
         requestAnimationFrame(() => { const f = $('#cc-inv-add'); if (f) f.focus(); });
       }
@@ -1219,6 +1250,7 @@
         el('p', { class: 'd-note' }, items.length ? `${items.length} item${items.length === 1 ? '' : 's'}${eq ? ` · ${eq} equipped` : ''}. Tick Equipped for what you’re wearing or holding; it’s listed first on the sheet.` : 'Add your starting gear (from your subclass) and anything else you carry.'),
         rows.length ? el('div', { class: 'cc-inv' }, ...rows) : null,
         el('div', { class: 'cc-inv-add' }, name, qty, el('button', { class: 'btn small', onclick: add }, 'Add item')),
+        known.length ? el('datalist', { id: 'cc-catalogue' }, ...known.map(k => el('option', { value: k.name }))) : null,
       ];
     }
 

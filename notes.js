@@ -66,7 +66,11 @@
         const { data: { session } } = await sb.auth.getSession();
         status = 'ready';
         if ((session && session.user && session.user.id) !== (user && user.id)) await setUser(session ? session.user : null);
-        else renderAccount();
+        else {   // still signed out: tell the pages that were waiting on "Loading…"
+          renderAccount();
+          authListeners.forEach(f => { try { f(); } catch (e) { console.error(e); } });
+          if (state.tab === 'notes') render();
+        }
         if (linkError) {
           history.replaceState(null, '', location.pathname + location.search);
           dialog('That link didn’t work',

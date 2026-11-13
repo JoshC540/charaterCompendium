@@ -7,6 +7,14 @@
 
 # 2026
 
+## 12 Nov 2026
+
+- **Abilities with an Active and a Passive part** (e.g. Rudiarius's Final Blow): two abilities, 1 SP each → one ability, 1 SP
+- **Party money:** — → a shared party account for each campaign: anyone in the party can deposit; taking coin out needs two players to agree (asking counts as one), or the DM
+- **Purses:** — → a purse for each character in a campaign: put coin into the party account, ask the party for coin, give coin to another character, spend
+- **Campaign players:** — → the DM adds players to each campaign, and players add their characters to it
+- **Inventory:** typed by hand → suggests items from the item list as you type
+
 ## 11 Nov 2026
 
 - **Navigation:** one row of ten tabs → Character, Rules and Your table, each with its own row of pages

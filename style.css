@@ -1211,3 +1211,48 @@ body.cc-open .result-meta:empty { display: none; }
 }
 .cc-field .select, .cc-sec .select { border-color: color-mix(in srgb, var(--line), var(--ink) 22%); }
 .cc-field input.cc-small { max-width: 120px; }
+
+/* ================= party money ================= */
+.bk-camp { display: flex; flex-direction: column; gap: 4px; margin: 0 0 10px; }
+.bk-camp .k, .bk-join .k, .bk-field .k { font: 700 11px var(--head); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.bk-acct { position: relative; }
+.bk-acct .bk-amt { font: 600 15px var(--body); font-variant-numeric: lining-nums; color: var(--accent); white-space: nowrap; }
+.bk-dot { position: absolute; top: 10px; right: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--surface); }
+.bk-join { margin: 12px 0 0; }
+.bk-join label { display: flex; flex-direction: column; gap: 4px; }
+.bk-players { margin-top: 16px; }
+.bk-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+.bk-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px 2px 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); font-size: 15px; }
+.bk-chip .mini { padding: 0 6px; font-size: 16px; text-decoration: none; }
+.bk-balance { display: flex; flex-direction: column; margin: 4px 0 16px; }
+.bk-balance .v { font: 700 34px/1.1 var(--body); font-variant-numeric: lining-nums; color: var(--ink); }
+.bk-balance .k { color: var(--ink-3); font-style: italic; }
+.bk-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+.bk-actions .btn.on { box-shadow: inset 0 0 0 2px var(--gold); }
+.bk-form { padding: 14px 16px; margin: 0 0 16px; border: 1px solid var(--gold-soft); border-left: 3px solid var(--gold); border-radius: var(--radius); background: var(--surface-2); display: flex; flex-direction: column; gap: 10px; }
+.bk-form .cc-h3 { margin: 0; }
+.bk-amount { display: flex; flex-wrap: wrap; gap: 8px; }
+.bk-amount label { display: flex; align-items: center; gap: 4px; font: 600 14px var(--body); color: var(--ink-2); }
+.bk-amount input { width: 84px; font: 16px var(--body); padding: 6px 8px; border: 1px solid color-mix(in srgb, var(--line), var(--ink) 22%); border-radius: 3px; background: var(--surface); color: var(--ink); font-variant-numeric: lining-nums; }
+.bk-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.bk-field { display: flex; flex-direction: column; gap: 4px; }
+.bk-field input[type=text] { font: 16px var(--body); padding: 7px 10px; border: 1px solid color-mix(in srgb, var(--line), var(--ink) 22%); border-radius: 3px; background: var(--surface); color: var(--ink); }
+.bk-field input:focus, .bk-amount input:focus { outline: 0; border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-soft); }
+.bk-btns { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.bk-req { padding: 10px 12px; margin: 0 0 8px; border: 1px solid var(--line); border-left: 3px solid var(--gold); border-radius: 4px; background: var(--surface); }
+.bk-req.approved { border-left-color: var(--race); } .bk-req.cancelled { border-left-color: var(--line); opacity: .75; }
+.bk-req-h strong { font-variant-numeric: lining-nums; }
+.bk-reason { color: var(--ink-2); }
+.bk-req-m { font-size: 14.5px; color: var(--ink-3); margin: 2px 0 6px; }
+.bk-state { color: var(--accent); font-weight: 600; }
+.bk-req.approved .bk-state { color: var(--race); }
+.bk-ledger { width: 100%; border-collapse: collapse; font-size: 15px; }
+.bk-ledger th { text-align: left; font: 700 11px var(--head); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); border-bottom: 1px solid var(--line); padding: 4px 8px 4px 0; }
+.bk-ledger td { border-bottom: 1px dotted var(--line); padding: 6px 8px 6px 0; vertical-align: top; }
+.bk-ledger .r { text-align: right; white-space: nowrap; font-variant-numeric: lining-nums; }
+.bk-ledger .in { color: var(--race); } .bk-ledger .out { color: var(--accent); }
+.bk-real, .bk-by { display: block; font-size: 12.5px; color: var(--ink-3); }
+@media (max-width: 560px) {
+  .bk-ledger th:nth-child(4), .bk-ledger td:nth-child(4) { display: none; }
+  .bk-amount input { width: 64px; }
+}
