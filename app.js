@@ -13,7 +13,8 @@
   };
   const TYPES = ['race', 'class', 'subclass', 'spell', 'adv', 'god', 'patch'];
   const DOC_TYPES = ['adv', 'god', 'patch'];
-  const TYPE_LABEL = { all: 'All', race: 'Races', class: 'Classes', subclass: 'Subclasses', spell: 'Spells', adv: 'Advancement', god: 'Gods', notes: 'Notes', chars: 'Characters', bank: 'Party money', patch: 'Patch Notes', settings: 'Settings' };
+  const TYPE_LABEL = { all: 'All', race: 'Races', class: 'Classes', subclass: 'Subclasses', spell: 'Spells', adv: 'Advancement', god: 'Gods', notes: 'Notes', chars: 'Characters', bank: 'Party money', patch: 'Patch Notes', settings: 'Settings', beast: 'Bestiary', named: 'Named monsters', forge: 'Dragons & elementals', encounter: 'Encounters', brules: 'Monster rules' };
+  const DM_TABS = ['beast', 'named', 'forge', 'encounter', 'brules'];
   const TYPE_ONE = { race: 'Race', class: 'Class', subclass: 'Subclass', spell: 'Spell', adv: 'Advancement', god: 'Book of Gods', patch: 'Patch notes' };
 
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -303,6 +304,7 @@
     state.char = state.tab === 'chars' ? (p.get('char') || '') : '';
     state.camp = state.tab === 'bank' ? (p.get('camp') || '') : '';
     state.acct = state.tab === 'bank' ? (p.get('acct') || '') : '';
+    if (Beast) Beast.readHash(p);
   }
   function hashFor(s = state) {
     const p = new URLSearchParams();
@@ -319,6 +321,7 @@
     if (s.tab === 'chars' && s.char) p.set('char', s.char);
     if (s.tab === 'bank' && s.camp) p.set('camp', s.camp);
     if (s.tab === 'bank' && s.acct) p.set('acct', s.acct);
+    if (Beast) Beast.writeHash(p);
     const h = p.toString();
     return h ? '#' + h : location.pathname + location.search;
   }
@@ -417,6 +420,7 @@
     { key: 'character', label: 'Character', tabs: ['race', 'class', 'subclass', 'spell'] },
     { key: 'rules', label: 'Rules', tabs: ['adv', 'god'] },
     { key: 'table', label: 'Your table', tabs: ['chars', 'bank', 'notes'] },
+    { key: 'dm', label: 'DM', tabs: DM_TABS, dm: true },
   ];
   const lastInGroup = {};
   const groupFor = t => GROUPS.find(g => g.tabs.includes(t)) || null;
@@ -426,7 +430,8 @@
     const nav = $('#tabs'), sub = $('#subtabs');
     const cur = groupFor(state.tab);
     if (cur) lastInGroup[cur.key] = state.tab;
-    nav.replaceChildren(...GROUPS.map(g => el('button', {
+    const shownGroups = GROUPS.filter(g => !g.dm || g === cur || (Beast && Beast.isAdmin()));
+    nav.replaceChildren(...shownGroups.map(g => el('button', {
       class: 'tab', role: 'tab', 'aria-selected': String(cur === g),
       onclick: () => { const t = lastInGroup[g.key] || g.tabs[0]; go({ tab: t, sel: state.tab === t ? state.sel : null }, true); },
     }, g.label)));
@@ -434,7 +439,7 @@
     sub.hidden = !subTabs.length;
     sub.replaceChildren(...subTabs.map(t => el('button', {
       class: 'subtab', 'aria-current': state.tab === t ? 'page' : null,
-      onclick: () => go({ tab: t, sel: state.tab === t ? state.sel : null }, true),
+      onclick: () => go(state.tab === t ? { tab: t } : { tab: t, sel: null, mon: '', tpl: '', rs: '' }, true),
     }, TYPE_LABEL[t], c[t] != null && !DOC_TYPES.includes(t) ? el('span', { class: 'n' }, String(c[t])) : null)));
     const on = sub.querySelector('[aria-current="page"]');
     if (on && (on.offsetLeft < sub.scrollLeft || on.offsetLeft + on.offsetWidth > sub.scrollLeft + sub.clientWidth)) sub.scrollLeft = Math.max(0, on.offsetLeft - 40);
@@ -469,6 +474,7 @@
   function renderFilters() {
     const f = $('#filters');
     const kids = [];
+    if (DM_TABS.includes(state.tab)) { if (Beast) Beast.renderFilters(f); else f.replaceChildren(); return; }
     if (['notes', 'chars', 'bank', 'settings'].includes(state.tab)) { f.replaceChildren(); return; }
     if (state.tab === 'class') {
       for (const cat of ['', 'Melee', 'Ranged', 'Magic', 'Other']) {
@@ -586,6 +592,10 @@
         el('span', { class: 'lbl' }, 'Session notes'),
         el('span', { class: 'hint' }, 'The party’s shared notebook, by campaign and session. Sign in to read and write.'),
         el('span', { class: 'go' }, 'Open →')),
+      Beast && Beast.isAdmin() ? el('button', { class: 'home-notes bs', onclick: () => go({ tab: 'beast', sel: null }, true) },
+        el('span', { class: 'lbl' }, 'Bestiary'),
+        el('span', { class: 'hint' }, 'DM only: stat cards, templates, the dragon and elemental builder, and the encounter builder.'),
+        el('span', { class: 'go' }, 'Open →')) : null,
       el('p', { class: 'home-tips', html: 'Try searching <code>fire</code>, <code>heal</code>, <code>tier 3</code>, <code>bleed</code> or a class name. Press <code>/</code> to jump to search.' }),
     ];
   }
@@ -593,7 +603,7 @@
   function renderResults() {
     renderResultsInner();
     const meta = $('#result-meta');
-    if (state.q.trim() && !['all', 'notes', 'settings'].includes(state.tab) && TYPE_LABEL[state.tab]) {
+    if (state.q.trim() && !['all', 'notes', 'settings', ...DM_TABS].includes(state.tab) && TYPE_LABEL[state.tab]) {
       meta.append(' ', el('button', { class: 'mini', onclick: () => go({ tab: 'all', sel: null }, true) }, `Search everything for “${state.q.trim()}”`));
     }
   }
@@ -604,6 +614,11 @@
     if (state.tab === 'chars') {
       if (Creator) Creator.renderList(box, meta);
       else { meta.textContent = ''; box.replaceChildren(el('div', { class: 'empty' }, el('strong', {}, 'The character builder is unavailable'), 'creator.js didn’t load.')); }
+      return;
+    }
+    if (DM_TABS.includes(state.tab)) {
+      if (Beast) Beast.renderList(box, meta);
+      else { meta.textContent = ''; box.replaceChildren(el('div', { class: 'empty' }, el('strong', {}, 'The bestiary is unavailable'), 'bestiary.js didn’t load.')); }
       return;
     }
     if (state.tab === 'bank') {
@@ -757,6 +772,12 @@
     const pane = $('#detail');
     const layout = $('.layout');
     if (state.tab !== 'chars') document.body.classList.remove('cc-open');
+    if (!DM_TABS.includes(state.tab)) document.body.classList.remove('bs-wide', 'bs-card-open');
+    if (DM_TABS.includes(state.tab)) {
+      const shown = Beast ? Beast.renderDetail(pane) : false;
+      layout.classList.toggle('no-detail', !shown);
+      return;
+    }
     if (state.tab === 'settings') {
       layout.classList.add('no-detail');
       pane.replaceChildren();
@@ -893,7 +914,8 @@
     $('#q').addEventListener('input', e => {
       clearTimeout(t);
       const v = e.target.value;
-      t = setTimeout(() => go(['chars', 'bank', 'patch', 'settings'].includes(state.tab) && v.trim() ? { q: v, tab: 'all', sel: null } : { q: v }, false), 80);
+      t = setTimeout(() => go(['chars', 'bank', 'patch', 'settings'].includes(state.tab) && v.trim() ? { q: v, tab: 'all', sel: null }
+        : ['forge', 'encounter', 'brules'].includes(state.tab) && v.trim() ? { q: v, tab: 'beast', mon: '', tpl: '', rs: '' } : { q: v }, false), 80);
     });
     const gearBtn = $('#gear');
     if (gearBtn) gearBtn.addEventListener('click', openSettings);
@@ -906,6 +928,7 @@
         e.preventDefault(); $('#q').focus();
       }
       if (e.key === 'Escape' && document.activeElement !== $('#q') && !document.querySelector('dialog[open]')) {
+        if (DM_TABS.includes(state.tab) && Beast && Beast.onEscape()) return;
         if (state.sel) go({ sel: null }, true);
         else if (state.ses && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) go({ ses: '' }, true);
         else if (state.char && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) go({ char: '' }, true);
@@ -917,6 +940,7 @@
     if (Notes) Notes.init();
     if (Creator) Creator.init();
     if (Bank) Bank.init();
+    if (Beast) Beast.init();
     window.addEventListener('popstate', () => { readHash(); render(); });
     window.addEventListener('hashchange', () => { readHash(); render(); });
   }
@@ -924,5 +948,6 @@
   const Notes = window.HandbookNotes ? window.HandbookNotes({ el, md, esc, plain, norm, highlight, state, go, render: () => render(), $, createClient: window.__mockCreateClient }) : null;
   const Creator = window.HandbookCreator ? window.HandbookCreator({ el, md, esc, plain, norm, slug, state, go, render: () => render(), $, DB, Notes, openItem: id => { const i = DB.byId.get(id); go({ tab: i ? i.type : 'all', sel: id }, true); } }) : null;
   const Bank = window.HandbookBank ? window.HandbookBank({ el, state, go, render: () => render(), Notes }) : null;
+  const Beast = window.HandbookBestiary ? window.HandbookBestiary({ el, md, esc, norm, state, go, render: () => render(), Notes, $ }) : null;
   boot();
 })();

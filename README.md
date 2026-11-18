@@ -184,3 +184,22 @@ The **Party money** tab (under Your table) gives each campaign a shared **party 
 
 `content/items.json` is the item list from the Market Price Ledger (items, materials, qualities and crafting recipes). The character builder's inventory suggests items from it as you type.
 
+
+## Bestiary (DM only)
+
+The **DM** tab group (Bestiary, Named monsters, Dragons & elementals, Encounters, Monster rules) only appears for the admin account. Everything in it comes from *Bestiary: Volume I*.
+
+**Why the data isn't in this repo:** anything in a GitHub Pages repo can be downloaded by anyone, including tactics, tells and exploits. So the monster data lives in Supabase, in a `bestiary` table that only the admin account can read. The site loads it after you sign in as the DM. Players, and people who aren't signed in, get nothing back.
+
+**Setting it up (once):** Supabase dashboard → **SQL Editor** → New query → paste all of `supabase/bestiary.sql` → **Run**. Run `setup.sql` first if you haven't. It's safe to run again: it replaces the data.
+
+**What's in it:**
+
+- **Bestiary:** search by name, filter by type, role and KR range, sort by KR or name. Each stat card has Alpha, Boss and Minion toggles that apply the template maths, tooltips on statuses and rule keywords (hover, or tap on a phone), **Add to encounter**, and **Print** (one page, A4 or Letter).
+- **Dragons & elementals:** pick dragon or elemental, tier, flavour and disposition to get the finished block, with the flavour's status, weakness, movement, lair effect and signature moves.
+- **Encounters:** add creatures and the party's levels (level 0 counts as ½). It applies the group multiplier (minions don't count towards group size) and rates the fight: **easy** when the party total is at least 1.5× the KR, **fair** from 0.75× to 1.5×, **deadly** below 0.75×. The encounter is saved in the browser on that device.
+- **Monster rules:** Running monsters, status effects, the KR budget, harvest values, the templates, flavours, disposition, creature types, the index by KR, and the Pemmaroth encounter tables (on the Encounters page).
+
+**Data files:** the clean JSON (creatures, templates, statuses, KR budget, harvest, flavours, disposition, encounter tables and rules) is kept outside this repo, in `bestiary-data`. The combat simulator and price tool can use the same files, or read the `bestiary` table. If you change the JSON, run `python3 make-sql.py` in that folder to rebuild `bestiary.sql`, then run it in Supabase again.
+
+Files: `bestiary.js` (all the DM pages), `supabase/bestiary.sql` (table, access rules and data).

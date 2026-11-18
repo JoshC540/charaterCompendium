@@ -7,6 +7,14 @@
 
 # 2026
 
+## 18 Nov 2026
+
+- **Bestiary:** — → DM-only bestiary behind the DM sign-in: 200 creatures and 16 named monsters, with search, type, role and KR filters, and sort by KR
+- **Stat cards:** — → stat card for every creature, with Alpha, Boss and Minion toggles, rule tooltips on statuses and keywords, and one-page printing
+- **Dragons and elementals:** — → builder: tier, flavour and disposition give the finished stat block
+- **Encounter builder:** — → creatures and party levels give the encounter's KR, with the group multiplier, and whether the fight is easy, fair or deadly
+- **Monster rules:** — → Running monsters, status effects, KR budget, harvest values, templates, flavours, disposition, creature types, index by KR and the Pemmaroth encounter tables
+
 ## 12 Nov 2026
 
 - **Abilities with an Active and a Passive part** (e.g. Rudiarius's Final Blow): two abilities, 1 SP each → one ability, 1 SP
