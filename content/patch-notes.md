@@ -7,6 +7,21 @@
 
 # 2026
 
+## 20 Nov 2026
+
+- **Bestiary: Volume II:** — → 250 creatures in 22 families and 50 named monsters, with a page per family, a link to every stat block, and an index (Volume II or both volumes) filtered by family, KR range and named only
+- **Weak points, countdowns and shifts:** — → trackers on the stat block: weak point HP, a countdown die to tick down, and which mode a creature is in
+- **Bestiary tabs:** Bestiary → Volume I and Volume II; Named monsters covers both volumes
+- **Stat cards:** Tell and Exploit in a list → highlighted lines; Solo, Set piece, Construct, Boss and Alpha Boss tags beside the KR; Harvest before How to play it
+- **Named monster phases:** two lines → HP bar marked at 66% and 33%, with the two steps under it
+- **Search:** handbook only → also searches the bestiary for the DM: names, families, Tell and Exploit
+- **Tables on phones:** cut off at the side → a card for each row
+- **Account button on phones:** full name → initials, so the site name fits
+- **Home page latest update:** first line of the notes → number of changes
+- **Gold headings and grey labels:** → darker, easier to read
+- **Tabs on phones:** cut off with no sign of more → fade at the edge that scrolls
+- **Races and Spells reading panel (computer):** "Pick something to read" → the races overview, with HP, I.M.P. and languages for every race; for a spell school, its spells by tier and who learns them (both filter the list)
+
 ## 18 Nov 2026
 
 - **Bestiary:** — → DM-only bestiary behind the DM sign-in: 200 creatures and 16 named monsters, with search, type, role and KR filters, and sort by KR

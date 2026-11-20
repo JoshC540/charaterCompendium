@@ -1,4 +1,4 @@
--- Bestiary: DM-only monster data for the handbook.
+-- Bestiary: Volume I: DM-only monster data for the handbook.
 -- Run this in the Supabase SQL editor after setup.sql. It's safe to run again: it replaces the data.
 -- Only accounts with profiles.is_admin = true can read or change these rows, so players can't see them.
 

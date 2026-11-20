@@ -187,17 +187,20 @@ The **Party money** tab (under Your table) gives each campaign a shared **party 
 
 ## Bestiary (DM only)
 
-The **DM** tab group (Bestiary, Named monsters, Dragons & elementals, Encounters, Monster rules) only appears for the admin account. Everything in it comes from *Bestiary: Volume I*.
+The **DM** tab group (Volume I, Volume II, Named monsters, Dragons & elementals, Encounters, Monster rules) only appears for the admin account. Everything in it comes from *Bestiary: Volume I* and *Bestiary: Volume II*.
 
 **Why the data isn't in this repo:** anything in a GitHub Pages repo can be downloaded by anyone, including tactics, tells and exploits. So the monster data lives in Supabase, in a `bestiary` table that only the admin account can read. The site loads it after you sign in as the DM. Players, and people who aren't signed in, get nothing back.
 
-**Setting it up (once):** Supabase dashboard → **SQL Editor** → New query → paste all of `supabase/bestiary.sql` → **Run**. Run `setup.sql` first if you haven't. It's safe to run again: it replaces the data.
+**Setting it up (once):** Supabase dashboard → **SQL Editor** → New query → paste all of `supabase/bestiary.sql` → **Run**. Then do the same with `supabase/bestiary-2.sql` (Volume II). Run `setup.sql` first if you haven't. Both are safe to run again: they replace the data.
 
 **What's in it:**
 
 - **Bestiary:** search by name, filter by type, role and KR range, sort by KR or name. Each stat card has Alpha, Boss and Minion toggles that apply the template maths, tooltips on statuses and rule keywords (hover, or tap on a phone), **Add to encounter**, and **Print** (one page, A4 or Letter).
 - **Dragons & elementals:** pick dragon or elemental, tier, flavour and disposition to get the finished block, with the flavour's status, weakness, movement, lair effect and signature moves.
 - **Encounters:** add creatures and the party's levels (level 0 counts as ½). It applies the group multiplier (minions don't count towards group size) and rates the fight: **easy** when the party total is at least 1.5× the KR, **fair** from 0.75× to 1.5×, **deadly** below 0.75×. The encounter is saved in the browser on that device.
+- **Volume II:** the intro (with Weak Point, Countdown and Shift), a page per family with its creatures in KR order, the 50 named monsters, and an index of all 300 (or both volumes) you can sort and filter by family, KR range and named only. Every stat block has its own link, e.g. `#tab=vol2&page=beasts-of-the-wilds&mon=gloamfox`, and a **Copy link** button.
+- **Weak points, countdowns and shifts:** each stat block that uses one has a tracker: type damage into a weak point, tick a countdown die down, tap the mode a shifting creature is in. They reset when you reload.
+- **Search:** signed in as the DM, the main search box also finds bestiary entries by name, family, Tell and Exploit.
 - **Monster rules:** Running monsters, status effects, the KR budget, harvest values, the templates, flavours, disposition, creature types, the index by KR, and the Pemmaroth encounter tables (on the Encounters page).
 
 **Data files:** the clean JSON (creatures, templates, statuses, KR budget, harvest, flavours, disposition, encounter tables and rules) is kept outside this repo, in `bestiary-data`. The combat simulator and price tool can use the same files, or read the `bestiary` table. If you change the JSON, run `python3 make-sql.py` in that folder to rebuild `bestiary.sql`, then run it in Supabase again.

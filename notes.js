@@ -148,7 +148,8 @@
       if (status === 'loading') { box.replaceChildren(el('button', { class: 'acct', disabled: true }, '…')); return; }
       if (status === 'offline') { box.replaceChildren(el('button', { class: 'acct', disabled: true, title: 'Sign-in couldn’t load. Check your connection.' }, 'Sign in')); return; }
       box.replaceChildren(user
-        ? el('button', { class: 'acct on', onclick: openAccount, title: 'Your account' }, el('span', { class: 'dot' }), me ? me.display_name : 'Account')
+        ? (() => { const nm = me ? me.display_name : 'Account'; const ini = nm.split(/[\s._-]+/).filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'Me';
+          return el('button', { class: 'acct on', onclick: openAccount, title: 'Your account', 'aria-label': `Your account: ${nm}` }, el('span', { class: 'dot' }), el('span', { class: 'nm' }, nm), el('span', { class: 'ini', 'aria-hidden': 'true' }, ini)); })()
         : el('button', { class: 'acct', onclick: () => openSignIn() }, 'Sign in'));
     }
 

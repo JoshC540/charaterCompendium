@@ -13,8 +13,8 @@
   };
   const TYPES = ['race', 'class', 'subclass', 'spell', 'adv', 'god', 'patch'];
   const DOC_TYPES = ['adv', 'god', 'patch'];
-  const TYPE_LABEL = { all: 'All', race: 'Races', class: 'Classes', subclass: 'Subclasses', spell: 'Spells', adv: 'Advancement', god: 'Gods', notes: 'Notes', chars: 'Characters', bank: 'Party money', patch: 'Patch Notes', settings: 'Settings', beast: 'Bestiary', named: 'Named monsters', forge: 'Dragons & elementals', encounter: 'Encounters', brules: 'Monster rules' };
-  const DM_TABS = ['beast', 'named', 'forge', 'encounter', 'brules'];
+  const TYPE_LABEL = { all: 'All', race: 'Races', class: 'Classes', subclass: 'Subclasses', spell: 'Spells', adv: 'Advancement', god: 'Gods', notes: 'Notes', chars: 'Characters', bank: 'Party money', patch: 'Patch Notes', settings: 'Settings', beast: 'Volume I', vol2: 'Volume II', named: 'Named monsters', forge: 'Dragons & elementals', encounter: 'Encounters', brules: 'Monster rules' };
+  const DM_TABS = ['beast', 'vol2', 'named', 'forge', 'encounter', 'brules'];
   const TYPE_ONE = { race: 'Race', class: 'Class', subclass: 'Subclass', spell: 'Spell', adv: 'Advancement', god: 'Book of Gods', patch: 'Patch notes' };
 
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -83,12 +83,13 @@
     if (cols === 1) return `<div class="callout">${cells.map(r => `<p>${inline(r[0])}</p>`).join('')}</div>`;
     const [head, ...body] = cells;
     const narrow = Array.from({ length: cols }, (_, k) => body.length > 0 && body.every(r => plain(r[k] || '').length <= 6));
-    const tr = (r, tag) => `<tr>${Array.from({ length: cols }, (_, k) => `<${tag}${narrow[k] ? ' class="nar"' : ''}>${inline(r[k] || '')}</${tag}>`).join('')}</tr>`;
+    const lab = k => tag => tag === 'td' ? ` data-label="${esc(plain(head[k] || ''))}"` : '';
+    const tr = (r, tag) => `<tr>${Array.from({ length: cols }, (_, k) => `<${tag}${narrow[k] ? ' class="nar"' : ''}${lab(k)(tag)}>${inline(r[k] || '')}</${tag}>`).join('')}</tr>`;
     // size columns by how much text they hold, so long descriptions get the room
     const wts = Array.from({ length: cols }, (_, k) => narrow[k] ? 0 : Math.sqrt(Math.max(8, body.reduce((n, r) => n + plain(r[k] || '').length, 0) / Math.max(1, body.length))));
     const total = wts.reduce((a, b) => a + b, 0) || 1;
     const colgroup = `<colgroup>${wts.map(w => `<col style="width:${w ? Math.round(w / total * 100) : 1}%">`).join('')}</colgroup>`;
-    return `<div class="table-wrap"><table>${colgroup}<thead>${tr(head, 'th')}</thead><tbody>${body.map(r => tr(r, 'td')).join('')}</tbody></table></div>`;
+    return `<div class="table-wrap"><table${cols >= 3 ? ' class="stack"' : ''}>${colgroup}<thead>${tr(head, 'th')}</thead><tbody>${body.map(r => tr(r, 'td')).join('')}</tbody></table></div>`;
   }
 
   function md(src) {
@@ -441,6 +442,9 @@
       class: 'subtab', 'aria-current': state.tab === t ? 'page' : null,
       onclick: () => go(state.tab === t ? { tab: t } : { tab: t, sel: null, mon: '', tpl: '', rs: '' }, true),
     }, TYPE_LABEL[t], c[t] != null && !DOC_TYPES.includes(t) ? el('span', { class: 'n' }, String(c[t])) : null)));
+    const edge = () => { sub.classList.toggle('more-right', sub.scrollLeft + sub.clientWidth < sub.scrollWidth - 4); sub.classList.toggle('more-left', sub.scrollLeft > 4); };
+    if (!sub._edge) { sub._edge = true; sub.addEventListener('scroll', edge, { passive: true }); window.addEventListener('resize', edge); }
+    requestAnimationFrame(edge);
     const on = sub.querySelector('[aria-current="page"]');
     if (on && (on.offsetLeft < sub.scrollLeft || on.offsetLeft + on.offsetWidth > sub.scrollLeft + sub.clientWidth)) sub.scrollLeft = Math.max(0, on.offsetLeft - 40);
     const gear = $('#gear');
@@ -581,7 +585,7 @@
         const latest = DB.docs.patch.find(x => x.name !== x.chapter) || DB.docs.patch[0];
         return el('button', { class: 'home-notes patch', onclick: () => go({ tab: 'patch', sel: latest.id }, true) },
           el('span', { class: 'lbl' }, 'Latest update · ' + latest.name),
-          el('span', { class: 'hint' }, latest.snippet || 'See what’s changed in the handbook.'),
+          el('span', { class: 'hint' }, (() => { const n = (latest.body.match(/^- /gm) || []).length; return n ? `${n} change${n === 1 ? '' : 's'}. See what’s new.` : 'See what’s changed in the handbook.'; })()),
           el('span', { class: 'go' }, 'Patch notes →'));
       })() : null,
       el('button', { class: 'home-notes chars', onclick: () => go({ tab: 'chars', sel: null }, true) },
@@ -645,6 +649,11 @@
     }
     const { items, ranked, tokens } = filtered();
     const kids = [];
+    // DM only: the bestiary joins the site search once the DM is signed in
+    const bh = state.tab === 'all' && state.q.trim() && Beast ? Beast.siteHits(state.q) : null;
+    const bestiary = bh && bh.length ? [el('div', { class: 'section-head' }, `Bestiary · DM only · ${bh.length}${bh.length >= 12 ? '+' : ''}`), ...bh.map(h => Beast.hitCard(h, state.q))] : [];
+    const bestFirst = bh && bh.length && bh[0].nameHit && !(items[0] && norm(items[0].name) === norm(state.q));
+    if (bestFirst) { kids.push(...bestiary); if (items.length) kids.push(el('div', { class: 'section-head' }, 'Handbook')); }
     const LIMIT = 400;
     let last = null;
     items.slice(0, LIMIT).forEach(i => {
@@ -652,18 +661,21 @@
         const k = sectionKey(i);
         if (k && k !== last) {
           kids.push(el('div', { class: 'section-head' }, k)); last = k;
-          if (i.type === 'race' && DB.raceIntros[k]) kids.push(el('div', { class: 'notice prose section-intro', html: md(DB.raceIntros[k]) }));
+          if (i.type === 'race' && DB.raceIntros[k]) kids.push(el('div', { class: 'notice prose section-intro ov-moved', html: md(DB.raceIntros[k]) }));
         }
       }
       kids.push(card(i, tokens, state.tab === 'all'));
     });
-    if (!items.length) {
+    if (!bestFirst) kids.push(...bestiary);
+    if (!items.length && !bestiary.length) {
       kids.push(el('div', { class: 'empty' }, el('strong', {}, 'Nothing found'),
         state.q ? `No ${state.tab === 'all' ? 'entries' : TYPE_LABEL[state.tab].toLowerCase()} match “${state.q}”.` : 'Try clearing a filter.'));
     }
     const n = items.length;
-    meta.textContent = (DOC_TYPES.includes(state.tab) && !ranked) ? 'Contents' : n ? `${n} result${n === 1 ? '' : 's'}${n > LIMIT ? ` — showing the first ${LIMIT}, refine your search to see more` : ''}` : '';
+    meta.textContent = (DOC_TYPES.includes(state.tab) && !ranked) ? 'Contents' : n ? `${n} result${n === 1 ? '' : 's'}${n > LIMIT ? ` — showing the first ${LIMIT}, refine your search to see more` : ''}` : bestiary.length ? 'Only in the bestiary' : '';
     box.replaceChildren(...kids);
+    if (state.tab === 'race' && state.sel && !ranked) meta.append(' ', el('button', { class: 'mini ov-back', onclick: () => go({ sel: null }, true) }, 'Races overview'));
+    if (state.tab === 'spell' && state.school && state.sel && !ranked) meta.append(' ', el('button', { class: 'mini ov-back', onclick: () => go({ sel: null }, true) }, `${state.school} overview`));
   }
 
   /* ----- detail views ----- */
@@ -808,8 +820,15 @@
     const noDetail = !i && state.tab === 'all' && !state.q;
     layout.classList.toggle('no-detail', noDetail);
     pane.classList.toggle('placeholder', !i);
+    pane.classList.remove('overview');
     if (!i) {
       if (noDetail) { pane.replaceChildren(); return; }
+      const ov = !state.q.trim() && overview();
+      if (ov) {   // desktop: the empty reading pane shows the section's overview (hidden on phones, like the placeholder)
+        pane.classList.add('overview');
+        pane.replaceChildren(...ov.filter(Boolean));
+        return;
+      }
       pane.replaceChildren(el('div', { class: 'empty' }, el('strong', {}, 'Pick something to read'), 'Select any entry on the left to see the full details here.'));
       return;
     }
@@ -829,6 +848,51 @@
       el('h1', { class: 'd-title' }, i.name),
       ...body.filter(Boolean));
     document.title = `${i.name} · Player’s Handbook`;
+  }
+
+  // what the empty reading pane shows on desktop, for sections that have an overview
+  function overview() {
+    if (state.tab === 'race') {
+      const groups = Object.keys(DB.raceIntros);
+      const races = DB.items.filter(x => x.type === 'race' && !x.prime);
+      const primes = DB.items.filter(x => x.type === 'race' && x.prime);
+      const first = groups.find(g => !/prime/i.test(g)) || 'Playable Races';
+      const primeGroup = groups.find(g => /prime/i.test(g));
+      return [
+        el('div', { class: 'd-kicker' }, el('span', { class: 'badge race' }, 'Races'), 'Chapter overview'),
+        el('h1', { class: 'd-title' }, first),
+        DB.raceIntros[first] ? el('div', { class: 'prose', html: md(DB.raceIntros[first]) }) : null,
+        section('At a glance', el('div', { class: 'prose' }, el('div', { class: 'table-wrap' }, el('table', { class: 'ov-table' },
+          el('thead', {}, el('tr', {}, el('th', {}, 'Race'), el('th', { class: 'nar' }, 'HP'), el('th', { class: 'nar' }, 'I.M.P.'), el('th', {}, 'Languages'))),
+          el('tbody', {}, ...races.map(r => el('tr', {},
+            el('td', {}, el('button', { class: 'ov-link', onclick: () => openItem(r.id) }, r.name)),
+            el('td', { class: 'nar' }, r.meta.hp || ''), el('td', { class: 'nar' }, r.meta.imp || ''), el('td', {}, r.meta.languages || '')))))))),
+        primeGroup ? section(primeGroup,
+          DB.raceIntros[primeGroup] ? el('div', { class: 'prose', html: md(DB.raceIntros[primeGroup]) }) : null,
+          el('div', { class: 'linklist' }, ...primes.map(r => linkBtn(r.name, () => openItem(r.id), false, true)))) : null,
+        el('p', { class: 'd-note ov-hint' }, 'Pick a race on the left to read its traits and feats.'),
+      ];
+    }
+    if (state.tab === 'spell' && state.school) {
+      const all = DB.items.filter(x => x.type === 'spell' && x.school === state.school);
+      if (!all.length) return null;
+      const tiers = new Map();
+      for (const x of all) tiers.set(x.tier, (tiers.get(x.tier) || 0) + 1);
+      const src = new Map();
+      for (const x of all) for (const t of (x.sources.length ? x.sources : ['__general'])) src.set(t, (src.get(t) || 0) + 1);
+      const label = t => t === '__general' ? `Anyone with ${state.school}` : t;
+      return [
+        el('div', { class: 'd-kicker' }, el('span', { class: 'badge spell' }, 'School'), `${all.length} spells`),
+        el('h1', { class: 'd-title' }, state.school),
+        el('div', { class: 'stats' }, ...[...tiers.keys()].sort((a, b) => a - b).map(t => el('button', {
+          class: 'stat ov-stat' + (state.tier === t ? ' on' : ''), title: `Show only tier ${t}`, onclick: () => go({ tier: state.tier === t ? 0 : t }, false),
+        }, el('span', { class: 'k' }, `Tier ${t}`), el('span', { class: 'v' }, String(tiers.get(t)))))),
+        section('Who learns these', el('div', { class: 'linklist' }, ...[...src.entries()].sort((a, b) => b[1] - a[1] || label(a[0]).localeCompare(label(b[0])))
+          .map(([t, n]) => el('button', { class: 'linkbtn' + (state.source === t ? ' on' : ''), onclick: () => go({ source: state.source === t ? '' : t }, false) }, label(t), el('span', { class: 'ov-n' }, ` ${n}`))))),
+        el('p', { class: 'd-note ov-hint' }, 'Pick a spell on the left to read it. The tiers and names above filter the list.'),
+      ];
+    }
+    return null;
   }
 
   function render() {
