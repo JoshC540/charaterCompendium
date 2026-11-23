@@ -7,7 +7,41 @@
 
 # 2026
 
+## 22 Nov 2026
+
+- **Bestiary: Volume III:** — → Peoples and Powers: 12 factions of nine ranks, six rival parties, servants of the gods, monsters made of the players' own magic, the Void and 30 named leaders, with a page for each and a link to every stat block
+- **Faction pages:** — → Wants, How they fight, Break and Terms, three encounter recipes that load into the encounter builder, a rank ladder, and faction-wide traits (with a counter for the one that builds up)
+- **Stat cards:** — → leaders' Command lines highlighted at the top of the block, Loadout as a row of options, and tags that link a Throne to the Book of Gods and a flavour to its subclass
+- **GM toolkit:** — → encounter-building steps, a sortable taming and mounts table, and trap cards with Find, Disarm and Break
+- **Bestiary index:** Volume II or both volumes → Volume II, Volume III or all three, with a divine-only filter
+- **Search, suggested encounters and the combat tracker:** two volumes → all three
+
+- **Status effects:** in the DM's Monster rules only → also in Core rules for players, with the same list in the combat tracker and tooltips
+- **Bleed:** 1d4 per stack → 0.5% of max HP or 1 HP (whichever is higher) per stack each turn; bandages stop it, 1 per 3 stacks
+- **Burn:** 1d6 per stack → 3 HP per stack each turn, up to 5 stacks; an action per stack clears it
+- **Poison:** 1 damage and −1 to rolls per stack → Poisoned: disadvantage on a random roll type and on death saves
+- **Freeze:** −10 ft speed, frozen solid at 3 stacks → half the value of rolled dice
+- **Stun and paralysis:** one status → Stun misses a turn of action; Paralysis (WIS save) stops movement but allows certain actions
+- **Charmed, frightened, confused:** one status ending on a WIS save → Charm (becomes friendly), Fear (INT save, disadvantage while the source is visible) and Confusion (INT save, attacks may hit the wrong target)
+- **Stagger:** loses its reaction → Staggered: STR check, fall on a fail, standing up takes an action
+- **Toxic:** — → 5 damage each turn
+- **Exhaustion:** — → five levels, from −2 to all rolls up to death
+- **Crafting:** — → an estimate of what an item costs to commission or make yourself, what it's worth and what a merchant pays, with forge or workshop rent, tools to hire or buy, the Artisan feat, and a link to share the estimate
+- **Combat tracker:** — → initiative, rounds, HP, statuses, phases, Defiant, recharges, weak points, countdowns and shifts for every combatant, lair actions on 20, a start-of-turn box with status damage to apply, Undo, and the spoils at the end
+- **Stat cards:** — → Copy as text, for Discord or a virtual tabletop
+- **Back to the top:** — → a button on long pages on phones
+- **Without signal:** nothing loaded → rules, races, classes, spells and gods open once you've visited the site
+- **Characters and Session notes:** could freeze while loading → load normally
+- **Party money:** retried without stopping after a failed load → a Try again button
+
 ## 20 Nov 2026
+
+- **KR slider:** moved one step per drag → drags smoothly, with bigger handles that still work when both meet at the top
+- **Volume I KR filter:** two typed boxes → the same KR slider as the index
+- **Suggested encounters:** — → easy, fair and deadly groups for the party's total from both volumes, by family or type, with Another, Use this and Add to the encounter
+- **Pemmaroth encounter tables:** Volume I only → Volume II creatures added by terrain (each family in the regions that suit it), with a Both / Volume I / Volume II switch; Volume II's named monsters stay out
+- **Encounter result card:** slid over the tables when scrolling → stays beside the party and creatures
+- **Encounter builder search and rows:** name only → also show the volume and family or type, and the search also finds families and types
 
 - **Bestiary: Volume II:** — → 250 creatures in 22 families and 50 named monsters, with a page per family, a link to every stat block, and an index (Volume II or both volumes) filtered by family, KR range and named only
 - **Weak points, countdowns and shifts:** — → trackers on the stat block: weak point HP, a countdown die to tick down, and which mode a creature is in

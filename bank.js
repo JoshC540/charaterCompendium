@@ -28,7 +28,7 @@ window.HandbookBank = function (H) {
   const nameOf = id => { const p = data && data.profiles.find(x => x.id === id); return p ? p.display_name : 'Someone'; };
 
   function init() {
-    if (Notes && Notes.onAuth) Notes.onAuth(() => { data = null; camp = null; form = null; msg = ''; if (state.tab === 'bank') render(); });
+    if (Notes && Notes.onAuth) Notes.onAuth(() => { data = null; loadErr = ''; camp = null; form = null; msg = ''; if (state.tab === 'bank') render(); });
   }
 
   async function load() {
@@ -112,7 +112,14 @@ window.HandbookBank = function (H) {
         el('button', { class: 'btn primary', onclick: () => Notes.openSignIn() }, 'Sign in')));
       return;
     }
-    if (!data) { if (!loading) load(); box.replaceChildren(el('div', { class: 'empty' }, loadErr ? el('strong', {}, loadErr) : 'Loading…')); return; }
+    if (!data) {
+      // after a failed load, wait for "Try again" rather than retrying on every redraw
+      if (!loading && !loadErr) load();
+      box.replaceChildren(el('div', { class: 'empty' }, loadErr
+        ? [el('strong', {}, loadErr), ' ', el('button', { class: 'mini', onclick: () => { loadErr = ''; load(); render(); } }, 'Try again')]
+        : 'Loading…'));
+      return;
+    }
     const list = myCampaigns();
     if (!list.length) {
       box.replaceChildren(el('div', { class: 'empty' }, el('strong', {}, admin() ? 'No campaigns yet' : 'You’re not in a campaign yet'),

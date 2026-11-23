@@ -13,8 +13,8 @@
   };
   const TYPES = ['race', 'class', 'subclass', 'spell', 'adv', 'god', 'patch'];
   const DOC_TYPES = ['adv', 'god', 'patch'];
-  const TYPE_LABEL = { all: 'All', race: 'Races', class: 'Classes', subclass: 'Subclasses', spell: 'Spells', adv: 'Advancement', god: 'Gods', notes: 'Notes', chars: 'Characters', bank: 'Party money', patch: 'Patch Notes', settings: 'Settings', beast: 'Volume I', vol2: 'Volume II', named: 'Named monsters', forge: 'Dragons & elementals', encounter: 'Encounters', brules: 'Monster rules' };
-  const DM_TABS = ['beast', 'vol2', 'named', 'forge', 'encounter', 'brules'];
+  const TYPE_LABEL = { all: 'All', race: 'Races', class: 'Classes', subclass: 'Subclasses', spell: 'Spells', adv: 'Advancement', god: 'Gods', notes: 'Notes', chars: 'Characters', bank: 'Party money', craft: 'Crafting', patch: 'Patch Notes', settings: 'Settings', beast: 'Volume I', vol2: 'Volume II', vol3: 'Volume III', named: 'Named monsters', forge: 'Dragons & elementals', encounter: 'Encounters', fight: 'Combat tracker', brules: 'Monster rules' };
+  const DM_TABS = ['beast', 'vol2', 'vol3', 'named', 'forge', 'encounter', 'fight', 'brules'];
   const TYPE_ONE = { race: 'Race', class: 'Class', subclass: 'Subclass', spell: 'Spell', adv: 'Advancement', god: 'Book of Gods', patch: 'Patch notes' };
 
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -91,6 +91,20 @@
     const colgroup = `<colgroup>${wts.map(w => `<col style="width:${w ? Math.round(w / total * 100) : 1}%">`).join('')}</colgroup>`;
     return `<div class="table-wrap"><table${cols >= 3 ? ' class="stack"' : ''}>${colgroup}<thead>${tr(head, 'th')}</thead><tbody>${body.map(r => tr(r, 'td')).join('')}</tbody></table></div>`;
   }
+
+  // Status effects: one list (content/statuses.json) for the Core rules page, the Monster rules page and the combat tracker
+  function statusMd(j) {
+    if (!j || !j.statuses) return 'The status effects list didn’t load. Reload the page to try again.';
+    const cell = t => String(t || '').replace(/\|/g, '/');
+    const rows = j.statuses.map(s => `| **${s.name}** | ${cell(s.effect)} | ${cell(s.max)} | ${cell(s.ends)} |`);
+    const ex = j.statuses.find(s => s.levels);
+    return [
+      `${j.rules} Effects that happen each turn happen at the start of the affected creature's turn.`, '',
+      '| Status | Effect | Max | How it ends |', ...rows,
+      ...(ex ? ['', `### ${ex.name}`, '', '| Level | Effect |', ...ex.levels.map((t, i) => `| **${i + 1}** | ${cell(t)} |`)] : []),
+    ].join('\n');
+  }
+  let STATUSES = null;
 
   function md(src) {
     if (!src) return '';
@@ -286,7 +300,7 @@
   /* ---------------- state ---------------- */
 
   const state = {
-    tab: 'all', q: '', sel: null, ses: '', char: '', camp: '', acct: '',
+    tab: 'all', q: '', qin: '', sel: null, ses: '', char: '', camp: '', acct: '',
     classCat: '', subClass: '', showUpcoming: true, school: '', tier: 0, source: '',
   };
 
@@ -294,6 +308,7 @@
     const p = new URLSearchParams(location.hash.slice(1));
     state.tab = TYPE_LABEL[p.get('tab')] ? p.get('tab') : 'all';
     state.q = p.get('q') || '';
+    state.qin = state.tab === 'all' && state.q ? (p.get('in') || '') : '';
     state.sel = p.get('item') && DB.byId.has(p.get('item')) ? p.get('item') : null;
     state.classCat = p.get('cat') || '';
     state.subClass = p.get('class') || '';
@@ -311,6 +326,7 @@
     const p = new URLSearchParams();
     if (s.tab !== 'all') p.set('tab', s.tab);
     if (s.q) p.set('q', s.q);
+    if (s.tab === 'all' && s.q && s.qin) p.set('in', s.qin);
     if (s.classCat) p.set('cat', s.classCat);
     if (s.subClass) p.set('class', s.subClass);
     if (s.school) p.set('school', s.school);
@@ -420,7 +436,7 @@
   const GROUPS = [
     { key: 'character', label: 'Character', tabs: ['race', 'class', 'subclass', 'spell'] },
     { key: 'rules', label: 'Rules', tabs: ['adv', 'god'] },
-    { key: 'table', label: 'Your table', tabs: ['chars', 'bank', 'notes'] },
+    { key: 'table', label: 'Your table', tabs: ['chars', 'bank', 'craft', 'notes'] },
     { key: 'dm', label: 'DM', tabs: DM_TABS, dm: true },
   ];
   const lastInGroup = {};
@@ -479,7 +495,7 @@
     const f = $('#filters');
     const kids = [];
     if (DM_TABS.includes(state.tab)) { if (Beast) Beast.renderFilters(f); else f.replaceChildren(); return; }
-    if (['notes', 'chars', 'bank', 'settings'].includes(state.tab)) { f.replaceChildren(); return; }
+    if (['notes', 'chars', 'bank', 'craft', 'settings'].includes(state.tab)) { f.replaceChildren(); return; }
     if (state.tab === 'class') {
       for (const cat of ['', 'Melee', 'Ranged', 'Magic', 'Other']) {
         kids.push(el('button', { class: 'chip' + (state.classCat === cat ? ' on' : ''), onclick: () => go({ classCat: cat }, false) }, cat || 'All'));
@@ -496,9 +512,8 @@
       kids.push(select([{ value: '', label: 'All schools' }, ...DB.schools.map(s => ({ value: s, label: s }))], state.school, v => go({ school: v }, false), 'School'));
       kids.push(select(sourceOptions(), state.source, v => go({ source: v }, false), 'Available to'));
       kids.push(el('span', { class: 'filter-sep' }));
-      for (const t of [0, 1, 2, 3, 4, 5, 6]) {
-        kids.push(el('button', { class: 'chip' + (state.tier === t ? ' on' : ''), onclick: () => go({ tier: t }, false) }, t ? `Tier ${t}` : 'All tiers'));
-      }
+      kids.push(el('div', { class: 'chip-row', role: 'group', 'aria-label': 'Tier' }, ...[0, 1, 2, 3, 4, 5, 6].map(t =>
+        el('button', { class: 'chip' + (state.tier === t ? ' on' : ''), 'aria-pressed': String(state.tier === t), onclick: () => go({ tier: t }, false) }, t ? `Tier ${t}` : 'All tiers'))));
     }
     f.replaceChildren(...kids);
   }
@@ -625,6 +640,11 @@
       else { meta.textContent = ''; box.replaceChildren(el('div', { class: 'empty' }, el('strong', {}, 'The bestiary is unavailable'), 'bestiary.js didn’t load.')); }
       return;
     }
+    if (state.tab === 'craft') {
+      if (Craft) Craft.renderList(box, meta);
+      else { meta.textContent = ''; box.replaceChildren(el('div', { class: 'empty' }, el('strong', {}, 'Crafting is unavailable'), 'craft.js didn’t load.')); }
+      return;
+    }
     if (state.tab === 'bank') {
       if (Bank) Bank.renderList(box, meta);
       else { meta.textContent = ''; box.replaceChildren(el('div', { class: 'empty' }, el('strong', {}, 'Party money is unavailable'), 'bank.js didn’t load.')); }
@@ -647,10 +667,23 @@
         el('span', { class: 'lbl' }, sc)))));
       return;
     }
-    const { items, ranked, tokens } = filtered();
+    const { items: found, ranked, tokens } = filtered();
     const kids = [];
+    // the All tab's search can be narrowed to one section in a tap
+    const counts = {};
+    if (state.tab === 'all' && ranked) for (const i of found) counts[i.type] = (counts[i.type] || 0) + 1;
+    const items = state.tab === 'all' && state.qin && state.qin !== 'bestiary' ? found.filter(i => i.type === state.qin) : state.qin === 'bestiary' ? [] : found;
     // DM only: the bestiary joins the site search once the DM is signed in
-    const bh = state.tab === 'all' && state.q.trim() && Beast ? Beast.siteHits(state.q) : null;
+    const bhAll = state.tab === 'all' && state.q.trim() && Beast ? Beast.siteHits(state.q) : null;
+    const bh = bhAll && (!state.qin || state.qin === 'bestiary') ? bhAll : null;
+    if (state.tab === 'all' && ranked && (found.length || (bhAll && bhAll.length))) {
+      const types = Object.keys(TYPE_LABEL).filter(t => counts[t]);
+      const chip = (k, label, n) => el('button', { class: 'chip' + (state.qin === k ? ' on' : ''), 'aria-pressed': String(state.qin === k), onclick: () => go({ qin: k }, false) }, label, el('span', { class: 'chip-n' }, ` ${n}`));
+      kids.push(el('div', { class: 'q-types', role: 'group', 'aria-label': 'Show results from' },
+        chip('', 'Everything', found.length + (bhAll ? bhAll.length : 0)),
+        ...types.map(t => chip(t, TYPE_LABEL[t], counts[t])),
+        bhAll && bhAll.length ? chip('bestiary', 'Bestiary', bhAll.length) : null));
+    }
     const bestiary = bh && bh.length ? [el('div', { class: 'section-head' }, `Bestiary · DM only · ${bh.length}${bh.length >= 12 ? '+' : ''}`), ...bh.map(h => Beast.hitCard(h, state.q))] : [];
     const bestFirst = bh && bh.length && bh[0].nameHit && !(items[0] && norm(items[0].name) === norm(state.q));
     if (bestFirst) { kids.push(...bestiary); if (items.length) kids.push(el('div', { class: 'section-head' }, 'Handbook')); }
@@ -671,7 +704,7 @@
       kids.push(el('div', { class: 'empty' }, el('strong', {}, 'Nothing found'),
         state.q ? `No ${state.tab === 'all' ? 'entries' : TYPE_LABEL[state.tab].toLowerCase()} match “${state.q}”.` : 'Try clearing a filter.'));
     }
-    const n = items.length;
+    const n = state.tab === 'all' ? found.length : items.length;
     meta.textContent = (DOC_TYPES.includes(state.tab) && !ranked) ? 'Contents' : n ? `${n} result${n === 1 ? '' : 's'}${n > LIMIT ? ` — showing the first ${LIMIT}, refine your search to see more` : ''}` : bestiary.length ? 'Only in the bestiary' : '';
     box.replaceChildren(...kids);
     if (state.tab === 'race' && state.sel && !ranked) meta.append(' ', el('button', { class: 'mini ov-back', onclick: () => go({ sel: null }, true) }, 'Races overview'));
@@ -785,6 +818,13 @@
     const layout = $('.layout');
     if (state.tab !== 'chars') document.body.classList.remove('cc-open');
     if (!DM_TABS.includes(state.tab)) document.body.classList.remove('bs-wide', 'bs-card-open');
+    if (state.tab !== 'craft') document.body.classList.remove('cf-wide');
+    if (state.tab === 'craft') {
+      layout.classList.add('no-detail');
+      pane.replaceChildren();
+      document.body.classList.remove('has-detail');
+      return;
+    }
     if (DM_TABS.includes(state.tab)) {
       const shown = Beast ? Beast.renderDetail(pane) : false;
       layout.classList.toggle('no-detail', !shown);
@@ -959,12 +999,16 @@
   async function boot() {
     $('#results').replaceChildren(el('div', { class: 'empty' }, 'Loading the handbook…'));
     try {
+      const stP = fetch('content/statuses.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null);
       const entries = await Promise.all(TYPES.map(async t => {
         const r = await fetch(FILES[t], { cache: 'no-cache' });
         if (!r.ok) throw new Error(`${FILES[t]}: ${r.status}`);
         return [t, await r.text()];
       }));
-      build(Object.fromEntries(entries));
+      STATUSES = await stP;
+      const texts = Object.fromEntries(entries);
+      texts.adv = texts.adv.replace('{{status-effects}}', () => statusMd(STATUSES));
+      build(texts);
     } catch (err) {
       console.error(err);
       $('#results').replaceChildren(el('div', { class: 'empty' }, el('strong', {}, 'Couldn’t load the content files'),
@@ -974,12 +1018,26 @@
     readHash();
     render();
 
+    // offline copy (see sw.js): the rules still open at the table without signal
+    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+    // back to the top, on long pages on phones
+    const top = el('button', { type: 'button', class: 'to-top', 'aria-label': 'Back to the top', title: 'Back to the top',
+      html: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 10 L8 5 L13 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      onclick: () => window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }) });
+    document.body.append(top);
+    let topRaf = 0;
+    window.addEventListener('scroll', () => {
+      if (topRaf) return;
+      topRaf = requestAnimationFrame(() => { topRaf = 0; top.classList.toggle('on', window.scrollY > window.innerHeight * 1.5); });
+    }, { passive: true });
+
     let t;
     $('#q').addEventListener('input', e => {
       clearTimeout(t);
       const v = e.target.value;
-      t = setTimeout(() => go(['chars', 'bank', 'patch', 'settings'].includes(state.tab) && v.trim() ? { q: v, tab: 'all', sel: null }
-        : ['forge', 'encounter', 'brules'].includes(state.tab) && v.trim() ? { q: v, tab: 'beast', mon: '', tpl: '', rs: '' } : { q: v }, false), 80);
+      t = setTimeout(() => go(['chars', 'bank', 'craft', 'patch', 'settings'].includes(state.tab) && v.trim() ? { q: v, tab: 'all', sel: null }
+        : ['forge', 'encounter', 'fight', 'brules'].includes(state.tab) && v.trim() ? { q: v, tab: 'beast', mon: '', tpl: '', rs: '' } : { q: v, qin: '' }, false), 80);
     });
     const gearBtn = $('#gear');
     if (gearBtn) gearBtn.addEventListener('click', openSettings);
@@ -1011,7 +1069,8 @@
 
   const Notes = window.HandbookNotes ? window.HandbookNotes({ el, md, esc, plain, norm, highlight, state, go, render: () => render(), $, createClient: window.__mockCreateClient }) : null;
   const Creator = window.HandbookCreator ? window.HandbookCreator({ el, md, esc, plain, norm, slug, state, go, render: () => render(), $, DB, Notes, openItem: id => { const i = DB.byId.get(id); go({ tab: i ? i.type : 'all', sel: id }, true); } }) : null;
+  const Craft = window.HandbookCraft ? window.HandbookCraft({ el, state, go, render: () => render() }) : null;
   const Bank = window.HandbookBank ? window.HandbookBank({ el, state, go, render: () => render(), Notes }) : null;
-  const Beast = window.HandbookBestiary ? window.HandbookBestiary({ el, md, esc, norm, state, go, render: () => render(), Notes, $ }) : null;
+  const Beast = window.HandbookBestiary ? window.HandbookBestiary({ el, md, esc, norm, state, go, render: () => render(), Notes, $, statusMd, statuses: () => STATUSES, db: () => DB }) : null;
   boot();
 })();

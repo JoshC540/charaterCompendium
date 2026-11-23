@@ -15,7 +15,7 @@ When your character levels up:
 Traits work differently: you choose Drawbacks and Quirks when you create your character, and the DM awards Marks during play.
 
 | Section | Look here for |
-| **Core rules** | What +2 means, how Renown works, game terms |
+| **Core rules** | What +2 means, how Renown works, game terms, status effects |
 | **Levelling** | What each level gives, milestone boons, a worked example |
 | **Soft skills** | Ranks, family bonuses, and every skill from Trained to Legendary |
 | **Feats** | Every feat, by category and tier |
@@ -56,6 +56,10 @@ When an effect says "+Renown" or "2×Renown", use your current Renown. A level 3
   - **Reaction:** one action per round taken outside your own turn.
   - **Per rest:** recharges after a short or long rest. **Per long rest**, **per day**, **per session** and **per arc** mean exactly that.
   - **Arc:** one story arc of the campaign, as the DM decides.
+
+## Status effects
+
+{{status-effects}}
 
 # Levelling
 

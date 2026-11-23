@@ -13,7 +13,7 @@
     let status = 'loading';        // loading | ready | offline
     let user = null, me = null;    // auth user, profile row
     let data = null;               // { campaigns, sessions, notes, profiles }
-    let loadingData = false, loadError = '';
+    let refreshing = null, loadError = '';
     const authListeners = [];
     let ui = { editing: null, confirmDelete: null, addSession: null, addCampaign: false, renaming: null, busy: false, msg: '' };
 
@@ -99,9 +99,14 @@
       if (state.tab === 'notes') { if (u) await refresh(); render(); }
     }
 
-    async function refresh() {
-      if (!sb || !user || loadingData) return;
-      loadingData = true;
+    // One load at a time: a second call while one is running waits for that one, rather than returning straight
+    // away (which let the list page re-render in a tight loop until the page froze).
+    function refresh() {
+      if (!sb || !user) return Promise.resolve();
+      if (!refreshing) refreshing = loadAll().finally(() => { refreshing = null; });
+      return refreshing;
+    }
+    async function loadAll() {
       try {
         const q = (t, cols, order) => sb.from(t).select(cols).order(order, { ascending: true });
         const [c, s, n, p] = await Promise.all([
@@ -118,8 +123,6 @@
         if (mine) me = mine;
       } catch (e) {
         loadError = friendly(e);
-      } finally {
-        loadingData = false;
       }
     }
 
@@ -276,7 +279,7 @@
       }
       if (!data) {
         box.replaceChildren(el('div', { class: 'empty' }, loadError ? el('strong', {}, loadError) : 'Loading notes…'));
-        if (!loadError) refresh().then(render);
+        if (!loadError && !refreshing) refresh().then(() => { if (data || loadError) render(); });
         return true;
       }
       return false;

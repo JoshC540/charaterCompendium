@@ -164,7 +164,7 @@
       guide: { step: 0, seen: 0, done: false },
     });
 
-    let list = null, profiles = [], listError = '', loadingList = false;
+    let list = null, profiles = [], listError = '', listing = null;
     let cur = null;          // { id, owner_id, data, dirty, readOnly }
     let msg = '', confirmDel = false, saving = false;
     let lvlup = null;        // { to, snap, wasDirty, skills: [], fp } while walking through a level-up
@@ -282,9 +282,14 @@
     const admin = () => !!(Notes && Notes.isAdmin());
     const nameOf = id => (profiles.find(p => p.id === id) || {}).display_name || 'Someone';
 
-    async function refreshList() {
-      if (!sb() || !user() || loadingList) return;
-      loadingList = true;
+    // One load at a time: a second call while one is running waits for that one, rather than returning straight
+    // away (which let the list page re-render in a tight loop until the page froze).
+    function refreshList() {
+      if (!sb() || !user()) return Promise.resolve();
+      if (!listing) listing = loadList().finally(() => { listing = null; });
+      return listing;
+    }
+    async function loadList() {
       try {
         const [c, p] = await Promise.all([
           sb().from('characters').select('id, owner_id, name, summary, data, updated_at').order('updated_at', { ascending: false }),
@@ -295,7 +300,7 @@
       } catch (e) {
         listError = Notes.friendly(e);
         if (/characters/.test(listError) && /exist|find|schema/i.test(listError)) listError = 'Run the latest supabase/setup.sql first (it adds saved characters).';
-      } finally { loadingList = false; }
+      }
     }
 
     function init() {
@@ -559,7 +564,7 @@
           status === 'ready' ? el('button', { class: 'btn small', onclick: () => Notes.openSignIn() }, 'Sign in') : null));
       } else if (!list) {
         kids.push(el('div', { class: 'empty' }, listError ? el('strong', {}, listError) : 'Loading characters…'));
-        if (!listError) refreshList().then(render);
+        if (!listError && !listing) refreshList().then(() => { if (list || listError) render(); });
       } else {
         const mine = list.filter(x => x.owner_id === user().id);
         kids.push(el('div', { class: 'section-head' }, 'My characters'));

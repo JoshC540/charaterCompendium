@@ -1,0 +1,29 @@
+{
+  "source": "Josh's status effects (22 Nov 2026), with the rest from Bestiary: Volume I",
+  "rules": "Each 2 on the status dice applies one stack. *Hard control* means stun, paralysis, sleep and petrification. When a hard control ends, the creature can't be hard-controlled again until the end of its next turn.",
+  "hardControl": ["Stun", "Paralysis", "Sleep", "Petrification"],
+  "statuses": [
+    { "id": "stun", "name": "Stun", "names": ["Stun"], "effect": "Miss a turn of action. Each stack is 1 turn", "max": "2 turns", "ends": "When the turns run out. Hard control" },
+    { "id": "staggered", "name": "Staggered", "names": ["Staggered", "Stagger"], "effect": "STR check: fall on a fail. Standing up takes an action", "max": "1", "ends": "Standing up" },
+    { "id": "paralysis", "name": "Paralysis", "names": ["Paralysis", "Paralysed"], "effect": "WIS save. Unable to move, but can still take certain actions. Each stack is 1 turn", "max": "2 turns", "ends": "When the turns run out. Hard control" },
+    { "id": "bleed", "name": "Bleed", "names": ["Bleed"], "effect": "Lose 0.5% of max HP or 1 HP, whichever is higher, per stack, each turn", "max": "None", "ends": "Bandages stop it: 1 bandage per 3 stacks", "tick": { "kind": "bleed" } },
+    { "id": "burn", "name": "Burn", "names": ["Burn"], "effect": "Lose 3 HP per stack, each turn", "max": "5", "ends": "An action per stack clears it", "tick": { "kind": "burn", "each": 3 } },
+    { "id": "poisoned", "name": "Poisoned", "names": ["Poisoned", "Poison"], "effect": "Disadvantage on a random roll type, and disadvantage on death saves", "max": "None", "ends": "A STR save at the end of each turn removes 1 stack. Clears after combat" },
+    { "id": "confusion", "name": "Confusion", "names": ["Confusion", "Confused"], "effect": "INT save. All attacks have a chance to strike the wrong target. Each stack is 1 turn", "max": "3 turns", "ends": "An INT save at the end of each turn ends it" },
+    { "id": "fear", "name": "Fear", "names": ["Fear", "Frightened"], "effect": "INT save. Disadvantage on all rolls while the source of fear is visible. Each stack is 1 turn", "max": "3 turns", "ends": "An INT save at the end of each turn ends it" },
+    { "id": "toxic", "name": "Toxic", "names": ["Toxic"], "effect": "5 damage each turn", "max": "None", "ends": "Not set", "tick": { "kind": "flat", "each": 5 } },
+    { "id": "freeze", "name": "Freeze", "names": ["Freeze", "Frozen"], "effect": "Half the value of rolled dice", "max": "None", "ends": "Fire clears all" },
+    { "id": "charm", "name": "Charm", "names": ["Charm", "Charmed"], "effect": "Becomes friendly. Each stack is 1 turn", "max": "3 turns", "ends": "A WIS save at the end of each turn ends it" },
+    { "id": "exhaustion", "name": "Exhaustion", "names": ["Exhaustion"], "effect": "Each stack is a level", "max": "5", "ends": "Not set",
+      "levels": ["−2 to all rolls", "Disadvantage on all rolls", "Roll 2d3 with every roll: a 2 means the roll fails", "Roll 1d2 with every roll: a 1 means death", "Death"] },
+    { "id": "disease", "name": "Disease", "names": ["Disease"], "effect": "One step towards sickness. At 3 stacks it catches the disease", "max": "3", "ends": "Loses 1 stack per long rest, or with medicine" },
+    { "id": "madness", "name": "Madness", "names": ["Madness"], "effect": "At the start of its turn, roll a d20. If the roll is equal to or under its stacks, it acts randomly", "max": "10", "ends": "Loses 1 stack per long rest, or with a tier 3 cleansing" },
+    { "id": "wither", "name": "Wither", "names": ["Wither"], "effect": "−1d10 max HP", "max": "None", "ends": "Long rest" },
+    { "id": "corrode", "name": "Corrode", "names": ["Corrode"], "effect": "−1 armour Min hit", "max": "None", "ends": "Repair" },
+    { "id": "sleep", "name": "Sleep", "names": ["Sleep"], "effect": "Asleep 1 turn", "max": "2 turns", "ends": "Hard control. Damage wakes it" },
+    { "id": "blinded", "name": "Blinded, dazzled, deafened, disorientated", "names": ["Blinded", "Dazzled", "Deafened", "Disorientated"], "effect": "1 turn. Dazzled means disadvantage on attacks", "max": "3 turns", "ends": "Ends when the duration runs out" },
+    { "id": "prone", "name": "Prone", "names": ["Prone"], "effect": "Knocked down", "max": "1", "ends": "Standing up costs half its movement" },
+    { "id": "knockback", "name": "Knockback", "names": ["Knockback"], "effect": "10 ft", "max": "None", "ends": "Instant" },
+    { "id": "restrained", "name": "Restrained, grabbed, entangled, crushed", "names": ["Restrained", "Grabbed", "Entangled", "Crushed"], "effect": "No stacks", "max": "1", "ends": "A STR save to escape" }
+  ]
+}
