@@ -138,6 +138,7 @@ classes, subclasses, spells, drawbacks and quirks show up in it automatically.
 - **Inventory** is a list of items with quantity, notes and an Equipped tick. Older characters' gear text
   is turned into items, one per line, when they're opened.
 - Saving needs the `characters` table: run the latest `supabase/setup.sql` once more.
+- **Play** (on a saved character) is the live sheet for the table: see *Live character sheets* below.
 
 The rules it applies are at the top of `creator.js` (`RULES`), so they're easy to change:
 
@@ -146,15 +147,42 @@ The rules it applies are at the top of `creator.js` (`RULES`), so they're easy t
 | Stats | 6d4, add the lowest 5 (roll-under) |
 | HP | race HP + class HP (+ the class-wide hit dice, rolled in the builder, + any extra) |
 | SP | 1 on every level ending 1, 3, 5, 7, 9 and 0; 0 at level 0; plus drawbacks (max 2, max 3 SP) |
-| Extra classes (multiclassing) | 1 SP each, no limit; each class then has its own class-wide benefits, abilities, feats and spells to buy. HP comes from the starting class |
+| Extra classes (multiclassing) | 1 SP each, no limit; each class then has its own class-wide benefits, abilities, feats and spells to buy. Every class adds its class HP; hit dice are the highest of your classes' |
 | Class-wide subclass benefits | 1 SP per class, before anything else in that class |
 | Non-magic classes | any ability from any of the class's subclasses, 1 SP each |
 | Magic classes | a subclass's feat, 1 SP, before its spells; any three tiers of its spells, 2 SP |
 | Level-ups | from Advancement's Each decade table: stat improvements at X1 (not below 10) and X4 (not below 5), class hit die at X2 and X10, soft skill ranks at X4 and X6, a Tier I–III feat at X8, a milestone boon at X10 |
 | Renown | 1 + level ÷ 10; opens feat tiers (II at 3, III at 6, IV at 8, V at 11) and soft skill ranks (Master 2, Grandmaster 6, Legendary 9) |
 | Soft skills | one Master per family until Renown 5, one Legendary until Renown 11; ranks past Master only from the milestone boon |
-| FP | from level 11, any SP level can be taken as FP instead |
+| FP (Final Points) | from level 11, any SP level can be taken as FP instead; spent on final classes |
 | Sixth subclasses, Prime races | locked until the player ticks "My DM has unlocked this" (sixths) or with a warning (Primes) |
+
+## Live character sheets
+
+Every saved character has a **Play** view (Characters → the character → **Play**) for use at the table:
+
+- **HP:** damage and healing (damage takes temp HP first; HP never goes below 0 or above max), temp HP, and back to full. At 0 HP it shows death-save pips (3 passed, 3 failed) to tick.
+- **Statuses:** add any status from the shared list, with stacks capped at each status's max and its rules beside it.
+- **Uses:** anything used a set number of times (a feat, a skill, spells of a tier), each resetting after a rest, a long rest, a day, a session, an arc or never. **Short rest**, **Long rest** (resets per-rest uses too), **New day**, **New session** and **New arc** reset the right ones. Feats whose text says "once per rest" and so on are offered as one-tap suggestions.
+- **Table notes:** a free box for concentration, debts, anything.
+
+The same sheet shows in the DM's **Combat tracker**: **+ Add saved characters** brings anyone in (grouped by campaign), and from then on HP, statuses and uses are one shared record. When the DM deals damage, the player's sheet changes within a few seconds, and the other way round. Bleed, burn and toxic on a saved character's turn apply to the live sheet.
+
+Who can see and change it: the player who owns the character and the DM can change it; players in the same campaign can see it. Changes go through a database function (`play_change` in `setup.sql`) that applies them on the server, so two people changing HP at once can't overwrite each other.
+
+**Setting it up (once):** run the latest `supabase/setup.sql`. It adds the `character_play` table and turns on live updates for it. If live updates aren't on in your project, the sheets check every few seconds instead.
+
+## Atlas
+
+The **Atlas** tab (under Your table) holds places, factions, people, creatures, items and lore. The DM writes every entry and decides when players see it:
+
+- Signed in as the DM, **+ New entry** adds one: kind, name, region (entries are grouped by kind, then region), an optional picture link, what the players learn, and **your notes**.
+- Every entry starts **hidden**. **Reveal to players** shows it to every signed-in player; **Hide it again** takes it back.
+- Write `[[Another entry]]` to link to another entry (or `[[Another entry|shown text]]`). A link only works for players once the entry it points to is revealed too; until then they see plain text. Each entry also lists the entries that mention it.
+- **Your notes** are kept in a separate table only the admin account can read, so they never reach a player's browser.
+- Players see only revealed entries, can filter by kind and search them, and the main search box finds them too.
+
+This is enforced by the database (row-level security on `atlas` and `atlas_dm` in `setup.sql`), not just hidden in the page. **Setting it up (once):** run the latest `supabase/setup.sql`.
 
 ## Settings
 
@@ -191,11 +219,11 @@ The **Crafting** tab (under Your table) is for players: pick an item, its materi
 
 ## Offline and phones
 
-`sw.js` keeps a copy of the site's own files (pages, rules, fonts) as they load, so once someone has visited, the rules, races, classes, spells, gods and crafting open without signal. When online it always fetches the latest files first, so updates show straight away. Nothing from Supabase is kept: notes, characters, party money and the bestiary need a connection. If you add a new file the site loads, add it to the list at the top of `sw.js` too. On phones, long pages get a round **back to the top** button once you've scrolled down.
+`sw.js` keeps a copy of the site's own files (pages, rules, fonts) as they load, so once someone has visited, the rules, races, classes, spells, gods and crafting open without signal. When online it always fetches the latest files first, so updates show straight away. Nothing from Supabase is kept: notes, characters, live sheets, party money, the atlas and the bestiary need a connection. If you add a new file the site loads, add it to the list at the top of `sw.js` too. On phones, long pages get a round **back to the top** button once you've scrolled down.
 
 ## Bestiary (DM only)
 
-The **DM** tab group (Volume I, Volume II, Volume III, Named monsters, Dragons & elementals, Encounters, Combat tracker, Monster rules) only appears for the admin account. Everything in it comes from *Bestiary: Volume I*, *Bestiary: Volume II* and *Bestiary: Volume III – Peoples and Powers*.
+The **DM** tab group (Volume I, Volume II, Volume III, Named monsters, Dragons & elementals, Encounters, Combat tracker, Balance lab, Monster rules) only appears for the admin account. Everything in it comes from *Bestiary: Volume I*, *Bestiary: Volume II* and *Bestiary: Volume III – Peoples and Powers*.
 
 **Why the data isn't in this repo:** anything in a GitHub Pages repo can be downloaded by anyone, including tactics, tells and exploits. So the monster data lives in Supabase, in a `bestiary` table that only the admin account can read. The site loads it after you sign in as the DM. Players, and people who aren't signed in, get nothing back.
 
@@ -212,10 +240,18 @@ The **DM** tab group (Volume I, Volume II, Volume III, Named monsters, Dragons &
 - **Search:** signed in as the DM, the main search box also finds bestiary entries by name, family, Tell and Exploit.
 - **Monster rules:** Running monsters, status effects, the KR budget, harvest values, the templates, flavours, disposition, creature types, the index by KR, and the Pemmaroth encounter tables (on the Encounters page).
 
-**Combat tracker (DM):** press **Run this fight** on the Encounters page (or open the Combat tracker tab). Type everyone's initiative (Enter moves to the next box) and press **Start the fight**. **Next turn** moves down the order and counts rounds; creatures at 0 HP and adventurers marked down are skipped. Each creature has its own HP (minions die to any damaging hit, and **Undo** takes back the last HP change), status stacks (capped at each status's max), weak points, countdowns, shifts, recharge timers (they count down at the start of the creature's own turns), Defiant uses, and a phase alert at 66% and 33% for bosses and named monsters. At the start of each turn a box lists what applies: bleed, burn and toxic damage (with an **Apply** button for creatures), stun, sleep, paralysis, madness, freeze, exhaustion, and recharges that are ready again. Lair actions get their own row on initiative 20 when a boss or named monster is in the fight. **End the fight** lists the spoils from everything that fell. Nothing is rolled for you, and the fight is saved in the browser so a reload doesn't lose it.
+**Combat tracker (DM):** press **Run this fight** on the Encounters page (or open the Combat tracker tab). Type everyone's initiative (Enter moves to the next box) and press **Start the fight**. **Next turn** moves down the order and counts rounds; creatures at 0 HP and adventurers marked down are skipped. Each creature has its own HP (minions die to any damaging hit, and **Undo** takes back the last HP change), status stacks (capped at each status's max), weak points, countdowns, shifts, recharge timers (they count down at the start of the creature's own turns), Defiant uses, and a phase alert at 66% and 33% for bosses and named monsters. At the start of each turn a box lists what applies: bleed, burn and toxic damage (with an **Apply** button for creatures), stun, sleep, paralysis, madness, freeze, exhaustion, and recharges that are ready again. Lair actions get their own row on initiative 20 when a boss or named monster is in the fight. **End the fight** lists the spoils from everything that fell. Nothing is rolled for you, and the fight is saved in the browser so a reload doesn't lose it. **+ Add saved characters** brings players' saved characters in, linked to their live sheets (see *Live character sheets*); **Undo** covers creatures, not those characters.
 
-**Data files:** the clean JSON (creatures, templates, KR budget, harvest, flavours, disposition, encounter tables and rules) is kept outside this repo, in `bestiary-data`. The combat simulator and price tool can use the same files, or read the `bestiary` table. If you change the JSON, run `python3 make-sql.py` in that folder to rebuild `bestiary.sql`, `bestiary-2.sql` and `bestiary-3.sql`, then run them in Supabase again.
+**Balance lab (DM):** two tools, from **Test it in the balance lab** on the Encounters page or the Balance lab tab.
+
+- **Fight simulator:** pick saved characters (or use the party levels from Encounters) and it runs the current encounter 200, 1,000 or 5,000 times: how often the party wins, how often someone drops or everyone does, how long fights last, how often each adventurer drops and how much damage they deal, and one fight blow by blow. HP, Melee/Ranged/Casting, Dodge and class Defence come from each character's sheet; anything not rolled yet uses the standard adventurer's number (marked *). Type each adventurer's damage a hit as dice; left blank, it uses what the KR system expects at their level.
+- **KR check:** measures every creature in all three volumes against the creatures of about the same KR (damage it deals a round, and damage it takes to bring down, against a standard party whose levels add up to its KR), and runs it 100 times against that party. It lists the ones that play noticeably stronger or weaker than their KR, with the KR they play like. A flag is a prompt to look, not a verdict: creatures whose danger is control, summoning or tactics read as weaker than they are.
+- **The rules it uses** are on the page, and the choices that matter can be changed there: who monsters attack, Dodge rolls a round, natural 20s, how many adventurers an area attack catches, and whether Min hit applies to adventurers' hits. It doesn't model status effects, saves, spells and feats beyond plain damage, healing, movement, morale, phases or lair actions.
+- The standard adventurer (HP, Melee and Dodge by level, and the damage a hit the KR system expects) is in a table on the KR check page, and its numbers are at the top of the engine in `lab.js` (`STD`).
+
+
+**Data files:** the clean JSON (creatures, templates, KR budget, harvest, flavours, disposition, encounter tables and rules) is kept outside this repo, in `bestiary-data`. The balance lab reads the same data from the `bestiary` table. If you change the JSON, run `python3 make-sql.py` in that folder to rebuild `bestiary.sql`, `bestiary-2.sql` and `bestiary-3.sql`, then run them in Supabase again.
 
 **Status effects** aren't secret, so they live in this repo, in `content/statuses.json`. That one list feeds the players' Core rules page (Advancement → Core rules → Status effects), the Monster rules page, the tooltips and the combat tracker. Edit it there and every page updates.
 
-Files: `bestiary.js` (all the DM pages), `content/statuses.json` (status effects). The table, its access rules and the data are in `bestiary-data/bestiary.sql`, `bestiary-2.sql` and `bestiary-3.sql`, outside the repo.
+Files: `bestiary.js` (the DM pages), `lab.js` (the balance lab), `content/statuses.json` (status effects). The table, its access rules and the data are in `bestiary-data/bestiary.sql`, `bestiary-2.sql` and `bestiary-3.sql`, outside the repo.

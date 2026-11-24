@@ -56,6 +56,7 @@ When an effect says "+Renown" or "2×Renown", use your current Renown. A level 3
   - **Reaction:** one action per round taken outside your own turn.
   - **Per rest:** recharges after a short or long rest. **Per long rest**, **per day**, **per session** and **per arc** mean exactly that.
   - **Arc:** one story arc of the campaign, as the DM decides.
+  - **I.M.P. (Innate Magical Potential):** how many magic items you can bind to. Each race lists its I.M.P.
 
 ## Status effects
 
@@ -83,7 +84,14 @@ X1's stat improvement can only lift a weak stat as far as 10; X4's can push any 
 
 Every 10 levels adds up to 6 SP, 2 stat improvements, 2 hit dice, 2 soft skill ranks, 1 feat and 1 milestone boon.
 
-From level 11 onwards, you may take FP instead of SP on any SP level, if you can spend it.
+From level 11 onwards, you may take FP instead of SP on any SP level, if you can spend it. FP (Final Points) is spent on final classes.
+
+## Extra classes
+
+You can take more than one class. Each class after your first costs 1 SP, and there's no limit.
+
+  - **HP:** every class adds its class HP to your max HP, extra classes included.
+  - **Hit dice:** when a level gives you a hit die, roll whichever of your classes' hit dice is highest.
 
 ## Milestone boons
 

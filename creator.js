@@ -259,7 +259,8 @@
         + Object.values(b.abil).reduce((a, x) => a + x.length * RULES.costAbility, 0)
         + Object.values(b.feat).filter(Boolean).length * RULES.costFeat
         + Object.values(b.tiers).reduce((a, x) => a + (x.length ? RULES.tierCost(x.length) : 0), 0);
-      const hpRace = num(r && r.meta.hp), hpClass = num(cls && cls.meta.hp);
+      // every class adds its class HP, extra classes included (Advancement: Extra classes)
+      const hpRace = num(r && r.meta.hp), hpClass = slots.reduce((a, x) => a + (x.cls ? num(x.cls.meta.hp) : 0), 0);
       const hpRolled = liveKeys.reduce((a, k) => a + (c.hpRolls[k] || []).reduce((x, y) => x + y, 0), 0);
       return {
         r, r2, cls, g, slots, magic: isMagic(g), dSel, qSel, refund, stats, earned, total, spent, left: total - spent,
@@ -359,7 +360,7 @@
     }
 
     /* ================= editor state ================= */
-    let mode = 'edit';                 // 'sheet' (read), 'edit' (every section) or 'guide' (new-character steps)
+    let mode = 'edit';                 // 'sheet' (read), 'edit' (every section), 'guide' (new-character steps) or 'play' (live sheet at the table)
     let drawer = false, showAdjust = false;
     const openSubs = new Set();        // subclasses expanded under Subclass points
     function enterMode() {
@@ -479,8 +480,11 @@
       for (const m of document.querySelectorAll('details.cc-menu[open]')) if (!m.contains(e.target)) m.open = false;
     });
 
+    const canPlay = () => !!(H.Play && cur && cur.id);
     function modeBar(c, d) {
+      const segBtn = (m, label) => el('button', { class: 'cc-seg-b', role: 'tab', 'aria-selected': String(mode === m), onclick: () => { if (mode !== m) { mode = m; render(); toTop(); } } }, label);
       if (cur.readOnly) return el('div', { class: 'cc-modebar' },
+        canPlay() ? el('div', { class: 'cc-seg', role: 'tablist', 'aria-label': 'View' }, segBtn('sheet', 'Sheet'), segBtn('play', 'Play')) : null,
         el('button', { class: 'btn small', onclick: () => printSheet(c) }, 'Download PDF'),
         el('button', { class: 'btn small', onclick: () => downloadDocx(c) }, 'Download Word'), admin() ? menu() : null);
       if (mode === 'guide') {
@@ -490,9 +494,8 @@
           el('button', { class: 'mini', onclick: () => { c.guide.done = true; mode = 'edit'; changed(); render(); toTop(); } }, 'Skip to the full editor'),
           menu());
       }
-      const segBtn = (m, label) => el('button', { class: 'cc-seg-b', role: 'tab', 'aria-selected': String(mode === m), onclick: () => { if (mode !== m) { mode = m; render(); toTop(); } } }, label);
       return el('div', { class: 'cc-modebar' },
-        el('div', { class: 'cc-seg', role: 'tablist', 'aria-label': 'View' }, segBtn('sheet', 'Sheet'), segBtn('edit', 'Edit')),
+        el('div', { class: 'cc-seg', role: 'tablist', 'aria-label': 'View' }, segBtn('sheet', 'Sheet'), segBtn('edit', 'Edit'), canPlay() ? segBtn('play', 'Play') : null),
         lvlup ? null : el('button', { class: 'btn small', onclick: startLevelUp }, `Level up to ${d.L + 1}`),
         menu());
     }
@@ -601,7 +604,8 @@
           'Start a new character, or open one you’ve saved.'));
         return true;
       }
-      if (cur.readOnly) mode = 'sheet';
+      if (cur.readOnly && mode !== 'play') mode = 'sheet';
+      if (mode === 'play' && !canPlay()) mode = 'sheet';
       const c = cur.data, d = derived(c);
       document.title = `${c.name || 'New character'} · Player’s Handbook`;
       const head = [
@@ -616,11 +620,31 @@
         msg ? el('p', { class: 'notes-msg' + (msg === 'Saved.' ? ' ok' : ''), role: 'status' }, msg) : null,
       ];
       let body;
-      if (mode === 'sheet') body = [el('div', { class: 'cc-sheetview' }, sheet(c, d))];
+      if (mode === 'play') body = [playView(c, d)];
+      else if (mode === 'sheet') body = [el('div', { class: 'cc-sheetview' }, sheet(c, d))];
       else if (mode === 'guide') body = guideView(c, d);
       else body = [levelUpPanel(c, d), ...editSections(d).map(t => section(t, SECTION_FNS[t](c, d)))];
       pane.replaceChildren(...[...head, ...body].flat().filter(Boolean), phoneBar(c, d) || '');
       return true;
+    }
+
+    // the live sheet at the table: HP, statuses, uses (play.js); the player and the DM can both change it
+    function playSuggestions(c) {
+      const per = t => /once per long rest/i.test(t) ? 'long' : /once per rest/i.test(t) ? 'rest' : /once per day/i.test(t) ? 'day' : /once per session/i.test(t) ? 'session' : /once per arc/i.test(t) ? 'arc' : null;
+      const out = [];
+      for (const n of Object.values(c.lv.feats || {})) {
+        const f = featList().find(x => x.name === n);
+        const p = f && per(f.effect);
+        if (p) out.push({ name: f.name, per: p, max: 1, text: f.effect });
+      }
+      return out;
+    }
+    function playView(c, d) {
+      const canEdit = !!(user() && (cur.owner_id === user().id || admin()));
+      if (cur.dirty && !cur.readOnly) return el('div', { class: 'notice' }, 'Save your changes first: the live sheet uses the saved character.');
+      return el('div', { class: 'cc-play' },
+        el('p', { class: 'd-note' }, canEdit ? 'Your character at the table. Changes save at once, and the DM sees them in the combat tracker (and can change them too).' : 'This character’s live sheet. Only its player and the DM can change it.'),
+        H.Play.sheet({ id: cur.id, name: c.name, maxHp: d.hp, canEdit, suggestions: canEdit ? playSuggestions(c) : [] }));
     }
 
     function guideView(c, d) {
@@ -721,7 +745,7 @@
       if (d.r.prime) kids.push(el('p', { class: 'd-note' }, '🔒 Prime races are unlocked in play. Check with your DM before choosing one.'));
       const t1 = raceTraits(d.r), t2 = d.r2 ? raceTraits(d.r2) : null;
       kids.push(el('div', { class: 'stats' },
-        stat('HP', d.r.meta.hp || '—'), stat('I.M.P.', d.r.meta.imp || '—'),
+        stat('HP', d.r.meta.hp || '—'), stat(el('abbr', { title: 'Innate Magical Potential: how many magic items you can bind to' }, 'I.M.P.'), d.r.meta.imp || '—'),
         stat('Languages', [d.r.meta.languages, d.r2 && d.r2.meta.languages].filter(Boolean).join(', ') || '—')));
       const traits = t2 ? [t1.traits[0], t2.traits[1] || t2.traits[0]].filter(Boolean) : t1.traits;
       const feats = t2 ? [t1.feats.find(f => f.n === 3), t2.feats.find(f => f.n === 4)].filter(Boolean) : t1.feats;
@@ -754,7 +778,7 @@
               class: 'select', onchange: e => setSlotGroup(slot.i, e.target.value),
             }, el('option', { value: '' }, '— choose one —'), ...groupsOf(slot.cls).map(g => el('option', { value: g.key, selected: g.key === slot.groupKey, disabled: other.includes(g.key) }, g.title)))) : null),
           slot.cls ? el('div', { class: 'stats' },
-            slot.i ? null : stat('HP', slot.cls.meta.hp || '—'), stat('Hit die', slot.cls.meta['hit die'] || '—'), slot.cls.meta.defence ? stat('Defence', slot.cls.meta.defence) : null,
+            stat('HP', slot.cls.meta.hp ? (slot.i ? `+${slot.cls.meta.hp}` : slot.cls.meta.hp) : '—'), stat('Hit die', slot.cls.meta['hit die'] || '—'), slot.cls.meta.defence ? stat('Defence', slot.cls.meta.defence) : null,
             stat('Weapons', slot.cls.meta.weapons || '—'), slot.cls.meta.trait ? stat('Trait', slot.cls.meta.trait) : null) : null,
           slot.cls ? el('button', { class: 'mini', onclick: () => go({ tab: 'class', sel: slot.cls.id }, true) }, `Open the ${slot.cls.name} page →`) : null));
       }
@@ -910,7 +934,7 @@
 
     function levelGains(N) {
       const k = N % 10, out = [];
-      if ([1, 3, 5, 7, 9, 0].includes(k)) out.push(N >= 11 ? '1 subclass point (SP), or 1 FP instead' : '1 subclass point (SP)');
+      if ([1, 3, 5, 7, 9, 0].includes(k)) out.push(N >= 11 ? '1 subclass point (SP), or 1 Final Point (FP) instead' : '1 subclass point (SP)');
       if (k === 1) out.push('Improve one stat or combat stat by 1 (not below 10)');
       if (k === 4) out.push('Improve one stat or combat stat by 1 (not below 5)');
       if (k === 2 || k === 0) out.push('A roll of your hit die for extra HP');
@@ -987,7 +1011,7 @@
         steps.push(step(`Spend your point · ${d.left} SP left`, [
           N >= 11 ? el('label', { class: 'cc-opt' }, el('input', { type: 'checkbox', checked: lvlup.fp, onchange: e => {
             lvlup.fp = e.target.checked; lv.fp = Math.max(0, num(lv.fp) + (lvlup.fp ? 1 : -1)); changed(); render(); } }),
-            el('span', {}, 'Take this level’s point as FP instead of SP')) : null,
+            el('span', {}, 'Take this level’s point as a Final Point (FP) instead of SP: FP is spent on final classes')) : null,
           el('div', { class: 'cc-row' }, el('button', { class: 'btn small', onclick: () => jump('Subclass points') }, 'Go to Subclass points'),
             el('span', { class: 'hint' }, d.left > 0 ? 'Buy class-wide benefits, abilities, feats or spell tiers. Your choices here stay open while you do.' : 'Nothing left to spend.'))], d.left <= 0));
       }
@@ -1439,6 +1463,16 @@
 
     return {
       init, renderList, renderDetail,
+      maxHp: data => { try { return derived(normalize(JSON.parse(JSON.stringify(data || {})))).hp; } catch (e) { return 0; } },
+      // what the balance lab needs: HP, level, combat stats (null when not rolled yet) and class defence
+      fightStats: data => {
+        try {
+          const d = derived(normalize(JSON.parse(JSON.stringify(data || {}))));
+          const st = Object.fromEntries(d.stats.map(s => [s.k.toLowerCase(), s.final]));
+          return { hp: d.hp, level: d.L, melee: st.melee, ranged: st.ranged, casting: st.casting, dodge: st.dodge,
+            defence: d.slots.reduce((a, x) => Math.max(a, x.cls ? num(String(x.cls.meta.defence || '').replace('+', '')) : 0), 0) };
+        } catch (e) { return null; }
+      },
       _test: { sheetData, docxFiles, derived, blank, normalize, featList, skillList, RULES, abilities, traitLists, current: () => cur },
     };
   };

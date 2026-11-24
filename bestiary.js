@@ -7,8 +7,8 @@ window.HandbookBestiary = function (H) {
   const { el, md, esc, norm, state, go, render, Notes, $ } = H;
   const statusMd = H.statusMd || (() => '');
 
-  const TABS = ['beast', 'vol2', 'vol3', 'named', 'forge', 'encounter', 'fight', 'brules'];
-  const LABEL = { beast: 'Volume I', vol2: 'Volume II', vol3: 'Volume III', named: 'Named monsters', forge: 'Dragons & elementals', encounter: 'Encounters', fight: 'Combat tracker', brules: 'Monster rules' };
+  const TABS = ['beast', 'vol2', 'vol3', 'named', 'forge', 'encounter', 'fight', 'lab', 'brules'];
+  const LABEL = { beast: 'Volume I', vol2: 'Volume II', vol3: 'Volume III', named: 'Named monsters', forge: 'Dragons & elementals', encounter: 'Encounters', fight: 'Combat tracker', lab: 'Balance lab', brules: 'Monster rules' };
   const TIERS = ['Juvenile', 'Adult', 'Elder', 'Ancient', 'Primordial'];
   const STATS = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
   const COMBAT = ['melee', 'ranged', 'dodge', 'disengage', 'casting'];
@@ -1082,7 +1082,7 @@ window.HandbookBestiary = function (H) {
           ? [el('button', { class: 'btn small primary', onclick: () => go({ tab: 'fight', mon: '' }, true) }, 'Open the combat tracker'), el('button', { class: 'mini', onclick: () => { replaceAsk = true; render(); } }, 'Run this encounter instead')]
           : replaceAsk
             ? [el('span', { class: 'bs-fine' }, 'This replaces the fight in the tracker.'), el('button', { class: 'btn small primary', onclick: () => { replaceAsk = false; fightRestored = true; fightFromEncounter(); go({ tab: 'fight', mon: '' }, true); } }, 'Replace it'), el('button', { class: 'mini', onclick: () => { replaceAsk = false; render(); } }, 'Cancel')]
-            : [el('button', { class: 'btn small primary', onclick: () => { fightRestored = true; fightFromEncounter(); go({ tab: 'fight', mon: '' }, true); } }, 'Run this fight')]) : null,
+            : [el('button', { class: 'btn small primary', onclick: () => { fightRestored = true; fightFromEncounter(); go({ tab: 'fight', mon: '' }, true); } }, 'Run this fight')], LAB && M.party > 0 ? el('button', { class: 'mini', onclick: () => go({ tab: 'lab', mon: '', rs: '' }, true) }, 'Test it in the balance lab') : null) : null,
       el('p', { class: 'bs-fine' }, 'Easy: party total at least 1.5× the KR. Fair: from 0.75× up to 1.5×. Deadly: below 0.75×.'));
     // encounter tables
     const E = D.encounters;
@@ -1729,6 +1729,38 @@ window.HandbookBestiary = function (H) {
   const FIGHT_KEY = 'hb-fight';
   let FIGHT = (() => { try { const f = JSON.parse(localStorage.getItem(FIGHT_KEY) || 'null'); if (f && Array.isArray(f.list)) return f; } catch (e) { /* none */ } return null; })();
   let fightRestored = false, fightQ = '', fightMsg = '', replaceAsk = false;
+  // saved characters to bring into the fight (the DM can see everyone's)
+  let partyPick = false, partyRows = null, partyErr = '';
+  async function loadParty() {
+    partyErr = ''; render();
+    const c = Notes.client();
+    const [ch, cp] = await Promise.all([
+      c.from('characters').select('id, name, owner_id, campaign_id, data').order('name', { ascending: true }),
+      c.from('campaigns').select('id, name')]);
+    if (ch.error) { partyErr = Notes.friendly(ch.error); partyRows = []; render(); return; }
+    const camps = new Map(((cp && cp.data) || []).map(x => [x.id, x.name]));
+    partyRows = (ch.data || []).map(r => ({ id: r.id, name: r.name, level: (r.data && r.data.level) | 0, camp: camps.get(r.campaign_id) || 'Not in a campaign', max: H.charHp ? H.charHp(r.data) : 0 }));
+    if (H.Play) H.Play.load(partyRows.map(r => r.id));
+    render();
+  }
+  function addChar(r) {
+    if (FIGHT.list.some(f => f.charId === r.id)) return;
+    FIGHT.list.push({ id: fid(), kind: 'pc', charId: r.id, name: r.name, level: r.level, max: r.max, init: null, statuses: {}, down: false, note: '' });
+    fightSave(); render();
+  }
+  function partyPanel() {
+    if (!partyRows) return el('div', { class: 'ft-party' }, el('p', { class: 'bs-fine' }, 'Opening the saved characters…'));
+    const groups = new Map();
+    for (const r of partyRows) { if (!groups.has(r.camp)) groups.set(r.camp, []); groups.get(r.camp).push(r); }
+    return el('div', { class: 'ft-party' },
+      partyErr ? el('p', { class: 'notes-msg' }, partyErr) : null,
+      partyRows.length ? null : el('p', { class: 'bs-fine' }, 'No saved characters yet. Players save theirs in Characters.'),
+      ...[...groups].map(([camp, rs]) => el('div', { class: 'ft-pg' },
+        el('div', { class: 'k' }, camp, rs.length > 1 ? el('button', { class: 'mini', onclick: () => { for (const r of rs) addChar(r); } }, 'Add them all') : null),
+        ...rs.map(r => { const inFight = FIGHT.list.some(f => f.charId === r.id); return el('button', { type: 'button', class: 'bs-hit' + (inFight ? ' on' : ''), disabled: inFight, onclick: () => addChar(r) },
+          el('span', { class: 'nm' }, r.name), el('span', { class: 'bs-hitg' }, `Level ${r.level} · max HP ${r.max || '–'}`), el('span', { class: 'bs-kr' }, inFight ? 'In the fight' : 'Add')); }))),
+      el('p', { class: 'bs-fine' }, 'Their HP, statuses and uses stay in sync with each player’s live sheet (Characters → Play).'));
+  }
   function fightSave() {
     if (!FIGHT) { try { localStorage.removeItem(FIGHT_KEY); } catch (e) { /* ignore */ } return; }
     FIGHT.mech = [...MECH.entries()].filter(([k]) => k.startsWith('fight:'));
@@ -1771,7 +1803,16 @@ window.HandbookBestiary = function (H) {
     if (!need && has) FIGHT.list = FIGHT.list.filter(f => f.kind !== 'lair');
   }
   const order = () => FIGHT.list.map((f, i) => [f, i]).sort((a, b) => ((b[0].init ?? -1e9) - (a[0].init ?? -1e9)) || a[1] - b[1]).map(x => x[0]);
-  const isDown = f => f.kind === 'monster' ? f.hp <= 0 : f.kind === 'pc' ? !!f.down : false;
+  // an adventurer linked to a saved character: its HP and statuses live on the character's sheet (play.js)
+  const linked = f => f.kind === 'pc' && f.charId && H.Play;
+  function liveOf(f) {
+    if (!linked(f)) return null;
+    const p = H.Play.get(f.charId) || {};
+    const max = p.max || f.max || 0;
+    return { hp: p.hp == null ? max : p.hp, max, temp: p.temp | 0, statuses: p.statuses || {} };
+  }
+  const stsOf = f => { const L = liveOf(f); return L ? L.statuses : f.statuses || {}; };
+  const isDown = f => f.kind === 'monster' ? f.hp <= 0 : f.kind === 'pc' ? (linked(f) ? (liveOf(f).max > 0 && liveOf(f).hp <= 0) : !!f.down) : false;
   function startTurn(f) {
     if (!f) return;
     f.readyNow = [];
@@ -1782,13 +1823,15 @@ window.HandbookBestiary = function (H) {
   // what happens at the start of a combatant's turn, from its statuses (and recharges for monsters)
   function turnNotes(f) {
     const out = [];
-    const hpKnown = f.kind === 'monster';
-    for (const [id, n] of Object.entries(f.statuses || {})) {
+    const L = liveOf(f);
+    const hpKnown = f.kind === 'monster' || !!(L && L.max);
+    const maxOf = L ? L.max : f.max;
+    for (const [id, n] of Object.entries(stsOf(f))) {
       if (!(n > 0)) continue;
       const s0 = stOf(id); if (!s0) continue;
       const x = n > 1 ? ` ×${n}` : '';
       if (id === 'bleed') {
-        const per = hpKnown ? Math.max(1, Math.round(f.max * 0.005)) : 0;
+        const per = hpKnown ? Math.max(1, Math.round(maxOf * 0.005)) : 0;
         out.push(hpKnown ? { text: `Bleed${x}: loses ${n * per} HP`, dmg: n * per } : { text: `Bleed${x}: loses 0.5% of max HP (at least 1) per stack` });
       } else if (id === 'burn') { const d = 3 * Math.min(n, 5); out.push({ text: `Burn${x}: loses ${d} HP`, dmg: hpKnown ? d : 0 }); }
       else if (id === 'toxic') out.push({ text: 'Toxic: takes 5 damage', dmg: hpKnown ? 5 : 0 });
@@ -1834,7 +1877,7 @@ window.HandbookBestiary = function (H) {
 
   function statusChips(f, small) {
     const st = D.statuses.statuses;
-    return Object.entries(f.statuses || {}).filter(([, n]) => n > 0).map(([id, n]) => {
+    return Object.entries(stsOf(f)).filter(([, n]) => n > 0).map(([id, n]) => {
       const s = st.find(x => x.id === id);
       const tip = D.tips.findIndex(t => t.title === (s ? s.name : id));
       return el('span', { class: 'ft-st' + (small ? ' small' : '') }, tip >= 0 && !small ? el('button', { type: 'button', class: 'bs-tip', 'data-tip': String(tip) }, s ? s.names[0] : id) : (s ? s.names[0] : id), n > 1 ? el('b', {}, ` ×${n}`) : null);
@@ -1873,7 +1916,9 @@ window.HandbookBestiary = function (H) {
       el('span', { class: 'k' }, `Start of ${now.name}’s turn`),
       el('ul', {}, ...notes.map(x => el('li', {}, x.text))),
       tick ? (FIGHT.ticked === key ? el('span', { class: 'bs-fine' }, `${tick} damage applied`)
-        : el('button', { class: 'btn small primary', onclick: () => { FIGHT.tickKey = key; hurt(now, tick, `${tick} status damage to ${now.name}`); FIGHT.ticked = key; fightSave(); render(); } }, `Apply ${tick} damage`)) : null) : null;
+        : el('button', { class: 'btn small primary', onclick: () => {
+          if (linked(now)) H.Play.change(now.charId, -tick); else { FIGHT.tickKey = key; hurt(now, tick, `${tick} status damage to ${now.name}`); }
+          FIGHT.ticked = key; fightSave(); render(); } }, `Apply ${tick} damage`)) : null) : null;
     const rows = o.map((f, k) => {
       const v = f.kind === 'monster' ? fview(f) : null;
       const down = isDown(f);
@@ -1890,7 +1935,10 @@ window.HandbookBestiary = function (H) {
               isBossy(f) ? el('span', { class: 'ft-mk', style: 'left:66%' }) : null, isBossy(f) ? el('span', { class: 'ft-mk', style: 'left:33%' }) : null),
             el('span', { class: 'ft-hpn' }, `${f.hp.toLocaleString('en-GB')} / ${f.max.toLocaleString('en-GB')}`)) : null,
           f.kind === 'lair' ? el('span', { class: 'ft-sub' }, 'Initiative 20, when fought at home') : null,
-          f.kind === 'pc' ? el('span', { class: 'ft-sub' }, `Level ${f.level ?? '–'}${f.down ? ' · down' : ''}`) : null,
+          linked(f) ? (() => { const L = liveOf(f); return el('span', { class: 'ft-hp' },
+            el('span', { class: 'ft-bar pc' }, el('span', { style: `width:${L.max ? Math.max(0, L.hp) / L.max * 100 : 0}%` })),
+            el('span', { class: 'ft-hpn' }, `${L.hp} / ${L.max || '–'}${L.temp ? ` +${L.temp}` : ''}`)); })()
+            : f.kind === 'pc' ? el('span', { class: 'ft-sub' }, `Level ${f.level ?? '–'}${f.down ? ' · down' : ''}`) : null,
           el('span', { class: 'ft-chips' }, ...statusChips(f, true),
             ph > (f.seenPhase || 0) ? el('span', { class: 'ft-alert' }, `Phase ${ph}!`) : ph ? el('span', { class: 'ft-ph' }, `Phase ${ph}`) : null,
             v && Object.values(f.rech || {}).some(x => x > 0) ? el('span', { class: 'ft-ph' }, 'Recharging') : null)));
@@ -1904,13 +1952,15 @@ window.HandbookBestiary = function (H) {
         fightQ = ''; syncLair(); fightSave(); render();
       } }, el('span', { class: 'nm' }, c.name), el('span', { class: 'bs-hitg' }, `${volOf(c)} · ${groupOf(c) || 'Named'}`), el('span', { class: 'bs-kr' }, 'KR ' + krText(c.kr))))) : null,
       el('div', { class: 'ft-addbtns' },
+        H.Play && Notes && Notes.client() ? el('button', { class: 'mini', onclick: () => { partyPick = !partyPick; if (partyPick) loadParty(); else render(); } }, partyPick ? 'Close the character list' : '+ Add saved characters') : null,
         el('button', { class: 'mini', onclick: () => { FIGHT.list.push({ id: fid(), kind: 'pc', name: `Adventurer ${FIGHT.list.filter(f => f.kind === 'pc').length + 1}`, init: null, statuses: {}, down: false, note: '' }); fightSave(); render(); } }, '+ Add an adventurer'),
         el('button', { class: 'mini', onclick: () => { FIGHT.ended = true; fightSave(); go({ mon: '' }, true); } }, 'End the fight'),
         el('button', { class: 'mini', onclick: () => go({ tab: 'encounter', mon: '' }, true) }, 'Back to the encounter')));
+    if (H.Play) H.Play.watch(FIGHT.list.filter(linked).map(f => f.charId));
     // the Hungering Choir's Song, while any Choir member is in the fight
     const choir = FIGHT.list.some(f => { const c = f.ref && D.byId.get(f.ref); return c && c.factionId === 'hungering-choir'; });
     const song = choir ? songTracker('fight:song', () => fightSave()) : null;
-    box.replaceChildren(el('div', { class: 'ft' }, head, turnBox, song, el('div', { class: 'ft-rows' }, ...rows), add));
+    box.replaceChildren(el('div', { class: 'ft' }, head, turnBox, song, el('div', { class: 'ft-rows' }, ...rows), add, partyPick ? partyPanel() : null));
     meta.textContent = `${o.filter(f => f.kind === 'monster' && !isDown(f)).length} creatures standing · ${o.filter(f => f.kind === 'monster' && isDown(f)).length} down`;
   }
 
@@ -1940,6 +1990,16 @@ window.HandbookBestiary = function (H) {
         s0 ? el('span', { class: 'ft-stx' }, `${s0.effect.replace(/\.$/, '')}.${s0.levels ? ` Level ${Math.min(n, s0.levels.length)}: ${s0.levels[Math.min(n, s0.levels.length) - 1]}.` : ''} Max: ${s0.max}. Ends: ${s0.ends.replace(/\.$/, '')}.`) : null);
     });
     const statuses = el('section', { class: 'bs-sec ft-sec' }, el('h2', {}, 'Statuses'), ...stList, stAdd);
+    if (linked(f)) {
+      pane.replaceChildren(back,
+        el('div', { class: 'd-kicker' }, el('span', { class: 'badge bs' }, 'Adventurer'), f.id === FIGHT.cur ? 'Their turn' : `Level ${f.level ?? '–'}`),
+        el('h1', { class: 'd-title' }, f.name),
+        H.Play.sheet({ id: f.charId, name: f.name, maxHp: f.max || 0, canEdit: true, compact: true }),
+        el('label', { class: 'ft-namefield' }, el('span', { class: 'k' }, 'Tracker notes'), el('textarea', { rows: '2', onchange: e => { f.note = e.target.value; fightSave(); } }, f.note || '')),
+        el('p', { class: 'bs-fine' }, el('a', { href: `#tab=chars&char=${encodeURIComponent(f.charId)}` }, 'Open the full character'), ' · changes here show on the player’s sheet.'),
+        remove);
+      return true;
+    }
     if (f.kind === 'pc') {
       pane.replaceChildren(back,
         el('div', { class: 'd-kicker' }, el('span', { class: 'badge bs' }, 'Adventurer'), f.id === FIGHT.cur ? 'Their turn' : ''),
@@ -2035,6 +2095,7 @@ window.HandbookBestiary = function (H) {
     else if (state.tab === 'forge') renderForge(box, meta);
     else if (state.tab === 'encounter') renderEncounter(box, meta);
     else if (state.tab === 'fight') renderFightList(box, meta);
+    else if (state.tab === 'lab') { if (LAB) LAB.renderList(box, meta); }
     else if (state.tab === 'brules') renderRulesList(box, meta);
   }
 
@@ -2046,7 +2107,7 @@ window.HandbookBestiary = function (H) {
       document.body.classList.remove('has-detail');
       pane.classList.remove('placeholder');
       pane.replaceChildren();
-      document.body.classList.toggle('bs-wide', !!D && ['forge', 'encounter'].includes(state.tab));
+      document.body.classList.toggle('bs-wide', !!D && ['forge', 'encounter', 'lab'].includes(state.tab));
       return false;
     }
     document.body.classList.remove('bs-wide');
@@ -2101,6 +2162,10 @@ window.HandbookBestiary = function (H) {
     if (state.rs) { go({ rs: '' }, true); return true; }
     return false;
   }
+
+  // the balance lab (lab.js) works from the same data and the same encounter
+  const LAB = window.HandbookLab ? window.HandbookLab({ el, go, render, Notes, fightStats: H.fightStats,
+    B: { data: () => D, view: (c, tpl, forge) => view(c, tpl, forge), rowView, encounter: () => ENC, encMaths, open: (c, tpl) => openCreature(c, tpl), krText } }) : null;
 
   // for tests and future tools (combat simulator, price tool)
   const api = { view: (id, tpl, forge) => D && view(D.byId.get(id), tpl, forge), data: () => D, encounter: () => D && encMaths(),

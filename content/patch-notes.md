@@ -7,6 +7,19 @@
 
 # 2026
 
+## 24 Nov 2026
+
+- **Live character sheets:** — → a Play view on every saved character: HP and temp HP, statuses, death saves, uses that reset by rest, day, session or arc, and table notes, saved as you go
+- **Combat tracker:** adventurers by level only → saved characters can join the fight, with HP, statuses and uses kept in sync with each player's sheet both ways
+- **Balance lab (DM):** — → run an encounter hundreds of times against your saved party (win rate, who drops, how long it lasts), and check every creature's KR against a standard party
+- **Atlas:** — → places, factions, people, creatures, items and lore; each entry stays hidden until the DM reveals it
+- **FP:** unnamed → Final Points, spent on final classes
+- **Extra classes:** only in the character builder → written up in Advancement: 1 SP per class after your first, no limit
+- **HP with extra classes:** first class only → every class adds its class HP
+- **Hit dice with extra classes:** — → roll the highest of your classes' hit dice
+- **I.M.P.:** undefined → Innate Magical Potential: how many magic items you can bind to
+- **Bestiary Volume II:** two stat blocks under question → settled: one KR confirmed, one speed now matches its original
+
 ## 22 Nov 2026
 
 - **Bestiary: Volume III:** — → Peoples and Powers: 12 factions of nine ranks, six rival parties, servants of the gods, monsters made of the players' own magic, the Void and 30 named leaders, with a page for each and a link to every stat block

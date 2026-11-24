@@ -424,3 +424,113 @@ language sql stable security definer set search_path = public as $$
 $$;
 revoke all on function public.campaign_characters(uuid) from public, anon;
 grant execute on function public.campaign_characters(uuid) to authenticated;
+
+-- =====================================================================
+--  Live character sheets (HP, temporary HP, statuses, trackers at the table)
+--  One row per character. The owner and the DM can change it, and only through
+--  play_change(), so damage from the DM and healing from the player never overwrite
+--  each other. Players in the same campaign can see each other's.
+-- =====================================================================
+create table if not exists public.character_play (
+  character_id uuid primary key references public.characters(id) on delete cascade,
+  data         jsonb not null default '{}'::jsonb,
+  updated_by   uuid default auth.uid() references public.profiles(id) on delete set null,
+  updated_at   timestamptz not null default now()
+);
+alter table public.character_play enable row level security;
+revoke all on public.character_play from anon, authenticated;
+grant select on public.character_play to authenticated;
+-- (a function, so it can look at the character even when the reader can't open its sheet)
+create or replace function public.play_visible(ch uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select public.is_admin() or exists (select 1 from public.characters c where c.id = ch
+    and (c.owner_id = auth.uid() or (c.campaign_id is not null and public.is_member(c.campaign_id))))
+$$;
+drop policy if exists "who can see" on public.character_play;
+create policy "who can see" on public.character_play for select to authenticated using (public.play_visible(character_id));
+
+-- change a character's live state: hp_delta is damage (negative, taken from temporary HP first) or
+-- healing (positive, up to max HP); patch replaces whole top-level keys (statuses, trackers, temp, max, notes…)
+create or replace function public.play_change(ch uuid, hp_delta int default 0, patch jsonb default '{}'::jsonb) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare d jsonb; hp int; mx int; tmp int; dmg int; t int;
+begin
+  if auth.uid() is null then raise exception 'Sign in first'; end if;
+  if not exists (select 1 from public.characters where id = ch and (owner_id = auth.uid() or public.is_admin())) then
+    raise exception 'Only the character''s player, or the DM, can change this';
+  end if;
+  if patch is null or jsonb_typeof(patch) <> 'object' then patch := '{}'::jsonb; end if;
+  if length(patch::text) > 20000 then raise exception 'That''s too much to save at once'; end if;
+  insert into public.character_play (character_id) values (ch) on conflict do nothing;
+  select data into d from public.character_play where character_id = ch for update;
+  d := d || (patch - 'hp');
+  if patch ? 'hp' then d := d || jsonb_build_object('hp', greatest(0, (patch->>'hp')::int)); end if;
+  if coalesce(hp_delta, 0) <> 0 then
+    mx  := coalesce((d->>'max')::int, 0);
+    hp  := coalesce((d->>'hp')::int, mx);
+    tmp := greatest(0, coalesce((d->>'temp')::int, 0));
+    if hp_delta < 0 then
+      dmg := -hp_delta; t := least(tmp, dmg); tmp := tmp - t; dmg := dmg - t;
+      hp := greatest(0, hp - dmg);
+    else
+      hp := case when mx > 0 then least(mx, hp + hp_delta) else hp + hp_delta end;
+    end if;
+    d := d || jsonb_build_object('hp', hp, 'temp', tmp);
+  end if;
+  update public.character_play set data = d, updated_by = auth.uid(), updated_at = now() where character_id = ch;
+  return d;
+end $$;
+revoke all on function public.play_change(uuid, int, jsonb) from public, anon;
+grant execute on function public.play_change(uuid, int, jsonb) to authenticated;
+
+-- live updates for the combat tracker and the play view (Supabase Realtime), where it's available
+do $$ begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'character_play') then
+    execute 'alter publication supabase_realtime add table public.character_play';
+  end if;
+end $$;
+
+-- =====================================================================
+--  The atlas: places, factions, people, creatures, items and lore the party uncovers
+--  The DM writes every entry; players only ever receive entries the DM has revealed.
+--  The DM's private notes live in a separate table only the DM can read.
+-- =====================================================================
+create table if not exists public.atlas (
+  id          uuid primary key default gen_random_uuid(),
+  kind        text not null default 'place' check (kind in ('place', 'faction', 'person', 'creature', 'item', 'lore')),
+  name        text not null check (length(trim(name)) between 1 and 120),
+  region      text check (region is null or length(region) <= 80),
+  summary     text not null default '' check (length(summary) <= 20000),
+  image_url   text check (image_url is null or (length(image_url) <= 500 and image_url ~* '^https://')),
+  revealed    boolean not null default false,
+  revealed_at timestamptz,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+create table if not exists public.atlas_dm (
+  id    uuid primary key references public.atlas(id) on delete cascade,
+  notes text not null default '' check (length(notes) <= 20000)
+);
+drop trigger if exists atlas_touch on public.atlas;
+create trigger atlas_touch before update on public.atlas for each row execute function public.touch_updated_at();
+create or replace function public.atlas_reveal_time() returns trigger
+language plpgsql as $$ begin
+  if new.revealed and (tg_op = 'INSERT' or not old.revealed) then new.revealed_at = now(); end if;
+  return new;
+end $$;
+drop trigger if exists atlas_reveal on public.atlas;
+create trigger atlas_reveal before insert or update of revealed on public.atlas for each row execute function public.atlas_reveal_time();
+
+alter table public.atlas    enable row level security;
+alter table public.atlas_dm enable row level security;
+revoke all on public.atlas, public.atlas_dm from anon;
+do $$ declare p record; begin
+  for p in select policyname, tablename from pg_policies where schemaname = 'public' and tablename in ('atlas', 'atlas_dm')
+  loop execute format('drop policy %I on public.%I', p.policyname, p.tablename); end loop;
+end $$;
+create policy "revealed, or the DM" on public.atlas for select to authenticated using (revealed or public.is_admin());
+create policy "DM adds"     on public.atlas for insert to authenticated with check (public.is_admin());
+create policy "DM edits"    on public.atlas for update to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy "DM deletes"  on public.atlas for delete to authenticated using (public.is_admin());
+create policy "DM only"     on public.atlas_dm for all to authenticated using (public.is_admin()) with check (public.is_admin());
