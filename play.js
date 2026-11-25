@@ -24,9 +24,36 @@ window.HandbookPlay = function (H) {
   let redrawT = 0;
   const redraw = () => { if (redrawT) return; redrawT = setTimeout(() => { redrawT = 0; render(); }, 60); };
 
+  /* Bad signal at the table: a change that can't reach the server waits on this device (localStorage) and is sent,
+     in order, as soon as the connection is back. HP changes are sent as damage or healing, so they add up correctly
+     with whatever the DM did meanwhile; statuses and uses are sent as they were set. */
+  const QKEY = 'hb-play-queue';
+  const qLoad = () => { try { const q = JSON.parse(localStorage.getItem(QKEY) || '[]'); return Array.isArray(q) ? q : []; } catch (e) { return []; } };
+  const qSave = q => { try { localStorage.setItem(QKEY, JSON.stringify(q)); } catch (e) { /* storage blocked: kept for this visit */ } };
+  let queue = qLoad(), flushing = false;
+  const queued = id => queue.filter(x => x.id === id).length;
+  const isNet = e => (typeof navigator !== 'undefined' && navigator.onLine === false) || /fetch|network|load failed|timed? ?out|offline|ERR_INTERNET/i.test(String((e && (e.message || e)) || ''));
+  async function flush() {
+    if (flushing || !queue.length || !sb() || !user()) return;
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+    flushing = true;
+    while (queue.length) {
+      const x = queue[0];
+      let res;
+      try { res = await sb().rpc('play_change', { ch: x.id, hp_delta: x.delta | 0, patch: x.patch || {} }); } catch (e) { res = { error: e }; }
+      if (res.error && isNet(res.error)) break;                 // still offline: try again later
+      queue.shift(); qSave(queue);
+      if (res.error) lastErr = Notes.friendly(res.error);        // refused (not the network): drop it and say why
+      else if (!queued(x.id) && !pending.get(x.id)) cache.set(x.id, { data: res.data || (cache.get(x.id) || {}).data, updated_at: new Date().toISOString(), updated_by: user().id });
+    }
+    flushing = false;
+    redraw();
+  }
+  if (typeof window !== 'undefined') { window.addEventListener('online', () => flush()); setTimeout(flush, 1500); }
+
   function put(row) {
     if (!row || !row.character_id) return false;
-    if (pending.get(row.character_id)) return false;
+    if (pending.get(row.character_id) || queued(row.character_id)) return false;
     const old = cache.get(row.character_id);
     if (old && old.updated_at && row.updated_at && old.updated_at === row.updated_at && JSON.stringify(old.data) === JSON.stringify(row.data)) return false;
     cache.set(row.character_id, { data: row.data || {}, updated_at: row.updated_at, updated_by: row.updated_by });
@@ -59,8 +86,12 @@ window.HandbookPlay = function (H) {
     cache.set(id, { ...(cache.get(id) || {}), data: guess });
     pending.set(id, (pending.get(id) || 0) + 1);
     render();
-    const { data, error } = await sb().rpc('play_change', { ch: id, hp_delta: delta | 0, patch: patch || {} });
+    let res;
+    if (queue.length || (typeof navigator !== 'undefined' && navigator.onLine === false)) res = { error: { message: 'offline' } };   // keep the order: queue behind earlier changes
+    else { try { res = await sb().rpc('play_change', { ch: id, hp_delta: delta | 0, patch: patch || {} }); } catch (e) { res = { error: e }; } }
+    const { data, error } = res;
     pending.set(id, pending.get(id) - 1);
+    if (error && isNet(error)) { queue.push({ id, delta: delta | 0, patch: patch || {}, at: Date.now() }); qSave(queue); redraw(); flush(); return; }
     if (error) { lastErr = Notes.friendly(error); if (/play_change|character_play/.test(lastErr)) lastErr = 'Run the latest supabase/setup.sql to switch on live sheets.'; await load([id]); render(); return; }
     lastErr = '';
     if (!pending.get(id)) cache.set(id, { data: data || guess, updated_at: new Date().toISOString(), updated_by: user().id });
@@ -82,7 +113,7 @@ window.HandbookPlay = function (H) {
     }
     if (watched.size && !pollT) pollT = setInterval(() => {
       if (!watched.size) { clearInterval(pollT); pollT = null; return; }
-      if (document.visibilityState === 'visible') load([...watched]);
+      if (document.visibilityState === 'visible') { flush(); load([...watched]); }
     }, live ? 15000 : 4000);
   }
 
@@ -200,6 +231,7 @@ window.HandbookPlay = function (H) {
     return el('div', { class: 'pl' + (opts.compact ? ' compact' : '') },
       lastErr ? el('p', { class: 'notes-msg', role: 'alert' }, lastErr) : null,
       hpBox, deathBox, stBox, trkBox, noteBox,
+      queued(id) ? el('p', { class: 'pl-offline', role: 'status' }, `Offline: ${queued(id)} change${queued(id) === 1 ? '' : 's'} saved on this device, sent when you’re back online.`) : null,
       el('p', { class: 'pl-foot' }, row.updated_at ? `Last changed ${ago(row.updated_at)}${who}. ` : '', live ? 'Live.' : 'Updates every few seconds.'));
   }
 

@@ -53,16 +53,24 @@ window.HandbookBank = function (H) {
     if (campLoading || !sb()) return;
     campLoading = true;
     try {
-      const [tx, rq, vt, ch] = await Promise.all([
+      const [tx, rq, vt, ch, st, sr, sv, sl] = await Promise.all([
         sb().from('money_tx').select('*').eq('campaign_id', id).order('created_at', { ascending: true }),
         sb().from('money_requests').select('*').eq('campaign_id', id).order('created_at', { ascending: false }),
         sb().from('money_votes').select('*'),
         sb().rpc('campaign_characters', { c: id }),
+        sb().from('stash').select('*').eq('campaign_id', id).order('name', { ascending: true }),
+        sb().from('stash_requests').select('*').eq('campaign_id', id).order('created_at', { ascending: false }),
+        sb().from('stash_votes').select('*'),
+        sb().from('stash_log').select('*').eq('campaign_id', id).order('id', { ascending: false }).limit(30),
       ]);
       const err = [tx, rq, vt, ch].find(r => r.error);
       if (err) throw err.error;
       const ids = new Set((rq.data || []).map(r => r.id));
-      camp = { id, tx: tx.data || [], requests: rq.data || [], votes: (vt.data || []).filter(v => ids.has(v.request_id)), chars: ch.data || [] };
+      // the stash needs a newer setup.sql; without it the stash just says so
+      const stashOk = !st.error;
+      const sids = new Set((sr.data || []).map(r => r.id));
+      camp = { id, tx: tx.data || [], requests: rq.data || [], votes: (vt.data || []).filter(v => ids.has(v.request_id)), chars: ch.data || [],
+        stashOk, stash: st.data || [], sreq: sr.data || [], svotes: (sv.data || []).filter(v => sids.has(v.request_id)), slog: sl.data || [] };
     } catch (e) { msg = friendly(e); camp = { id, tx: [], requests: [], votes: [], chars: [] }; }
     campLoading = false;
     if (state.tab === 'bank') render();
@@ -144,6 +152,14 @@ window.HandbookBank = function (H) {
     kids.push(el('div', { class: 'section-head' }, c.name),
       card('party', 'Party account', p.length ? `${p.length} request${p.length === 1 ? '' : 's'} waiting${waitingOnMe ? ` · ${waitingOnMe} need${waitingOnMe === 1 ? 's' : ''} your approval` : ''}` : 'Shared by the whole party', balance('party'),
         waitingOnMe ? el('span', { class: 'bk-dot', 'aria-label': 'Needs your approval' }) : null));
+    // the party stash
+    const sp = (camp.sreq || []).filter(r => r.status === 'pending');
+    const sWait = sp.filter(r => !camp.svotes.some(v => v.request_id === r.id && v.user_id === user().id)).length;
+    const nItems = (camp.stash || []).reduce((a, x) => a + x.qty, 0);
+    kids.push(el('button', { class: 'card bk-acct' + (acct === 'stash' ? ' sel' : ''), onclick: () => { form = null; vals = {}; msg = ''; go({ acct: 'stash' }, true); } },
+      el('div', { class: 'card-top' }, el('span', { class: 'card-name' }, 'Party stash'), el('span', { class: 'bk-amt' }, camp.stashOk ? `${nItems} item${nItems === 1 ? '' : 's'}` : '–')),
+      el('div', { class: 'card-snip' }, !camp.stashOk ? 'Needs the latest supabase/setup.sql' : sp.length ? `${sp.length} request${sp.length === 1 ? '' : 's'} waiting${sWait ? ` · ${sWait} need${sWait === 1 ? 's' : ''} your approval` : ''}` : 'Spoils and gear the party holds together'),
+      sWait ? el('span', { class: 'bk-dot', 'aria-label': 'Needs your approval' }) : null));
     const mine = myChars(c);
     if (mine.length) {
       kids.push(el('div', { class: 'section-head' }, mine.length === 1 ? 'Your purse' : 'Your purses'));
@@ -258,12 +274,72 @@ window.HandbookBank = function (H) {
         el('td', { class: 'r' }, fmt(run))))));
   }
 
+  /* ---------- the party stash ---------- */
+  function stashReq(r) {
+    const votes = camp.svotes.filter(v => v.request_id === r.id), voted = votes.some(v => v.user_id === user().id);
+    const status = r.status === 'approved' ? 'Handed over' : r.status === 'cancelled' ? 'Cancelled' : `${votes.length} of 2 approvals`;
+    const ok = res => { msg = res.data === 'approved' ? `Handed over. It’s waiting on ${charName(r.character_id)}’s sheet.` : res.data === 'short' ? 'The stash doesn’t have enough of that any more.' : 'Approved.'; };
+    return el('div', { class: 'bk-req ' + r.status },
+      el('div', { class: 'bk-req-h' }, el('strong', {}, `${r.qty} × ${r.item}`), el('span', {}, ` to ${charName(r.character_id)}`)),
+      el('div', { class: 'bk-req-m' }, `Asked by ${nameOf(r.requested_by)} · `, el('span', { class: 'bk-state' }, status), votes.length ? el('span', { class: 'bk-voters' }, ` (${votes.map(v => nameOf(v.user_id)).join(', ')})`) : null),
+      r.status === 'pending' ? el('div', { class: 'bk-btns' },
+        admin() ? el('button', { class: 'btn small primary', disabled: busy, onclick: () => act(() => sb().rpc('stash_approve', { rid: r.id }), ok) }, 'Approve now')
+          : !voted ? el('button', { class: 'btn small primary', disabled: busy, onclick: () => act(() => sb().rpc('stash_approve', { rid: r.id }), ok) }, 'Approve') : el('span', { class: 'hint' }, 'You’ve approved this'),
+        r.requested_by === user().id || admin() ? el('button', { class: 'btn small ghost', disabled: busy, onclick: () => act(() => sb().rpc('stash_cancel', { rid: r.id }), () => { msg = 'Cancelled.'; }) }, admin() && r.requested_by !== user().id ? 'Turn down' : 'Cancel') : null) : null);
+  }
+  function stashDetail(pane, c) {
+    const member = admin() || data.members.some(m => m.campaign_id === c.id && m.user_id === user().id);
+    const mine = myChars(c);
+    if (!camp.stashOk) {
+      pane.replaceChildren(el('button', { class: 'back', onclick: () => go({ acct: '' }, true) }, '← Accounts'), el('h1', { class: 'd-title' }, 'Party stash'),
+        el('p', { class: 'd-note' }, admin() ? 'Run the latest supabase/setup.sql in the Supabase SQL editor to switch on the party stash.' : 'The DM needs to switch on the party stash.'));
+      return true;
+    }
+    const add = () => act(() => sb().rpc('stash_add', { c: c.id, item: (vals.item || '').trim(), qty: Math.max(1, Number(vals.qty) || 1), notes: (vals.notes || '').trim() || null, reason: (vals.reason || '').trim() || null }),
+      () => { msg = 'Done. It’s in the stash.'; vals = {}; form = null; });
+    const ask = x => act(() => sb().rpc('stash_request', { s: x.id, ch: vals['ch' + x.id] || (mine[0] && mine[0].id), qty: Math.max(1, Number(vals['q' + x.id]) || 1) }),
+      () => { msg = admin() ? 'Done. It’s waiting on the character’s sheet.' : 'Asked. Another player needs to approve it.'; });
+    const items = camp.stash.map(x => el('div', { class: 'bk-stash' },
+      el('div', { class: 'bk-stash-h' }, el('strong', {}, x.name), el('span', { class: 'bk-amt' }, `× ${x.qty}`)),
+      x.notes ? el('div', { class: 'bk-req-m' }, x.notes) : null,
+      member && (mine.length || admin()) ? el('div', { class: 'bk-btns' },
+        mine.length > 1 || (admin() && camp.chars.length) ? el('select', { class: 'select', 'aria-label': `Who takes ${x.name}`, onchange: e => { vals['ch' + x.id] = e.target.value; } },
+          ...(admin() ? camp.chars : mine).map(ch => el('option', { value: ch.id, selected: vals['ch' + x.id] === ch.id }, ch.name))) : null,
+        x.qty > 1 ? el('input', { type: 'number', class: 'bk-qty', min: '1', max: String(x.qty), value: vals['q' + x.id] || '1', 'aria-label': `How many ${x.name}`, oninput: e => { vals['q' + x.id] = e.target.value; } }) : null,
+        el('button', { class: 'btn small', disabled: busy, onclick: () => { if (admin() && !vals['ch' + x.id] && camp.chars[0]) vals['ch' + x.id] = camp.chars[0].id; ask(x); } }, admin() ? 'Hand it over' : 'Ask for it'),
+        admin() ? el('button', { class: 'mini', disabled: busy, onclick: () => act(() => sb().rpc('stash_remove', { s: x.id, qty: Math.max(1, Number(vals['q' + x.id]) || 1), reason: null }), () => { msg = 'Removed.'; }) }, 'Remove') : null) : null));
+    const open = camp.sreq.filter(r => r.status === 'pending');
+    pane.replaceChildren(...[
+      el('button', { class: 'back', onclick: () => go({ acct: '' }, true) }, '← Accounts'),
+      el('div', { class: 'd-kicker' }, el('span', { class: 'badge notes' }, 'Party stash'), el('span', {}, c.name)),
+      el('h1', { class: 'd-title' }, 'Party stash'),
+      el('p', { class: 'd-note' }, 'What the party holds together. Anyone can put something in; taking something out needs a second player to approve, or the DM. It then waits on the character’s sheet to be added to their inventory.'),
+      member ? el('div', { class: 'bk-actions' }, el('button', { class: 'btn small primary' + (form === 'stash' ? ' on' : ''), 'aria-expanded': String(form === 'stash'), onclick: () => { form = form === 'stash' ? null : 'stash'; vals = {}; msg = ''; render(); } }, 'Put something in')) : null,
+      form === 'stash' ? el('form', { class: 'bk-form', onsubmit: e => { e.preventDefault(); add(); } },
+        el('label', {}, el('span', { class: 'k' }, 'What'), el('input', { type: 'text', maxlength: 120, required: true, value: vals.item || '', oninput: e => { vals.item = e.target.value; } })),
+        el('label', {}, el('span', { class: 'k' }, 'How many'), el('input', { type: 'number', min: '1', max: '100000', value: vals.qty || '1', oninput: e => { vals.qty = e.target.value; } })),
+        el('label', {}, el('span', { class: 'k' }, 'Notes (optional)'), el('input', { type: 'text', maxlength: 200, value: vals.notes || '', oninput: e => { vals.notes = e.target.value; } })),
+        el('button', { class: 'btn small primary', type: 'submit', disabled: busy }, 'Put it in')) : null,
+      msg ? el('p', { class: 'notes-msg' + (/^(Done|Asked|Handed|Approved|Cancelled|Removed)/.test(msg) ? ' ok' : ''), role: 'status' }, msg) : null,
+      open.length ? el('section', { class: 'd-section' }, el('h2', {}, 'Waiting for approval'), ...open.map(stashReq)) : null,
+      el('section', { class: 'd-section' }, el('h2', {}, 'In the stash'), items.length ? el('div', { class: 'bk-stashlist' }, ...items) : el('p', { class: 'd-note' }, 'Empty for now.')),
+      camp.slog.length ? el('section', { class: 'd-section' }, el('h2', {}, 'History'),
+        el('table', { class: 'bk-ledger' }, el('tbody', {}, ...camp.slog.map(t => el('tr', {},
+          el('td', {}, el('span', { class: 'bk-real' }, new Date(t.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }))),
+          el('td', {}, el('strong', {}, t.qty > 0 ? 'In' : 'Out'), ` · ${t.item}`, t.character_id ? ` to ${charName(t.character_id)}` : '', t.reason ? ` · ${t.reason}` : '', el('span', { class: 'bk-by' }, nameOf(t.by_user))),
+          el('td', { class: 'r ' + (t.qty > 0 ? 'in' : 'out') }, (t.qty > 0 ? '+' : '−') + Math.abs(t.qty))))))) : null,
+      el('div', { class: 'bk-btns' }, el('button', { class: 'mini', onclick: async () => { const id = camp.id; camp = null; await load(); await loadCamp(id); } }, '↻ Refresh'))].filter(Boolean));
+    document.title = 'Party stash · Player’s Handbook';
+    return true;
+  }
+
   function renderDetail(pane) {
     document.body.classList.toggle('has-detail', !!(state.acct));
     pane.classList.toggle('placeholder', !state.acct);   // phones: the party account opens when you tap it
     if (!user() || !data) { pane.replaceChildren(); return false; }
     const c = currentCampaign();
     if (!c || !camp || camp.id !== c.id) { pane.replaceChildren(); return false; }
+    if (state.acct === 'stash') return stashDetail(pane, c);
     const acct = state.acct || 'party';
     const isParty = acct === 'party';
     const ch = !isParty && camp.chars.find(x => x.id === acct);

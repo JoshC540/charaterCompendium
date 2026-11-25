@@ -360,7 +360,7 @@
     L.opt = Object.assign({}, OPT0, L.opt || {});
     L.krVol = ['1', '2', '3'].includes(L.krVol) ? L.krVol : 'all';
     L.krShow = L.krShow === 'all' ? 'all' : 'flagged';
-    const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ mode: L.mode, src: L.src, picked: L.picked, dmg: L.dmg, opt: L.opt, krVol: L.krVol, krShow: L.krShow })); } catch (e) { /* this visit only */ } };
+    const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ mode: L.mode, src: L.src, picked: L.picked, dmg: L.dmg, opt: L.opt, krVol: L.krVol, krShow: L.krShow, triShown: L.triShown })); } catch (e) { /* this visit only */ } };
     let chars = null, charErr = '', loadingChars = false;
     let result = null, running = false, resultKey = '';
     let KR = null, krRunning = false, krDone = 0, krTotal = 0;
@@ -406,14 +406,18 @@
       if (!chars) return [];
       return chars.filter(c => L.picked.includes(c.id)).map(c => {
         const st = c.st || {}, lvl = st.level | 0, std = S.stdStats(lvl), h = best(st);
-        return { key: c.id, name: c.name, level: lvl, hp: st.hp || Math.round(std.hp), hit: h === 99 ? std.hit : h, dodge: st.dodge != null ? st.dodge : std.dodge, defence: st.defence || 0,
-          est: { hp: !st.hp, hit: h === 99, dodge: st.dodge == null }, book: S.calibrate(cv, lvl) };
+        // the character's own best attack (from Attacks and armour on their sheet), when they've written one
+        const atk = (st.attacks || []).map(a => ({ ...a, d: S.dice(a.dice) })).filter(a => a.d && (a.d.n || a.d.b)).sort((x, y) => S.avg(y.d) - S.avg(x.d))[0] || null;
+        const hit = atk && atk.hit != null ? atk.hit : h === 99 ? std.hit : h;
+        return { key: c.id, name: c.name, level: lvl, hp: st.hp || Math.round(std.hp), hit, dodge: st.dodge != null ? st.dodge : std.dodge, defence: st.defence || 0, minHit: st.minHit || 0, atk,
+          est: { hp: !st.hp, hit: !atk && h === 99, dodge: st.dodge == null }, book: S.calibrate(cv, lvl) };
       });
     }
     function partySpecs(rows) {
       return rows.map(r => {
         const typed = S.dice(L.dmg[r.key]);
-        return S.adventurer({ name: r.name, level: r.level, hp: r.hp, hit: r.hit, dodge: r.dodge, defence: r.defence, dmg: typed && (typed.n || typed.b) ? typed : null, dmgAvg: r.book });
+        const dmg = typed && (typed.n || typed.b) ? typed : r.atk ? r.atk.d : null;
+        return S.adventurer({ name: r.name, level: r.level, hp: r.hp, hit: r.hit, dodge: r.dodge, defence: r.defence, minHit: r.minHit || 0, dmg, dmgAvg: r.book });
       });
     }
     function foeSpecs() {
@@ -525,12 +529,12 @@
         el('tbody', {}, ...rows.map(r => el('tr', {},
           el('td', { class: 'nm' }, r.name), el('td', {}, String(r.level)),
           el('td', {}, String(r.hp), est(r, 'hp')), el('td', {}, String(r.hit), est(r, 'hit')), el('td', {}, String(r.dodge), est(r, 'dodge')), el('td', {}, String(r.defence)),
-          el('td', {}, el('input', { type: 'text', class: 'lab-dmg', value: L.dmg[r.key] || '', placeholder: `≈ ${r1(r.book)}`, 'aria-label': `Damage a hit for ${r.name}`, inputmode: 'text',
+          el('td', {}, el('input', { type: 'text', class: 'lab-dmg', value: L.dmg[r.key] || '', placeholder: r.atk ? `${r.atk.dice} (${r.atk.name})` : `≈ ${r1(r.book)}`, 'aria-label': `Damage a hit for ${r.name}`, inputmode: 'text',
             onchange: e => { const v = e.target.value.trim(); if (v && !S.dice(v)) { e.target.setCustomValidity('Use dice like 2d6+3, or a number'); e.target.reportValidity(); return; } e.target.setCustomValidity(''); if (v) L.dmg[r.key] = v; else delete L.dmg[r.key]; save(); render(); } }))))))) : null;
       return el('section', { class: 'lab-card' },
         el('h2', { class: 'section-head' }, 'The party'),
         src, pick, table,
-        rows.length ? el('p', { class: 'bs-fine' }, 'Hits on is the best of Melee, Ranged and Casting. * means it isn’t on the sheet yet, so the standard adventurer’s number stands in. Type each adventurer’s damage a hit as dice (2d6+3). Left blank, it’s the damage the KR system expects at their level (see the KR check).') : null);
+        rows.length ? el('p', { class: 'bs-fine' }, 'Hits on and damage come from each character’s best attack (Attacks and armour on their sheet); without one, Hits on is the best of Melee, Ranged and Casting. * means it isn’t on the sheet yet, so the standard adventurer’s number stands in. Type dice (2d6+3) to try other damage. Left blank with no attack written, it’s the damage the KR system expects at their level (see the KR check).') : null);
     }
 
     function foesCard() {
@@ -597,7 +601,60 @@
           el('div', { class: 'lab-col' }, resultCard() || el('section', { class: 'lab-card lab-empty' }, el('p', { class: 'd-note' }, 'Pick the party and the enemies, then run the fights. You’ll see how often the party wins, who drops, and how long it takes.')), assumptions())));
     }
 
+    /* Your rulings on flagged creatures and the book's open flags. Kept in the DM-only dm_store table ("kr-triage"),
+       recorded rather than applied: the data files are changed from the list later, then the SQL is rerun. */
+    let TRI = null, triErr = '', triT = null, triBusy = false, triShown = !!L.triShown;
+    async function loadTri() {
+      if (triBusy || TRI) return;
+      triBusy = true;
+      const r = await Notes.client().from('dm_store').select('key, data').eq('key', 'kr-triage').maybeSingle();
+      triBusy = false;
+      if (r.error) { triErr = /dm_store|does not exist|schema cache/i.test(String(r.error.message)) ? 'Run the latest supabase/setup.sql to save your rulings.' : String(r.error.message); TRI = {}; render(); return; }
+      TRI = (r.data && r.data.data) || {};
+      render();
+    }
+    function saveTri() {
+      clearTimeout(triT);
+      triT = setTimeout(async () => { const r = await Notes.client().from('dm_store').upsert({ key: 'kr-triage', data: TRI }); if (r.error) { triErr = String(r.error.message); render(); } }, 500);
+    }
+    const justRuled = new Set();   // ruled on during this visit: they stay in view (so a new KR can be typed) until the page is left
+    const ruled = id => TRI && TRI[id] && TRI[id].call && TRI[id].call !== 'later' && !justRuled.has(id);
+    function callCell(id, r, label) {
+      const t = (TRI && TRI[id]) || {};
+      const set = patch => { justRuled.add(id); TRI[id] = { ...t, ...patch, at: new Date().toISOString(), name: r ? r.c.name : (label || t.name) }; if (!TRI[id].call) delete TRI[id]; saveTri(); render(); };
+      return el('div', { class: 'lab-call' },
+        el('select', { class: 'select', 'aria-label': `Your call on ${r ? r.c.name : 'this'}`, onchange: e => set({ call: e.target.value }) },
+          el('option', { value: '' }, 'Your call…'),
+          el('option', { value: 'fine', selected: t.call === 'fine' }, 'Fine as is'),
+          el('option', { value: 'change', selected: t.call === 'change' }, r ? 'Change KR to…' : 'Change it'),
+          el('option', { value: 'later', selected: t.call === 'later' }, 'Look later')),
+        t.call === 'change' && r ? el('input', { type: 'number', class: 'num', min: '0', step: '0.5', value: t.kr != null ? String(t.kr) : String(Math.round(r.implied >= 10 ? r.implied : r.implied * 2) / (r.implied >= 10 ? 1 : 2)), 'aria-label': `New KR for ${r.c.name}`, onchange: e => set({ kr: Number(e.target.value) }) }) : null,
+        t.call === 'change' && !r ? el('input', { type: 'text', class: 'lab-callnote', value: t.note || '', maxlength: 300, placeholder: 'What should it be?', 'aria-label': 'What to change', onchange: e => set({ note: e.target.value }) }) : null);
+    }
+    function rulingsText() {
+      const lines = [];
+      for (const [id, t] of Object.entries(TRI || {})) {
+        if (!t.call || t.call === 'later') continue;
+        if (id.startsWith('flag:')) lines.push(`${t.name}: ${t.call === 'fine' ? 'leave as written' : 'change it' + (t.note ? ' — ' + t.note : '')}`);
+        else lines.push(`${t.name}: ${t.call === 'fine' ? 'KR is fine' : `KR → ${t.kr}`}`);
+      }
+      return lines.sort().join('\n');
+    }
+    function flagsCard() {
+      const D = B.data();
+      const flags = [...(((D.v2 || {}).flags) || []).map((f, i) => ({ id: `flag:2:${i}`, vol: 'II', text: f })), ...(((D.v3 || {}).flags) || []).map((f, i) => ({ id: `flag:3:${i}`, vol: 'III', text: f }))];
+      if (!flags.length) return null;
+      const open = flags.filter(f => !ruled(f.id));
+      return el('section', { class: 'lab-card' },
+        el('h2', { class: 'section-head' }, 'Open questions in the book'),
+        el('p', { class: 'd-note' }, `Things found while putting the volumes in that need your ruling. ${open.length} of ${flags.length} still open.`),
+        el('ul', { class: 'lab-flags' }, ...(triShown ? flags : open).map(f => el('li', {},
+          el('p', {}, el('strong', {}, `Vol ${f.vol}. `), f.text.length > 600 ? f.text.slice(0, 600) + '…' : f.text),
+          callCell(f.id, null, `Vol ${f.vol}: ${f.text.slice(0, 80)}${f.text.length > 80 ? '…' : ''}`)))));
+    }
+
     function krPage() {
+      if (!TRI) loadTri();
       const cv = curveNow();
       const std = [0, 1, 3, 5, 10, 20, 30, 50, 75, 100].map(l => ({ l, st: S.stdStats(l), A: S.calibrate(cv, l) }));
       let body;
@@ -608,7 +665,7 @@
         const rows = KR.rows.filter(inVol);
         const off = r => !r.skip && (r.implied / r.c.kr >= 1.5 || r.implied / r.c.kr <= 1 / 1.5);
         const strong = rows.filter(r => off(r) && r.implied > r.c.kr).length, weak = rows.filter(r => off(r) && r.implied < r.c.kr).length, skip = rows.filter(r => r.skip).length;
-        const shown = rows.filter(r => L.krShow === 'all' || off(r) || r.skip).sort((a, b) => (!!a.skip - !!b.skip) || (a.skip ? a.c.name.localeCompare(b.c.name) : Math.abs(Math.log(b.implied / b.c.kr)) - Math.abs(Math.log(a.implied / a.c.kr))));
+        const shown = rows.filter(r => (L.krShow === 'all' || off(r) || r.skip) && (triShown || L.krShow === 'all' || !ruled(r.c.id))).sort((a, b) => (!!a.skip - !!b.skip) || (a.skip ? a.c.name.localeCompare(b.c.name) : Math.abs(Math.log(b.implied / b.c.kr)) - Math.abs(Math.log(a.implied / a.c.kr))));
         const NOT_DMG = /controller|leader|support|summoner|set piece|hazard|trickster|herald|guide|trader|clerk|sage|keeper|judge|mirror|nuisance/i;
         const note = r => {
           if (r.skip) return r.skip;
@@ -623,14 +680,15 @@
           el('p', { class: 'bs-verdict' }, `${rows.length - skip} creatures checked. ${strong} play noticeably stronger than their KR and ${weak} noticeably weaker (half again or more either way). ${skip ? `${skip} can’t be judged by damage alone.` : ''}`),
           el('p', { class: 'bs-fine lab-key' }, el('span', { class: 'hi' }), 'plays stronger than its KR', el('span', { class: 'lo' }), 'plays weaker. “Typical” is how often the standard party beats creatures of about the same KR.'),
           el('div', { class: 'lab-tw' }, el('table', { class: 'lab-t lab-kr' },
-            el('thead', {}, el('tr', {}, ...['Creature', 'Vol', 'KR', 'Plays like', 'Standard party wins', 'Note'].map(h => el('th', {}, h)))),
+            el('thead', {}, el('tr', {}, ...['Creature', 'Vol', 'KR', 'Plays like', 'Standard party wins', 'Note', 'Your call'].map(h => el('th', {}, h)))),
             el('tbody', {}, ...shown.slice(0, 400).map(r => el('tr', { class: r.skip ? 'skip' : off(r) ? (r.implied > r.c.kr ? 'hi' : 'lo') : null },
               el('td', { class: 'nm' }, el('button', { type: 'button', class: 'bs-elink', onclick: () => B.open(r.c, []) }, r.c.name)),
               el('td', {}, ['', 'I', 'II', 'III'][r.c.volume]),
               el('td', {}, krText(r.c.kr)),
               el('td', {}, r.skip ? '–' : `KR ${krText(r.implied >= 10 ? Math.round(r.implied) : Math.round(r.implied * 2) / 2)}`),
               el('td', {}, r.skip || r.win == null ? '–' : `${pct(r.win)}${r.typ != null ? ` (typical ${pct(r.typ)})` : ''}`),
-              el('td', { class: 'lab-note' }, note(r))))))),
+              el('td', { class: 'lab-note' }, note(r)),
+              el('td', {}, r.skip ? null : callCell(r.c.id, r))))))),
           shown.length > 400 ? el('p', { class: 'bs-fine' }, `Showing the first 400 of ${shown.length}.`) : null);
       }
       return el('div', { class: 'lab-krp' },
@@ -641,7 +699,12 @@
             segBtns(L.krVol, [['all', 'All volumes'], ['1', 'Vol I'], ['2', 'Vol II'], ['3', 'Vol III']], k => { L.krVol = k; save(); render(); }, 'Which volumes'),
             segBtns(L.krShow, [['flagged', 'Flagged only'], ['all', 'Every creature']], k => { L.krShow = k; save(); render(); }, 'Which creatures'),
             el('button', { type: 'button', class: 'btn primary small', disabled: krRunning, onclick: runKr }, KR ? 'Run it again' : 'Run the check')),
+          el('div', { class: 'lab-krf' },
+            el('label', { class: 'toggle' }, el('input', { type: 'checkbox', checked: triShown, onchange: e => { triShown = e.target.checked; L.triShown = triShown; save(); render(); } }), 'Show what I’ve already ruled on'),
+            TRI && rulingsText() ? el('button', { type: 'button', class: 'mini', onclick: async () => { try { await navigator.clipboard.writeText(rulingsText()); triErr = 'Copied your rulings.'; } catch (e) { triErr = 'Couldn’t copy; your rulings are also in the backup on the Session screen.'; } render(); } }, `Copy my rulings (${rulingsText().split('\n').length})`) : null,
+            triErr ? el('span', { class: 'bs-fine' }, triErr) : null),
           body),
+        flagsCard(),
         el('section', { class: 'lab-card lab-how' },
           el('h2', { class: 'section-head' }, 'The standard adventurer'),
           el('p', { class: 'd-note' }, `HP is a typical race and class (${S.STD.hp0} at level 0) plus two hit dice every ten levels (about ${S.STD.perLevel} a level). Melee starts at ${S.STD.hit0} and Dodge at ${S.STD.dodge0}, the average stat roll, improving by 1 every 10 and every 20 levels. Defence ${S.STD.defence}, no Min hit. A party worth KR k is four adventurers of level k÷4 (or level 0 adventurers, two per KR, below KR 2).`),

@@ -7,8 +7,30 @@
 
 # 2026
 
+## 25 Nov 2026
+
+- **Stat rolling:** each stat rolled in order → roll a set, then place each number on the stat you want; the DM sets the method and how many rerolls for each campaign, and every roll is recorded on the sheet
+- **Class-wide benefits and subclass feats on the sheet:** run together in one paragraph → each benefit and ability on its own line
+- **Attacks and armour:** — → a section on the character sheet for your attacks (the stat each uses and its damage dice) and the armour you wear, and a Core rules entry for how they work
+- **Defence on the sheet:** class only → class plus armour, with your armour's Min hit
+- **Dice:** — → roll checks, attacks and damage from the Play view; every roll goes in the table's dice log, and Exhaustion and Freeze are applied for you
+- **Party stash:** — → spoils and gear the party holds together, in Party money; taking something out needs a second player's approval, like the party account
+- **Following a fight:** — → your Play view shows the turn order, whose turn it is, and how hurt the enemies look
+- **Play view:** — → your abilities, feats and spells in one searchable list
+- **Live sheets with no signal:** changes didn't save → kept on your device and sent when you're back online
+- **Atlas pictures:** links only → pictures and maps uploaded straight to an entry
+- **Session screen (DM):** — → a recap of the night to post to Notes, and stat rolling rules for each campaign
+- **Balance lab (DM):** flags only → a ruling on each flagged creature, and on the book's open questions
+- **Phones:** sections along the top → in a bar at the bottom; bigger buttons and links; an arrow when there are more pages in a section
+- **Home page:** — → when you're signed in, it starts with your characters, the latest note and new atlas entries
+- **Character sheet:** stats first → HP and attacks first, with a bar to jump to each part
+
 ## 24 Nov 2026
 
+- **Session screen (DM):** — → one page for the night: the party's live sheets, planned encounters that start the fight in one tap, atlas entries to reveal, loot that pays into the party account, and notes
+- **Levelling:** each player levels on their own → the DM can raise the party to a level, and each sheet shows a Level up prompt until it's taken
+- **Atlas maps:** — → pins on an entry's picture that open other entries; a pin shows once both are revealed
+- **Backup:** — → the DM can download everything in the database as one file
 - **Live character sheets:** — → a Play view on every saved character: HP and temp HP, statuses, death saves, uses that reset by rest, day, session or arc, and table notes, saved as you go
 - **Combat tracker:** adventurers by level only → saved characters can join the fight, with HP, statuses and uses kept in sync with each player's sheet both ways
 - **Balance lab (DM):** — → run an encounter hundreds of times against your saved party (win rate, who drops, how long it lasts), and check every creature's KR against a standard party

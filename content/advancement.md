@@ -31,6 +31,13 @@ Stats are roll-under: a lower number is better (5 is strong, 14 is weak).
   - **Improve a stat by 1** means its number goes down by 1, permanently. **Worsen a stat by 1** means it goes up by 1.
   - **Advantage** and **disadvantage** work as in the core rules.
 
+## Attacks and armour
+
+  - **Attacking:** roll a d20. You hit on your **Melee**, **Ranged** or **Casting** or more, plus the target's **Defence**.
+  - **Damage** is the weapon's or spell's dice. Feats, abilities and bonuses can add to it.
+  - **Defence** comes from your class and the armour you wear, added together. Each point makes attackers need 1 more on their d20.
+  - **Min hit** comes from your armour. Weapon damage below it doesn't count. Spells, status damage and area effects always count.
+
 ## Renown
 
 Renown is your standing as a hero. Many feats and skills get stronger as it rises.

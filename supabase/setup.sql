@@ -534,3 +534,350 @@ create policy "DM adds"     on public.atlas for insert to authenticated with che
 create policy "DM edits"    on public.atlas for update to authenticated using (public.is_admin()) with check (public.is_admin());
 create policy "DM deletes"  on public.atlas for delete to authenticated using (public.is_admin());
 create policy "DM only"     on public.atlas_dm for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+-- pins on an atlas entry's picture (a map). Players see a pin only when the map and the entry it
+-- points to are both revealed: the atlas rules above already hide unrevealed entries from them.
+create table if not exists public.atlas_pins (
+  id         uuid primary key default gen_random_uuid(),
+  map_id     uuid not null references public.atlas(id) on delete cascade,
+  entry_id   uuid not null references public.atlas(id) on delete cascade,
+  x          real not null check (x >= 0 and x <= 100),
+  y          real not null check (y >= 0 and y <= 100),
+  created_at timestamptz not null default now(),
+  check (map_id <> entry_id)
+);
+alter table public.atlas_pins enable row level security;
+revoke all on public.atlas_pins from anon;
+drop policy if exists "both revealed, or the DM" on public.atlas_pins;
+drop policy if exists "DM only" on public.atlas_pins;
+create policy "both revealed, or the DM" on public.atlas_pins for select to authenticated using (
+  public.is_admin() or (exists (select 1 from public.atlas a where a.id = map_id and a.revealed)
+                        and exists (select 1 from public.atlas a where a.id = entry_id and a.revealed)));
+create policy "DM only" on public.atlas_pins for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+-- =====================================================================
+--  The DM's planning space: the session screen (planned encounters, reveal queue, loot, notes),
+--  one row per campaign. Only the DM can read or write it.
+-- =====================================================================
+create table if not exists public.dm_store (
+  key        text primary key check (length(key) between 1 and 80),
+  data       jsonb not null default '{}'::jsonb check (length(data::text) <= 500000),
+  updated_at timestamptz not null default now()
+);
+drop trigger if exists dm_store_touch on public.dm_store;
+create trigger dm_store_touch before update on public.dm_store for each row execute function public.touch_updated_at();
+alter table public.dm_store enable row level security;
+revoke all on public.dm_store from anon;
+drop policy if exists "DM only" on public.dm_store;
+create policy "DM only" on public.dm_store for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+-- per-campaign rules the DM sets on the session screen (for now: how players roll stats)
+alter table public.campaigns add column if not exists settings jsonb not null default '{}'::jsonb;
+
+-- =====================================================================
+--  Atlas pictures, uploaded straight to Supabase Storage (bucket "atlas", private).
+--  Files sit under the entry's id ("<entry id>/<file>"). Players can load a picture only when its
+--  entry is revealed (the atlas rules above decide that); only the DM can upload or delete.
+-- =====================================================================
+alter table public.atlas add column if not exists image_path text
+  check (image_path is null or image_path ~ '^[0-9a-f-]{36}/[A-Za-z0-9._-]{1,100}$');
+
+do $$
+begin
+  if to_regclass('storage.buckets') is not null then
+    insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+      values ('atlas', 'atlas', false, 8388608, array['image/webp', 'image/jpeg', 'image/png', 'image/gif'])
+      on conflict (id) do update set public = false, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
+    execute 'drop policy if exists "atlas pictures: revealed entries" on storage.objects';
+    execute 'drop policy if exists "atlas pictures: DM uploads" on storage.objects';
+    execute 'drop policy if exists "atlas pictures: DM changes" on storage.objects';
+    execute 'drop policy if exists "atlas pictures: DM deletes" on storage.objects';
+    execute $p$create policy "atlas pictures: revealed entries" on storage.objects for select to authenticated using (
+      bucket_id = 'atlas' and (public.is_admin() or exists (
+        select 1 from public.atlas a where a.id::text = split_part(storage.objects.name, '/', 1) and a.revealed)))$p$;
+    execute $p$create policy "atlas pictures: DM uploads" on storage.objects for insert to authenticated with check (bucket_id = 'atlas' and public.is_admin())$p$;
+    execute $p$create policy "atlas pictures: DM changes" on storage.objects for update to authenticated using (bucket_id = 'atlas' and public.is_admin())$p$;
+    execute $p$create policy "atlas pictures: DM deletes" on storage.objects for delete to authenticated using (bucket_id = 'atlas' and public.is_admin())$p$;
+  end if;
+end $$;
+
+-- =====================================================================
+--  The table's dice log. Rolls are made on the server (roll_dice below), so nobody can type in a result,
+--  and saved per campaign. Everyone in the campaign sees players' rolls; the DM's hidden rolls only the DM sees.
+-- =====================================================================
+create table if not exists public.rolls (
+  id           bigint generated always as identity primary key,
+  campaign_id  uuid not null references public.campaigns(id) on delete cascade,
+  character_id uuid references public.characters(id) on delete set null,
+  user_id      uuid not null default auth.uid() references public.profiles(id) on delete cascade,
+  who          text not null check (length(who) <= 80),
+  what         text not null check (length(what) <= 120),
+  total        int not null,
+  detail       jsonb not null default '{}'::jsonb,
+  hidden       boolean not null default false,
+  created_at   timestamptz not null default now()
+);
+create index if not exists rolls_campaign_time on public.rolls (campaign_id, created_at desc);
+alter table public.rolls enable row level security;
+revoke all on public.rolls from anon;
+revoke insert, update on public.rolls from authenticated;
+grant select, delete on public.rolls to authenticated;
+drop policy if exists "the table sees its rolls" on public.rolls;
+drop policy if exists "DM clears rolls" on public.rolls;
+create policy "the table sees its rolls" on public.rolls for select to authenticated
+  using (public.is_admin() or (not hidden and public.is_member(campaign_id)));
+create policy "DM clears rolls" on public.rolls for delete to authenticated using (public.is_admin());
+
+-- dice: up to six terms like 2d6, d20, +3, -1 (at most 50 dice of up to 1000 sides each).
+-- A d20 check against a stat ("need") succeeds on a d20 of the stat or more after bonuses: a natural 1 fails,
+-- a natural 20 succeeds. Advantage keeps the higher of two d20s, disadvantage the lower. Exhaustion 3 rolls 2d3
+-- alongside (a 2 fails the roll); exhaustion 4 rolls 1d2 alongside (a 1 means death). Freeze halves the dice.
+create or replace function public.roll_dice(c uuid, ch uuid default null, what text default 'Roll', dice text default 'd20',
+  need int default null, mode text default 'normal', bonus int default 0, exh int default 0, halve boolean default false, secret boolean default false)
+returns public.rolls language plpgsql security definer set search_path = public as $$
+declare
+  me uuid := auth.uid(); adm boolean := public.is_admin(); nm text; expr text; m text[];
+  sign int; n int; sides int; terms jsonb := '[]'::jsonb; dice_total int := 0; flat int := 0; k int; r int; one jsonb;
+  d1 int; d2 int; kept int; nat int; outcome text; side jsonb; row public.rolls; is_check boolean;
+begin
+  if me is null then raise exception 'Sign in first'; end if;
+  if not (adm or public.is_member(c)) then raise exception 'You are not in this campaign'; end if;
+  if secret and not adm then raise exception 'Only the DM can roll in secret'; end if;
+  if ch is not null and not exists (select 1 from characters x where x.id = ch and (x.owner_id = me or adm)) then raise exception 'That is not your character'; end if;
+  expr := lower(regexp_replace(coalesce(dice, ''), '\s', '', 'g'));
+  if expr !~ '^[+-]?([0-9]{0,2}d[0-9]{1,4}|[0-9]{1,4})([+-]([0-9]{0,2}d[0-9]{1,4}|[0-9]{1,4})){0,5}$' then raise exception 'Write dice like 2d6+3 or d20'; end if;
+  what := left(coalesce(nullif(trim(what), ''), 'Roll'), 120);
+  mode := case when mode in ('adv', 'dis') then mode else 'normal' end;
+  is_check := expr = 'd20' and need is not null;
+  if is_check then
+    d1 := 1 + floor(random() * 20)::int; d2 := 1 + floor(random() * 20)::int;
+    kept := case mode when 'adv' then greatest(d1, d2) when 'dis' then least(d1, d2) else d1 end;
+    nat := kept;
+    dice_total := kept + coalesce(bonus, 0);
+    outcome := case when nat = 1 then 'fail' when nat = 20 then 'success' when dice_total >= need then 'success' else 'fail' end;
+    terms := jsonb_build_array(jsonb_build_object('dice', 'd20', 'rolls', case when mode = 'normal' then jsonb_build_array(d1) else jsonb_build_array(d1, d2) end));
+  else
+    for m in select regexp_matches(expr, '([+-]?)([0-9]{0,2})d([0-9]{1,4})|([+-]?)([0-9]{1,4})', 'g') loop
+      if m[3] is not null then
+        sign := case when m[1] = '-' then -1 else 1 end; n := greatest(1, coalesce(nullif(m[2], '')::int, 1)); sides := m[3]::int;
+        if n > 50 or sides < 2 or sides > 1000 then raise exception 'Up to 50 dice of 2 to 1000 sides'; end if;
+        one := '[]'::jsonb;
+        for k in 1..n loop r := 1 + floor(random() * sides)::int; one := one || to_jsonb(r); dice_total := dice_total + sign * r; end loop;
+        terms := terms || jsonb_build_object('dice', (case when sign < 0 then '-' else '' end) || n || 'd' || sides, 'rolls', one);
+      else
+        flat := flat + (case when m[4] = '-' then -1 else 1 end) * m[5]::int;
+      end if;
+    end loop;
+    if halve then dice_total := floor(dice_total / 2.0)::int; end if;
+    dice_total := dice_total + flat + coalesce(bonus, 0);
+  end if;
+  if exh = 3 then
+    d1 := 1 + floor(random() * 3)::int; d2 := 1 + floor(random() * 3)::int;
+    side := jsonb_build_object('exhaustion', 3, 'rolls', jsonb_build_array(d1, d2), 'fails', d1 + d2 = 2);
+    if d1 + d2 = 2 then outcome := 'fail'; end if;
+  elsif exh = 4 then
+    d1 := 1 + floor(random() * 2)::int;
+    side := jsonb_build_object('exhaustion', 4, 'rolls', jsonb_build_array(d1), 'death', d1 = 1);
+    if d1 = 1 then outcome := 'death'; end if;
+  end if;
+  select coalesce((select x.name from characters x where x.id = ch), case when adm then 'DM' end, (select display_name from profiles where id = me), 'Someone') into nm;
+  insert into rolls (campaign_id, character_id, user_id, who, what, total, detail, hidden)
+  values (c, ch, me, left(nm, 80), what, dice_total,
+    jsonb_strip_nulls(jsonb_build_object('dice', expr, 'terms', terms, 'flat', nullif(flat, 0), 'bonus', nullif(bonus, 0), 'mode', nullif(mode, 'normal'),
+      'need', need, 'nat', nat, 'outcome', outcome, 'side', side, 'halved', case when halve and not is_check then true end)), secret)
+  returning * into row;
+  -- keep the log to the latest 500 rolls a campaign
+  delete from rolls where campaign_id = c and id in (select id from rolls where campaign_id = c order by id desc offset 500);
+  return row;
+end $$;
+revoke all on function public.roll_dice(uuid, uuid, text, text, int, text, int, int, boolean, boolean) from public, anon;
+grant execute on function public.roll_dice(uuid, uuid, text, text, int, text, int, int, boolean, boolean) to authenticated;
+
+do $$ begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'rolls') then
+    alter publication supabase_realtime add table public.rolls;
+  end if;
+end $$;
+
+-- =====================================================================
+--  The party stash: things the party holds together (spoils, parts, loot). Anyone in the campaign can put
+--  something in. Taking something out works like party money: asking counts as the first approval, a second
+--  player's approval hands it over, and the DM's approval hands it over at once. What's handed over waits on the
+--  character's live sheet ("inbox") until the player adds it to their inventory.
+-- =====================================================================
+create table if not exists public.stash (
+  id          uuid primary key default gen_random_uuid(),
+  campaign_id uuid not null references public.campaigns(id) on delete cascade,
+  name        text not null check (length(trim(name)) between 1 and 120),
+  qty         int not null check (qty > 0 and qty <= 100000),
+  notes       text check (notes is null or length(notes) <= 200),
+  added_by    uuid default auth.uid() references public.profiles(id) on delete set null,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+create index if not exists stash_campaign_idx on public.stash(campaign_id);
+create table if not exists public.stash_log (
+  id           bigint generated always as identity primary key,
+  campaign_id  uuid not null references public.campaigns(id) on delete cascade,
+  item         text not null,
+  qty          int not null,
+  character_id uuid references public.characters(id) on delete set null,
+  reason       text check (reason is null or length(reason) <= 200),
+  by_user      uuid default auth.uid() references public.profiles(id) on delete set null,
+  created_at   timestamptz not null default now()
+);
+create table if not exists public.stash_requests (
+  id           uuid primary key default gen_random_uuid(),
+  campaign_id  uuid not null references public.campaigns(id) on delete cascade,
+  stash_id     uuid references public.stash(id) on delete set null,
+  item         text not null,
+  character_id uuid not null references public.characters(id) on delete cascade,
+  qty          int not null check (qty > 0),
+  requested_by uuid references public.profiles(id) on delete set null,
+  status       text not null default 'pending' check (status in ('pending', 'approved', 'cancelled')),
+  resolved_by  uuid references public.profiles(id) on delete set null,
+  resolved_at  timestamptz,
+  created_at   timestamptz not null default now()
+);
+create table if not exists public.stash_votes (
+  request_id uuid not null references public.stash_requests(id) on delete cascade,
+  user_id    uuid not null references public.profiles(id) on delete cascade,
+  voted_at   timestamptz not null default now(),
+  primary key (request_id, user_id)
+);
+alter table public.stash enable row level security;
+alter table public.stash_log enable row level security;
+alter table public.stash_requests enable row level security;
+alter table public.stash_votes enable row level security;
+revoke all on public.stash, public.stash_log, public.stash_requests, public.stash_votes from anon, authenticated;
+grant select on public.stash, public.stash_log, public.stash_requests, public.stash_votes to authenticated;
+drop policy if exists "the party sees it" on public.stash;
+drop policy if exists "the party sees it" on public.stash_log;
+drop policy if exists "the party sees it" on public.stash_requests;
+drop policy if exists "the party sees it" on public.stash_votes;
+create policy "the party sees it" on public.stash for select to authenticated using (public.is_admin() or public.is_member(campaign_id));
+create policy "the party sees it" on public.stash_log for select to authenticated using (public.is_admin() or public.is_member(campaign_id));
+create policy "the party sees it" on public.stash_requests for select to authenticated using (public.is_admin() or public.is_member(campaign_id));
+create policy "the party sees it" on public.stash_votes for select to authenticated using (
+  public.is_admin() or exists (select 1 from public.stash_requests r where r.id = request_id and public.is_member(r.campaign_id)));
+
+-- put something in (merges with an item of the same name and notes)
+create or replace function public.stash_add(c uuid, item text, qty int default 1, notes text default null, reason text default null) returns uuid
+language plpgsql security definer set search_path = public as $$
+declare sid uuid; nm text := left(trim(coalesce(item, '')), 120); nt text := nullif(left(trim(coalesce(notes, '')), 200), '');
+begin
+  perform public._money_member(c);
+  if nm = '' then raise exception 'Name the item'; end if;
+  if coalesce(stash_add.qty, 0) <= 0 or stash_add.qty > 100000 then raise exception 'Enter how many'; end if;
+  perform public._money_lock(c);
+  select x.id into sid from stash x where x.campaign_id = c and lower(x.name) = lower(nm) and coalesce(x.notes, '') = coalesce(nt, '') limit 1;
+  if sid is null then insert into stash (campaign_id, name, qty, notes) values (c, nm, stash_add.qty, nt) returning id into sid;
+  else update stash x set qty = x.qty + stash_add.qty, updated_at = now() where x.id = sid; end if;
+  insert into stash_log (campaign_id, item, qty, reason) values (c, nm, stash_add.qty, nullif(left(coalesce(stash_add.reason, ''), 200), ''));
+  return sid;
+end $$;
+
+-- hand an approved request over: out of the stash, into the character's inbox on their live sheet
+create or replace function public._stash_give(r public.stash_requests) returns text
+language plpgsql security definer set search_path = public as $$
+declare s public.stash;
+begin
+  select * into s from stash where id = r.stash_id for update;
+  if not found or s.qty < r.qty then return 'short'; end if;
+  if s.qty = r.qty then delete from stash where id = s.id; else update stash set qty = qty - r.qty, updated_at = now() where id = s.id; end if;
+  insert into stash_log (campaign_id, item, qty, character_id, reason) values (r.campaign_id, r.item, -r.qty, r.character_id, 'Taken out');
+  insert into character_play (character_id, data, updated_by, updated_at) values (r.character_id, '{}'::jsonb, auth.uid(), now()) on conflict (character_id) do nothing;
+  update character_play set data = jsonb_set(data, '{inbox}', coalesce(data->'inbox', '[]'::jsonb)
+      || jsonb_build_array(jsonb_build_object('name', r.item, 'qty', r.qty, 'notes', coalesce(s.notes, ''), 'from', 'the party stash', 'at', now()))),
+    updated_by = auth.uid(), updated_at = now() where character_id = r.character_id;
+  update stash_requests set status = 'approved', resolved_by = auth.uid(), resolved_at = now() where id = r.id;
+  return 'approved';
+end $$;
+revoke all on function public._stash_give(public.stash_requests) from public, anon, authenticated;
+
+create or replace function public.stash_approve(rid uuid) returns text
+language plpgsql security definer set search_path = public as $$
+declare r public.stash_requests; votes int;
+begin
+  select * into r from stash_requests where id = rid for update;
+  if not found then raise exception 'That request no longer exists'; end if;
+  perform public._money_member(r.campaign_id);
+  if r.status <> 'pending' then raise exception 'That request is already %', r.status; end if;
+  insert into stash_votes (request_id, user_id) values (rid, auth.uid()) on conflict do nothing;
+  select count(*) into votes from stash_votes v
+   where v.request_id = rid and exists (select 1 from campaign_members m where m.campaign_id = r.campaign_id and m.user_id = v.user_id);
+  if not public.is_admin() and votes < 2 then return 'waiting'; end if;
+  if not exists (select 1 from characters where id = r.character_id and campaign_id = r.campaign_id) then
+    update stash_requests set status = 'cancelled', resolved_by = auth.uid(), resolved_at = now() where id = rid;
+    raise exception 'That character has left the campaign, so the request was cancelled';
+  end if;
+  perform public._money_lock(r.campaign_id);
+  return public._stash_give(r);
+end $$;
+
+create or replace function public.stash_request(s uuid, ch uuid, qty int default 1) returns uuid
+language plpgsql security definer set search_path = public as $$
+declare it public.stash; rid uuid;
+begin
+  select * into it from stash where id = s;
+  if not found then raise exception 'That item isn''t in the stash any more'; end if;
+  perform public._money_member(it.campaign_id); perform public._money_own(it.campaign_id, ch);
+  if coalesce(stash_request.qty, 0) <= 0 then raise exception 'Enter how many'; end if;
+  if stash_request.qty > it.qty then raise exception 'The stash only has %', it.qty; end if;
+  insert into stash_requests (campaign_id, stash_id, item, character_id, qty, requested_by) values (it.campaign_id, s, it.name, ch, stash_request.qty, auth.uid()) returning id into rid;
+  insert into stash_votes (request_id, user_id) values (rid, auth.uid());
+  if public.is_admin() then perform public.stash_approve(rid); end if;
+  return rid;
+end $$;
+
+create or replace function public.stash_cancel(rid uuid) returns void
+language plpgsql security definer set search_path = public as $$
+declare r public.stash_requests;
+begin
+  select * into r from stash_requests where id = rid for update;
+  if not found then raise exception 'That request no longer exists'; end if;
+  if not (r.requested_by = auth.uid() or public.is_admin()) then raise exception 'Only the player who asked, or the DM, can cancel this'; end if;
+  if r.status <> 'pending' then raise exception 'That request is already %', r.status; end if;
+  update stash_requests set status = 'cancelled', resolved_by = auth.uid(), resolved_at = now() where id = rid;
+end $$;
+
+-- the DM takes something out without a request (used up, lost, sold)
+create or replace function public.stash_remove(s uuid, qty int, reason text default null) returns void
+language plpgsql security definer set search_path = public as $$
+declare it public.stash;
+begin
+  if not public.is_admin() then raise exception 'Only the DM can do that'; end if;
+  select * into it from stash where id = s for update;
+  if not found then raise exception 'That item isn''t in the stash any more'; end if;
+  if coalesce(stash_remove.qty, 0) <= 0 or stash_remove.qty > it.qty then raise exception 'Enter how many (up to %)', it.qty; end if;
+  if stash_remove.qty = it.qty then delete from stash x where x.id = s; else update stash x set qty = it.qty - stash_remove.qty, updated_at = now() where x.id = s; end if;
+  insert into stash_log (campaign_id, item, qty, reason) values (it.campaign_id, it.name, -stash_remove.qty, coalesce(nullif(left(coalesce(stash_remove.reason, ''), 200), ''), 'Removed by the DM'));
+end $$;
+
+revoke all on function public.stash_add(uuid, text, int, text, text), public.stash_approve(uuid), public.stash_request(uuid, uuid, int),
+  public.stash_cancel(uuid), public.stash_remove(uuid, int, text) from public, anon;
+grant execute on function public.stash_add(uuid, text, int, text, text), public.stash_approve(uuid), public.stash_request(uuid, uuid, int),
+  public.stash_cancel(uuid), public.stash_remove(uuid, int, text) to authenticated;
+
+-- =====================================================================
+--  What players see of a fight the DM is running: the turn order, whose turn it is, and how hurt everyone looks
+--  (words for enemies, never their numbers). The DM's combat tracker writes it; the campaign's players read it.
+-- =====================================================================
+create table if not exists public.fight_view (
+  campaign_id uuid primary key references public.campaigns(id) on delete cascade,
+  data        jsonb not null default '{}'::jsonb check (length(data::text) <= 100000),
+  updated_at  timestamptz not null default now()
+);
+alter table public.fight_view enable row level security;
+revoke all on public.fight_view from anon;
+drop policy if exists "the party follows it" on public.fight_view;
+drop policy if exists "DM runs it" on public.fight_view;
+create policy "the party follows it" on public.fight_view for select to authenticated using (public.is_admin() or public.is_member(campaign_id));
+create policy "DM runs it" on public.fight_view for all to authenticated using (public.is_admin()) with check (public.is_admin());
+do $$ begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'fight_view') then
+    alter publication supabase_realtime add table public.fight_view;
+  end if;
+end $$;

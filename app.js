@@ -13,8 +13,8 @@
   };
   const TYPES = ['race', 'class', 'subclass', 'spell', 'adv', 'god', 'patch'];
   const DOC_TYPES = ['adv', 'god', 'patch'];
-  const TYPE_LABEL = { all: 'All', race: 'Races', class: 'Classes', subclass: 'Subclasses', spell: 'Spells', adv: 'Advancement', god: 'Gods', notes: 'Notes', chars: 'Characters', bank: 'Party money', craft: 'Crafting', atlas: 'Atlas', patch: 'Patch Notes', settings: 'Settings', beast: 'Volume I', vol2: 'Volume II', vol3: 'Volume III', named: 'Named monsters', forge: 'Dragons & elementals', encounter: 'Encounters', fight: 'Combat tracker', lab: 'Balance lab', brules: 'Monster rules' };
-  const DM_TABS = ['beast', 'vol2', 'vol3', 'named', 'forge', 'encounter', 'fight', 'lab', 'brules'];
+  const TYPE_LABEL = { all: 'All', race: 'Races', class: 'Classes', subclass: 'Subclasses', spell: 'Spells', adv: 'Advancement', god: 'Gods', notes: 'Notes', chars: 'Characters', bank: 'Party money', craft: 'Crafting', atlas: 'Atlas', patch: 'Patch Notes', settings: 'Settings', beast: 'Volume I', vol2: 'Volume II', vol3: 'Volume III', named: 'Named monsters', forge: 'Dragons & elementals', encounter: 'Encounters', fight: 'Combat tracker', lab: 'Balance lab', brules: 'Monster rules', session: 'Session' };
+  const DM_TABS = ['session', 'beast', 'vol2', 'vol3', 'named', 'forge', 'encounter', 'fight', 'lab', 'brules'];
   const TYPE_ONE = { race: 'Race', class: 'Class', subclass: 'Subclass', spell: 'Spell', adv: 'Advancement', god: 'Book of Gods', patch: 'Patch notes' };
 
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -451,7 +451,7 @@
     if (cur) lastInGroup[cur.key] = state.tab;
     const shownGroups = GROUPS.filter(g => !g.dm || g === cur || (Beast && Beast.isAdmin()));
     nav.replaceChildren(...shownGroups.map(g => el('button', {
-      class: 'tab', role: 'tab', 'aria-selected': String(cur === g),
+      class: 'tab', role: 'tab', 'aria-selected': String(cur === g), 'data-g': g.key,
       onclick: () => { const t = lastInGroup[g.key] || g.tabs[0]; go({ tab: t, sel: state.tab === t ? state.sel : null }, true); },
     }, g.label)));
     const subTabs = cur ? cur.tabs : ['patch', 'settings'].includes(state.tab) ? [state.tab] : [];
@@ -460,7 +460,14 @@
       class: 'subtab', 'aria-current': state.tab === t ? 'page' : null,
       onclick: () => go(state.tab === t ? { tab: t } : { tab: t, sel: null, mon: '', tpl: '', rs: '' }, true),
     }, TYPE_LABEL[t], c[t] != null && !DOC_TYPES.includes(t) ? el('span', { class: 'n' }, String(c[t])) : null)));
-    const edge = () => { sub.classList.toggle('more-right', sub.scrollLeft + sub.clientWidth < sub.scrollWidth - 4); sub.classList.toggle('more-left', sub.scrollLeft > 4); };
+    const more = $('#sub-more');
+    const edge = () => {
+      const right = !sub.hidden && sub.scrollLeft + sub.clientWidth < sub.scrollWidth - 4;
+      sub.classList.toggle('more-right', right); sub.classList.toggle('more-left', sub.scrollLeft > 4);
+      // a visible arrow on the right edge when the row scrolls, so it's clear there are more pages
+      if (more) { more.hidden = !right; if (right) more.style.height = sub.offsetHeight + 'px'; }
+    };
+    if (more && !more._on) { more._on = true; more.addEventListener('click', () => sub.scrollBy({ left: Math.max(120, sub.clientWidth * 0.6), behavior: 'smooth' })); }
     if (!sub._edge) { sub._edge = true; sub.addEventListener('scroll', edge, { passive: true }); window.addEventListener('resize', edge); }
     requestAnimationFrame(edge);
     const on = sub.querySelector('[aria-current="page"]');
@@ -580,6 +587,50 @@
     return '';
   }
 
+  /* Signed in, the front page starts with your table: your characters with their live HP, anything waiting for you,
+     the newest note from your campaigns, and atlas entries revealed lately. */
+  let homeNote = null, homeNoteAt = 0, homeAtlasAsked = false;
+  function yourTable() {
+    if (!Notes || !Notes.user || !Notes.user()) return null;
+    const mine = Creator && Creator.mine ? Creator.mine() : null;
+    if (Date.now() - homeNoteAt > 60000) {
+      homeNoteAt = Date.now();
+      const sb = Notes.client();
+      Promise.all([sb.from('notes').select('id, body, created_at, session_id').order('created_at', { ascending: false }).limit(1), sb.from('sessions').select('id, number, title, campaign_id')])
+        .then(([n, ss]) => { const x = n && n.data && n.data[0]; homeNote = x ? { ...x, ses: ((ss && ss.data) || []).find(s => s.id === x.session_id) || null } : false; if (state.tab === 'all' && !state.q) render(); }).catch(() => {});
+    }
+    const rows = [];
+    if (mine && mine.length && Play) {
+      Play.load(mine.map(r => r.id));
+      for (const r of mine.slice(0, 6)) {
+        const live = Play.get(r.id) || {};
+        const max = live.max || 0, hp = live.hp == null ? max : live.hp;
+        const lvl = (r.data && r.data.level) | 0, owed = (live.levelTo | 0) > lvl;
+        const inbox = Array.isArray(live.inbox) && live.inbox.length;
+        rows.push(el('button', { class: 'yt-char', onclick: () => go({ tab: 'chars', char: r.id }, true) },
+          el('span', { class: 'nm' }, r.name || 'Unnamed'),
+          el('span', { class: 'sub' }, r.summary || ''),
+          max ? el('span', { class: 'hp' }, `${hp} / ${max} HP`) : null,
+          max ? el('span', { class: 'ft-bar pc yt-bar', 'aria-hidden': 'true' }, el('span', { style: `width:${Math.max(0, Math.min(100, Math.round(hp / max * 100)))}%` })) : null,
+          owed || inbox ? el('span', { class: 'yt-flag' }, [owed ? `Level ${live.levelTo} to take` : null, inbox ? 'Something from the party stash' : null].filter(Boolean).join(' · ')) : null));
+      }
+    }
+    const A = Atlas && Atlas.api ? Atlas.api.rows() : null;
+    if (A === null && Atlas && Atlas.api && !homeAtlasAsked) { homeAtlasAsked = true; Atlas.api.load(); }
+    const fresh = (A || []).filter(x => x.revealed && x.revealed_at && Date.now() - Date.parse(x.revealed_at) < 30 * 86400000).sort((a, b) => Date.parse(b.revealed_at) - Date.parse(a.revealed_at)).slice(0, 4);
+    const kids = [
+      rows.length ? el('div', { class: 'yt-chars' }, ...rows) : mine && !mine.length ? el('button', { class: 'home-notes chars', onclick: () => go({ tab: 'chars', char: 'new' }, true) }, el('span', { class: 'lbl' }, 'Make your character'), el('span', { class: 'hint' }, 'You haven’t saved one yet.'), el('span', { class: 'go' }, 'Start →')) : null,
+      homeNote ? el('button', { class: 'yt-line', onclick: () => go({ tab: 'notes', ses: homeNote.session_id }, true) },
+        el('span', { class: 'k' }, 'Latest note' + (homeNote.ses ? ` · Session ${homeNote.ses.number}${homeNote.ses.title ? ': ' + homeNote.ses.title : ''}` : '')),
+        el('span', { class: 'v' }, plain(homeNote.body).slice(0, 140) + (homeNote.body.length > 140 ? '…' : ''))) : null,
+      fresh.length ? el('div', { class: 'yt-line yt-atlas' }, el('span', { class: 'k' }, 'New in the atlas'),
+        el('span', { class: 'v' }, ...fresh.map((x, i) => [i ? ', ' : '', el('a', { class: 'at-link', href: `#tab=atlas&ent=${encodeURIComponent(x.id)}` }, x.name)]))) : null,
+      Beast && Beast.isAdmin() ? el('button', { class: 'yt-line', onclick: () => go({ tab: 'session' }, true) }, el('span', { class: 'k' }, 'DM'), el('span', { class: 'v' }, 'Open the session screen →')) : null,
+    ].filter(Boolean);
+    if (!kids.length) return null;
+    return el('section', { class: 'yt' }, el('h2', { class: 'section-head' }, 'Your table'), ...kids);
+  }
+
   function renderHome() {
     const c = counts();
     const tile = (t, hint) => el('button', { class: `home-tile ${t}`, onclick: () => go({ tab: t, sel: null }, true) },
@@ -588,6 +639,7 @@
         : el('span', { class: 'big' }, String(c[t])),
       el('span', { class: 'lbl' }, TYPE_LABEL[t]), el('span', { class: 'hint' }, hint));
     return [
+      yourTable(),
       el('div', { class: 'home-intro' },
         el('h1', {}, 'The Player’s Handbook'),
         el('p', {}, 'Everything you need to build and grow your character: races, classes, subclasses, spells, advancement and the gods. Search for anything, or open a chapter.')),
@@ -1063,7 +1115,7 @@
       clearTimeout(t);
       const v = e.target.value;
       t = setTimeout(() => go(['chars', 'bank', 'craft', 'atlas', 'patch', 'settings'].includes(state.tab) && v.trim() ? { q: v, tab: 'all', sel: null }
-        : ['forge', 'encounter', 'fight', 'lab', 'brules'].includes(state.tab) && v.trim() ? { q: v, tab: 'beast', mon: '', tpl: '', rs: '' } : { q: v, qin: '' }, false), 80);
+        : ['session', 'forge', 'encounter', 'fight', 'lab', 'brules'].includes(state.tab) && v.trim() ? { q: v, tab: 'beast', mon: '', tpl: '', rs: '' } : { q: v, qin: '' }, false), 80);
     });
     const gearBtn = $('#gear');
     if (gearBtn) gearBtn.addEventListener('click', openSettings);
@@ -1097,10 +1149,11 @@
 
   const Notes = window.HandbookNotes ? window.HandbookNotes({ el, md, esc, plain, norm, highlight, state, go, render: () => render(), $, createClient: window.__mockCreateClient }) : null;
   const Play = window.HandbookPlay ? window.HandbookPlay({ el, render: () => render(), Notes, statuses: () => STATUSES }) : null;
-  const Creator = window.HandbookCreator ? window.HandbookCreator({ el, md, esc, plain, norm, slug, state, go, render: () => render(), $, DB, Notes, Play, openItem: id => { const i = DB.byId.get(id); go({ tab: i ? i.type : 'all', sel: id }, true); } }) : null;
+  const Dice = window.HandbookDice ? window.HandbookDice({ el, Notes, render: () => render() }) : null;
+  const Creator = window.HandbookCreator ? window.HandbookCreator({ el, md, esc, plain, norm, slug, state, go, render: () => render(), $, DB, Notes, Play, Dice, openItem: id => { const i = DB.byId.get(id); go({ tab: i ? i.type : 'all', sel: id }, true); } }) : null;
   const Craft = window.HandbookCraft ? window.HandbookCraft({ el, state, go, render: () => render() }) : null;
   const Bank = window.HandbookBank ? window.HandbookBank({ el, state, go, render: () => render(), Notes }) : null;
   const Atlas = window.HandbookAtlas ? window.HandbookAtlas({ el, md, esc, norm, state, go, render: () => render(), Notes }) : null;
-  const Beast = window.HandbookBestiary ? window.HandbookBestiary({ el, md, esc, norm, state, go, render: () => render(), Notes, $, statusMd, statuses: () => STATUSES, db: () => DB, Play, charHp: data => Creator ? Creator.maxHp(data) : 0, fightStats: data => Creator && Creator.fightStats ? Creator.fightStats(data) : null }) : null;
+  const Beast = window.HandbookBestiary ? window.HandbookBestiary({ el, md, esc, norm, state, go, render: () => render(), Notes, $, statusMd, statuses: () => STATUSES, db: () => DB, Play, Atlas, Dice, charHp: data => Creator ? Creator.maxHp(data) : 0, fightStats: data => Creator && Creator.fightStats ? Creator.fightStats(data) : null }) : null;
   boot();
 })();

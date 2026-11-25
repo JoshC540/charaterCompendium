@@ -139,6 +139,9 @@ classes, subclasses, spells, drawbacks and quirks show up in it automatically.
   is turned into items, one per line, when they're opened.
 - Saving needs the `characters` table: run the latest `supabase/setup.sql` once more.
 - **Play** (on a saved character) is the live sheet for the table: see *Live character sheets* below.
+- **Stats** are rolled the way the DM sets for the campaign (Session screen → Character rules): roll a set and place each number (the default, no rerolls) or roll each stat in order, with none, one, two or unlimited rerolls. Every set rolled, reroll and number typed in by hand is listed under **Stat rolls** on the sheet.
+- **Attacks and armour:** each attack has a name, the stat it hits with (Melee, Ranged or Casting) and its damage dice (spells with dice can be added in one tap). Armour adds its Defence to the class's and sets Min hit. The rule is in Core rules → Attacks and armour.
+- **The sheet** reads in table order (At a glance and Attacks first, background and notes last), with a bar to jump to each part; tap a long section's heading to fold it.
 
 The rules it applies are at the top of `creator.js` (`RULES`), so they're easy to change:
 
@@ -165,6 +168,11 @@ Every saved character has a **Play** view (Characters → the character → **Pl
 - **Statuses:** add any status from the shared list, with stacks capped at each status's max and its rules beside it.
 - **Uses:** anything used a set number of times (a feat, a skill, spells of a tier), each resetting after a rest, a long rest, a day, a session, an arc or never. **Short rest**, **Long rest** (resets per-rest uses too), **New day**, **New session** and **New arc** reset the right ones. Feats whose text says "once per rest" and so on are offered as one-tap suggestions.
 - **Table notes:** a free box for concentration, debts, anything.
+- **Dice:** check buttons for every stat, To hit and Damage for every attack, and any dice (`2d6+3`). Rolls are made by the database (`roll_dice` in `setup.sql`), so nobody can type a result in, and every roll goes in the campaign's dice log, which everyone in the campaign sees. Exhaustion 1 (−2), 2 (disadvantage), 3 and 4 (the extra dice) and Freeze (halved dice) are applied for you; Fear and Poisoned show as reminders. The DM rolls from the Session screen and can roll in secret.
+- **Following a fight:** when the DM runs a fight for the campaign, the Play view shows the turn order, whose turn it is and who's next, the party's HP, and enemies only as unhurt, hurt, badly hurt or down.
+- **Abilities, feats and spells:** everything from the sheet in one searchable list.
+- **No signal?** Changes are kept on the device and sent, in order, when the connection is back (the sheet says how many are waiting).
+- **From the party stash:** anything handed over waits on the sheet with **Add to my inventory**.
 
 The same sheet shows in the DM's **Combat tracker**: **+ Add saved characters** brings anyone in (grouped by campaign), and from then on HP, statuses and uses are one shared record. When the DM deals damage, the player's sheet changes within a few seconds, and the other way round. Bleed, burn and toxic on a saved character's turn apply to the live sheet.
 
@@ -181,8 +189,27 @@ The **Atlas** tab (under Your table) holds places, factions, people, creatures, 
 - Write `[[Another entry]]` to link to another entry (or `[[Another entry|shown text]]`). A link only works for players once the entry it points to is revealed too; until then they see plain text. Each entry also lists the entries that mention it.
 - **Your notes** are kept in a separate table only the admin account can read, so they never reach a player's browser.
 - Players see only revealed entries, can filter by kind and search them, and the main search box finds them too.
+- **Pictures:** in the editor, choose a picture or drop one on the box. It's shrunk in the browser (at most 2400 px, WebP) and stored in a private Supabase Storage bucket (`atlas`), so players can only load it once its entry is revealed. A link to a picture hosted elsewhere still works.
+- **Maps:** any entry with a picture can be a map. Signed in as the DM, press **Use as a map: place pins**, click the picture where a pin goes and pick the entry it points to. Players see a pin only once the map and that entry are both revealed, and each entry lists the maps it's on.
 
-This is enforced by the database (row-level security on `atlas` and `atlas_dm` in `setup.sql`), not just hidden in the page. **Setting it up (once):** run the latest `supabase/setup.sql`.
+This is enforced by the database (row-level security on `atlas`, `atlas_dm` and `atlas_pins` in `setup.sql`), not just hidden in the page. **Setting it up (once):** run the latest `supabase/setup.sql`.
+
+## Session screen (DM)
+
+**Session** is the first tab in the DM group: one page for the night, per campaign (pick it at the top).
+
+- **The party:** every character in the campaign, live from their sheets (HP, temp HP, statuses, who's down). Tap one to change their HP, statuses or uses. **Raise the party to level N** gives everyone below it a **Level up** prompt on their own sheet, so they still make their own choices.
+- **Encounters for tonight:** build an encounter in Encounters, then **Add the one in Encounters** with a name. Each shows its KR and how it rates against this party. **Start the fight** puts the party's saved characters (linked to their live sheets) and the creatures into the combat tracker.
+- **To reveal:** queue hidden atlas entries the party might uncover, then reveal each with one tap.
+- **Loot:** items to tick off as you hand them out, and coin (`40 gp`, `12 gp 5 sp`, or a plain number for gold) that **Pay into the party account** adds to the campaign's party money.
+- **Notes for tonight:** only you see them.
+- **Table dice:** roll for the table or in secret; the campaign's dice log is underneath.
+- **End of the session:** fights started, entries revealed, coin paid out, items handed out and levels given are noted as you go. **Write the recap** turns them into a draft you can edit, then **Post to Notes** adds it to a new session (or an existing one) for the players.
+- **Character rules:** how players in this campaign roll stats, and how many rerolls they get.
+- Starting a fight from here also lets the campaign's players follow it on their phones; in the combat tracker, **Players follow it in** picks the campaign (or nobody).
+- **Backup:** **Download everything** saves the whole database as one JSON file (campaigns, sessions, notes, characters, live sheets, party money, the atlas with your notes and pins, and these plans). The bestiary isn't in it; that's in `bestiary-data`.
+
+The plan saves as you go, in a `dm_store` table only the admin account can read. Files: `session.js`. **Setting it up (once):** run the latest `supabase/setup.sql`.
 
 ## Settings
 
@@ -208,6 +235,10 @@ The **Party money** tab (under Your table) gives each campaign a shared **party 
 - Players see the party account and their own purses; only the DM sees every purse.
 - Amounts are kept in copper: 100 cp = 1 sp, 100 sp = 1 gp, 100 gp = 1 pp.
 
+## Party stash
+
+In **Party money**, the **Party stash** holds spoils and gear the party shares. Anyone in the campaign can **Put something in** (same name and notes stack up). To take something out, **Ask for it** for one of your characters: like a party account withdrawal, asking counts as the first approval, a second player's approval hands it over, and the DM's approval (or the DM asking) hands it over at once. It then waits on that character's sheet until the player adds it to their inventory, so nothing is overwritten on a sheet someone is editing. The DM can also remove things (used up, sold, lost). Everything is in the stash history. The Session screen's Loot can send items straight into the stash.
+
 ## Crafting
 
 The **Crafting** tab (under Your table) is for players: pick an item, its materials and a quality for an estimate of what it costs to commission, what it costs to make yourself, what it's worth and what a merchant pays for it (half its value), how long it takes and how much it weighs. Making it yourself costs the materials and any special work, plus a rented forge (metal items, by the day) or workshop (by the week) if you tick it, and the tools for each Crafting skill the item needs: already yours, hired (about a tenth of their price a week) or bought. The Artisan feat halves the materials for the skill you pick. **Copy a link to this estimate** gives a link that opens the same choices for someone else. It uses the item list, recipes and maths from the Market Price Ledger, priced for an ordinary market, without the ledger's town settings or enchantments. Choices are remembered in the browser.
@@ -219,11 +250,15 @@ The **Crafting** tab (under Your table) is for players: pick an item, its materi
 
 ## Offline and phones
 
-`sw.js` keeps a copy of the site's own files (pages, rules, fonts) as they load, so once someone has visited, the rules, races, classes, spells, gods and crafting open without signal. When online it always fetches the latest files first, so updates show straight away. Nothing from Supabase is kept: notes, characters, live sheets, party money, the atlas and the bestiary need a connection. If you add a new file the site loads, add it to the list at the top of `sw.js` too. On phones, long pages get a round **back to the top** button once you've scrolled down.
+`sw.js` keeps a copy of the site's own files (pages, rules, fonts) as they load, so once someone has visited, the rules, races, classes, spells, gods and crafting open without signal. When online it always fetches the latest files first, so updates show straight away. Nothing from Supabase is kept: notes, characters, party money, the atlas, the session screen and the bestiary need a connection. The one exception is live sheets: HP, coin, conditions and the rest changed with no signal are kept on that device and sent when it's back online. If you add a new file the site loads, add it to the list at the top of `sw.js` too.
+
+On phones (700 px wide or less), the sections (Rules, Characters, Notes and so on) are in a bar at the bottom of the screen, buttons and links are bigger, and an arrow appears beside a section's pages when there are more than fit. Long pages get a round **back to the top** button once you've scrolled down.
+
+Signed in, the home page starts with **Your table**: your characters with their HP (and a flag when there's a level to take or something from the stash), the latest note, and atlas entries revealed in the last 30 days. The DM also gets a link to the Session screen.
 
 ## Bestiary (DM only)
 
-The **DM** tab group (Volume I, Volume II, Volume III, Named monsters, Dragons & elementals, Encounters, Combat tracker, Balance lab, Monster rules) only appears for the admin account. Everything in it comes from *Bestiary: Volume I*, *Bestiary: Volume II* and *Bestiary: Volume III – Peoples and Powers*.
+The **DM** tab group (Session, Volume I, Volume II, Volume III, Named monsters, Dragons & elementals, Encounters, Combat tracker, Balance lab, Monster rules) only appears for the admin account. Everything in it comes from *Bestiary: Volume I*, *Bestiary: Volume II* and *Bestiary: Volume III – Peoples and Powers*.
 
 **Why the data isn't in this repo:** anything in a GitHub Pages repo can be downloaded by anyone, including tactics, tells and exploits. So the monster data lives in Supabase, in a `bestiary` table that only the admin account can read. The site loads it after you sign in as the DM. Players, and people who aren't signed in, get nothing back.
 
@@ -244,7 +279,8 @@ The **DM** tab group (Volume I, Volume II, Volume III, Named monsters, Dragons &
 
 **Balance lab (DM):** two tools, from **Test it in the balance lab** on the Encounters page or the Balance lab tab.
 
-- **Fight simulator:** pick saved characters (or use the party levels from Encounters) and it runs the current encounter 200, 1,000 or 5,000 times: how often the party wins, how often someone drops or everyone does, how long fights last, how often each adventurer drops and how much damage they deal, and one fight blow by blow. HP, Melee/Ranged/Casting, Dodge and class Defence come from each character's sheet; anything not rolled yet uses the standard adventurer's number (marked *). Type each adventurer's damage a hit as dice; left blank, it uses what the KR system expects at their level.
+- **Fight simulator:** pick saved characters (or use the party levels from Encounters) and it runs the current encounter 200, 1,000 or 5,000 times: how often the party wins, how often someone drops or everyone does, how long fights last, how often each adventurer drops and how much damage they deal, and one fight blow by blow. HP, Dodge, Defence, Min hit and their best attack (its stat and damage dice) come from each character's sheet; anything not rolled yet uses the standard adventurer's number (marked *). Type each adventurer's damage a hit as dice; left blank, it uses what the KR system expects at their level.
+- **Your rulings:** each flagged creature gets **Your call**: fine as is, change its KR to a number, or look later. The book's open questions (from putting the volumes in) are listed below with the same choices. Rulings are saved for you only (`dm_store`) and drop off the list; **Copy my rulings** gives the list to apply to the data files, after which the SQL is run again. They're recorded, not applied straight away.
 - **KR check:** measures every creature in all three volumes against the creatures of about the same KR (damage it deals a round, and damage it takes to bring down, against a standard party whose levels add up to its KR), and runs it 100 times against that party. It lists the ones that play noticeably stronger or weaker than their KR, with the KR they play like. A flag is a prompt to look, not a verdict: creatures whose danger is control, summoning or tactics read as weaker than they are.
 - **The rules it uses** are on the page, and the choices that matter can be changed there: who monsters attack, Dodge rolls a round, natural 20s, how many adventurers an area attack catches, and whether Min hit applies to adventurers' hits. It doesn't model status effects, saves, spells and feats beyond plain damage, healing, movement, morale, phases or lair actions.
 - The standard adventurer (HP, Melee and Dodge by level, and the damage a hit the KR system expects) is in a table on the KR check page, and its numbers are at the top of the engine in `lab.js` (`STD`).

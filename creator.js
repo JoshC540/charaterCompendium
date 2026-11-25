@@ -159,6 +159,7 @@
       drawbacks: [], quirks: [],
       spAdjust: 0, hpAdjust: 0, hpRolls: {},
       buys: { general: {}, abil: {}, feat: {}, tiers: {} }, unlocked: {},
+      attacks: [], armour: { name: '', defence: 0, minHit: 0 },
       lv: { stat: {}, hd: {}, skills: {}, feats: {}, boons: {}, fp: 0 },
       items: [], gear: '', equipment: '', notes: '',
       guide: { step: 0, seen: 0, done: false },
@@ -203,6 +204,11 @@
         c.gear = ''; c.equipment = '';
       } else c.items = src.items.map(x => ({ id: x.id || itemId(), name: String(x.name || ''), qty: Math.max(0, num(x.qty, 1)), notes: String(x.notes || ''), on: !!x.on, ...(x.ref ? { ref: String(x.ref) } : {}) }));
       c.guide = src.guide && typeof src.guide === 'object' ? { step: Math.max(0, num(src.guide.step)), seen: Math.max(0, num(src.guide.seen), num(src.guide.step)), done: !!src.guide.done } : { step: 0, done: Object.keys(src).length > 0 };
+      // attacks (weapon or spell, the stat it hits with, its damage dice) and worn armour
+      c.attacks = (Array.isArray(src.attacks) ? src.attacks : []).slice(0, 30).map(a => ({ id: a.id || itemId(), name: String(a.name || '').slice(0, 80),
+        stat: ['Melee', 'Ranged', 'Casting'].includes(a.stat) ? a.stat : 'Melee', dice: String(a.dice || '').slice(0, 30), notes: String(a.notes || '').slice(0, 200) }));
+      const ar = src.armour && typeof src.armour === 'object' ? src.armour : {};
+      c.armour = { name: String(ar.name || '').slice(0, 80), defence: Math.max(0, Math.min(20, num(ar.defence))), minHit: Math.max(0, Math.min(50, num(ar.minHit))) };
       delete c.classId; delete c.groupKey;
       return c;
     }
@@ -262,7 +268,11 @@
       // every class adds its class HP, extra classes included (Advancement: Extra classes)
       const hpRace = num(r && r.meta.hp), hpClass = slots.reduce((a, x) => a + (x.cls ? num(x.cls.meta.hp) : 0), 0);
       const hpRolled = liveKeys.reduce((a, k) => a + (c.hpRolls[k] || []).reduce((x, y) => x + y, 0), 0);
+      // Defence: the best class Defence plus worn armour's; Min hit comes from the armour (Core rules: Attacks and armour)
+      const classDefence = slots.reduce((a, x) => Math.max(a, x.cls ? num(String(x.cls.meta.defence || '').replace('+', '')) : 0), 0);
+      const defence = classDefence + num(c.armour && c.armour.defence), minHit = num(c.armour && c.armour.minHit);
       return {
+        classDefence, defence, minHit,
         r, r2, cls, g, slots, magic: isMagic(g), dSel, qSel, refund, stats, earned, total, spent, left: total - spent,
         hp: hpRace + hpClass + hpRolled + hdRolled + num(c.hpAdjust), hpRace, hpClass, hpRolled, hdRolled,
         L, R, G, boons, fp, skillRanks, skillsUsed, pastMaster, pastUsed, featSlots,
@@ -293,7 +303,7 @@
     async function loadList() {
       try {
         const [c, p] = await Promise.all([
-          sb().from('characters').select('id, owner_id, name, summary, data, updated_at').order('updated_at', { ascending: false }),
+          sb().from('characters').select('id, owner_id, campaign_id, name, summary, data, updated_at').order('updated_at', { ascending: false }),
           sb().from('profiles').select('id, display_name, is_admin').order('display_name', { ascending: true }),
         ]);
         if (c.error) throw c.error;
@@ -327,7 +337,7 @@
       }
       if (cur && cur.id === want) return;
       const row = list && list.find(x => x.id === want);
-      if (row) cur = { id: row.id, owner_id: row.owner_id, data: normalize(row.data), dirty: false, readOnly: !!(user() && row.owner_id !== user().id) };
+      if (row) cur = { id: row.id, owner_id: row.owner_id, campaign_id: row.campaign_id || null, data: normalize(row.data), dirty: false, readOnly: !!(user() && row.owner_id !== user().id) };
       else cur = null;
       enterMode();
     }
@@ -405,7 +415,7 @@
     const SECTION_FNS = {
       'Basics': basics, 'Race': raceSection, 'Class': classSection, 'Stats': statsSection,
       'Drawbacks and quirks': traitsSection, 'Level-ups': levelSection, 'Soft skills': skillsSection, 'Feats': featsSection,
-      'Subclass points': spSection, 'Inventory': inventorySection, 'Notes': notesSection,
+      'Subclass points': spSection, 'Attacks and armour': attacksSection, 'Inventory': inventorySection, 'Notes': notesSection,
     };
     const editSections = d => Object.keys(SECTION_FNS).filter(t => !(d.L === 0 && (t === 'Soft skills' || t === 'Feats') && !d.skillsUsed && !d.featSlots.length));
     function guideSteps(c, d) {
@@ -413,12 +423,12 @@
         { title: 'Basics', secs: ['Basics'], intro: 'Start with a name. Most characters start at level 0; set a higher level only if your DM is starting you further along.' },
         { title: 'Race', secs: ['Race'], intro: 'Your race gives you HP, I.M.P., languages and traits.' },
         { title: 'Class', secs: ['Class'], intro: 'Your starting class sets your hit die, weapons and class trait. You can add more classes later for 1 SP each.' },
-        { title: 'Stats', secs: ['Stats'], intro: 'Roll every stat and combat stat. You can reroll any of them, or type in what you rolled at the table.' },
+        { title: 'Stats', secs: ['Stats'], intro: 'Roll your stats and combat stats the way your DM has set for the campaign, or type in what you rolled at the table.' },
         { title: 'Drawbacks and quirks', secs: ['Drawbacks and quirks'], intro: 'Optional. Drawbacks give you SP back; quirks trade one stat for another.' },
       ];
       if (d.L > 0) s.push({ title: 'Level-ups', secs: ['Level-ups', 'Soft skills', 'Feats'], intro: `Choose what each level up to ${d.L} gave you.` });
       s.push({ title: 'Subclass points', secs: ['Subclass points'], intro: 'Spend SP on your class’s benefits, abilities and spells. Class-wide benefits come first.' },
-        { title: 'Gear', secs: ['Inventory', 'Notes'], intro: 'Add your starting gear (your subclass page lists the options) and anything else you carry.' });
+        { title: 'Gear', secs: ['Attacks and armour', 'Inventory', 'Notes'], intro: 'Add your attacks and armour, your starting gear (your subclass page lists the options) and anything else you carry.' });
       return s;
     }
 
@@ -614,6 +624,8 @@
         el('h1', { class: 'd-title' }, c.name || 'New character'),
         el('p', { class: 'cc-subtitle' }, summaryOf(c)),
         modeBar(c, d),
+        levelNotice(d),
+        inboxNotice(c),
         confirmDel ? el('div', { class: 'notice cc-confirm', role: 'alert' }, el('span', {}, 'Delete this character for good? '),
           el('button', { class: 'btn small danger', onclick: remove }, 'Delete'),
           el('button', { class: 'btn small ghost', onclick: () => { confirmDel = false; render(); } }, 'Keep')) : null,
@@ -621,11 +633,105 @@
       ];
       let body;
       if (mode === 'play') body = [playView(c, d)];
-      else if (mode === 'sheet') body = [el('div', { class: 'cc-sheetview' }, sheet(c, d))];
+      else if (mode === 'sheet') { const sh = sheet(c, d); body = [jumpBar(sh), el('div', { class: 'cc-sheetview' }, sh), rollRecord(c)]; }
       else if (mode === 'guide') body = guideView(c, d);
       else body = [levelUpPanel(c, d), ...editSections(d).map(t => section(t, SECTION_FNS[t](c, d)))];
       pane.replaceChildren(...[...head, ...body].flat().filter(Boolean), phoneBar(c, d) || '');
       return true;
+    }
+
+    // a markdown bullet list as sheet lines: "- **Name.** text" keeps its name, plain bullets become bullet lines
+    function bulletsOf(md) {
+      const out = [];
+      for (const line of String(md || '').split('\n')) {
+        if (!line.trim()) continue;
+        const m = line.match(/^\s*[-*]\s+(.*)$/);
+        if (!m) { if (out.length) out[out.length - 1].text += ' ' + plain(line); else out.push({ name: '', text: plain(line), sub: true }); continue; }
+        const nm = m[1].match(/^\*\*([^*]+?)\*\*\s*(.*)$/);
+        out.push(nm ? { name: nm[1].replace(/[.:]\s*$/, ''), text: plain(nm[2]), sub: true } : { name: '', text: plain(m[1]), sub: true });
+      }
+      return out;
+    }
+
+    // on screen: a bar to jump to each part of the sheet, and long parts fold away when their heading is tapped
+    function jumpBar(sh) {
+      const secs = [...sh.querySelectorAll('.sh-block')];
+      for (const sec of secs) {
+        const h = sec.querySelector('h2'), n = sec.children.length - 1;
+        if (n > 4 || sec.querySelectorAll('.sh-item').length > 5) {
+          h.setAttribute('role', 'button'); h.setAttribute('tabindex', '0'); h.setAttribute('aria-expanded', 'true'); h.classList.add('sh-fold');
+          const flip = () => { const f = sec.classList.toggle('folded'); h.setAttribute('aria-expanded', String(!f)); };
+          h.addEventListener('click', flip); h.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flip(); } });
+        }
+      }
+      if (secs.length < 4) return null;
+      return el('nav', { class: 'cc-jump', 'aria-label': 'Parts of the sheet' }, ...secs.map(sec => el('button', { type: 'button', class: 'chip', onclick: () => { sec.classList.remove('folded'); sec.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }, sec.getAttribute('data-h'))));
+    }
+
+    // how the stats came about: every set rolled, reroll and number typed in (on screen only, not in the downloads)
+    function rollRecord(c) {
+      const log = Array.isArray(c.rollLog) ? c.rollLog : [];
+      if (!log.length) return null;
+      const when = t => new Date(t).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+      const HOW = { set: 'rolled a set', 'in order': 'rolled in order', roll: 'rolled', reroll: 'rerolled', typed: 'typed in' };
+      const seen = new Set();
+      const rerolls = log.filter(x => { if (x.how === 'reroll') return true; if (x.how !== 'set' && x.how !== 'in order') return false; const again = seen.has(x.what); seen.add(x.what); return again; }).length;
+      return el('details', { class: 'cc-rolls' },
+        el('summary', {}, `Stat rolls: ${log.length} recorded${rerolls ? `, ${rerolls} reroll${rerolls === 1 ? '' : 's'}` : ''}`),
+        el('ol', {}, ...log.slice().reverse().map(x => el('li', {}, el('span', { class: 'w' }, when(x.at)), ` ${x.what} ${HOW[x.how] || x.how}: `, el('strong', {}, (x.values || []).join(', '))))));
+    }
+
+    // the Play view's quick reference: everything the character can do, searchable, so nobody flips to the sheet mid-fight
+    let qrFind = '';
+    function quickRef(c) {
+      const sd = sheetData(c);
+      const groups = [];
+      for (const b of sd.blocks) {
+        if (b.items && b.items.length && !/^At a glance|^Background|^Milestone|^Drawbacks/.test(b.h)) groups.push({ h: b.h, rows: b.items.filter(it => it.name || it.text).map(it => ({ name: it.name, text: it.text })) });
+        if (b.spells && b.spells.length) groups.push({ h: b.h, rows: b.spells.map(sp => ({ name: `${sp.name} (T${sp.tier}${sp.dice ? ', ' + sp.dice : ''})`, text: plain(sp.desc) })) });
+      }
+      if (!groups.length) return null;
+      const q = norm(qrFind.trim());
+      const shown = groups.map(g => ({ ...g, rows: q ? g.rows.filter(r => norm(`${r.name} ${r.text}`).includes(q)) : g.rows })).filter(g => g.rows.length);
+      const count = groups.reduce((a, g) => a + g.rows.length, 0);
+      const input = el('input', { type: 'search', class: 'qr-find', placeholder: 'Find an ability, feat or spell…', value: qrFind, 'aria-label': 'Find an ability, feat or spell',
+        oninput: e => { qrFind = e.target.value; clearTimeout(input._t); input._t = setTimeout(() => { render(); const f = document.querySelector('.qr-find'); if (f) { f.focus(); f.setSelectionRange(f.value.length, f.value.length); } }, 150); } });
+      return el('section', { class: 'qr' },
+        el('h3', { class: 'pl-h' }, 'Abilities, feats and spells', el('span', { class: 'bs-fine' }, ` ${count}`)),
+        count > 6 ? input : null,
+        ...shown.map(g => el('details', { class: 'qr-g', open: !!q || groups.length === 1 || null },
+          el('summary', {}, g.h, el('span', { class: 'n' }, ` ${g.rows.length}`)),
+          ...g.rows.map(r => el('p', { class: 'qr-row' }, r.name ? el('strong', {}, r.text ? r.name + '. ' : r.name) : null, r.text)))),
+        q && !shown.length ? el('p', { class: 'd-note' }, 'Nothing matches.') : null);
+    }
+
+    // things handed over from the party stash wait on the live sheet until the player adds them to their inventory
+    function inboxNotice(c) {
+      if (!H.Play || !cur || !cur.id || cur.readOnly) return null;
+      const live = H.Play.get(cur.id), inbox = live && Array.isArray(live.inbox) ? live.inbox.filter(x => x && x.name) : [];
+      if (!inbox.length) return null;
+      const take = async () => {
+        for (const x of inbox) c.items.push({ id: itemId(), name: String(x.name).slice(0, 120), qty: Math.max(1, num(x.qty, 1)), notes: String(x.notes || '').slice(0, 200), on: false });
+        await H.Play.change(cur.id, 0, { inbox: [] });
+        changed(); render();
+        save();
+      };
+      return el('div', { class: 'notice cc-inbox', role: 'status' },
+        el('span', {}, `From the party stash: ${inbox.map(x => `${x.qty > 1 ? x.qty + ' × ' : ''}${x.name}`).join(', ')}.`),
+        el('button', { class: 'btn small primary', onclick: take }, 'Add to my inventory'));
+    }
+
+    // the DM raises the party's level from the session screen (stored as levelTo on the live sheet); the player takes the levels here
+    const playAsked = new Set();
+    function levelNotice(d) {
+      if (!H.Play || !cur || !cur.id || cur.readOnly || lvlup) return null;
+      if (!playAsked.has(cur.id)) { playAsked.add(cur.id); H.Play.load([cur.id]); }
+      const live = H.Play.get(cur.id), to = live ? num(live.levelTo) : 0;
+      if (!to || to <= d.L) return null;
+      const gap = to - d.L;
+      return el('div', { class: 'notice cc-lvlnote', role: 'status' },
+        el('span', {}, `Your DM has raised the party to level ${to}.${gap > 1 ? ` That’s ${gap} levels to take, one at a time.` : ''}`),
+        el('button', { class: 'btn small primary', onclick: startLevelUp }, `Level up to ${d.L + 1}`));
     }
 
     // the live sheet at the table: HP, statuses, uses (play.js); the player and the DM can both change it
@@ -644,7 +750,13 @@
       if (cur.dirty && !cur.readOnly) return el('div', { class: 'notice' }, 'Save your changes first: the live sheet uses the saved character.');
       return el('div', { class: 'cc-play' },
         el('p', { class: 'd-note' }, canEdit ? 'Your character at the table. Changes save at once, and the DM sees them in the combat tracker (and can change them too).' : 'This character’s live sheet. Only its player and the DM can change it.'),
-        H.Play.sheet({ id: cur.id, name: c.name, maxHp: d.hp, canEdit, suggestions: canEdit ? playSuggestions(c) : [] }));
+        H.Dice && cur.campaign_id ? H.Dice.fight(cur.campaign_id, cur.id) : null,
+        H.Play.sheet({ id: cur.id, name: c.name, maxHp: d.hp, canEdit, suggestions: canEdit ? playSuggestions(c) : [] }),
+        quickRef(c),
+        // the dice: checks against this character's stats, any other roll, and the table's log
+        canEdit && H.Dice ? H.Dice.panel({ campaign: cur.campaign_id, charId: cur.id, stats: d.stats.filter(s => s.final != null).map(s => ({ k: s.k, v: s.final })),
+          attacks: c.attacks.filter(a => a.name.trim() || diceOk(a.dice)).map(a => { const st = d.stats.find(x => x.k === a.stat); return { name: a.name.trim() || 'Attack', stat: a.stat, need: st && st.final != null ? st.final : null, dice: diceOk(a.dice) ? a.dice.replace(/\s/g, '') : '' }; }),
+          statuses: ((H.Play.get(cur.id) || {}).statuses) || {} }) : null);
     }
 
     function guideView(c, d) {
@@ -807,40 +919,118 @@
     function setSlotGroup(i, key) { const slot = cur.data.classes[i]; clearGroup(slot.groupKey); slot.groupKey = key; changed(); render(); }
 
     function roll(n, sides) { return Array.from({ length: n }, () => 1 + Math.floor(Math.random() * sides)); }
-    function rollStat(k) {
+    function rollOne() {
       const { n, sides, keep } = RULES.statDice;
       const dice = roll(n, sides).sort((a, b) => a - b);
-      cur.data.rolls[k] = dice; cur.data.stats[k] = dice.slice(0, keep).reduce((a, x) => a + x, 0);
+      return { v: dice.slice(0, keep).reduce((a, x) => a + x, 0), dice };
+    }
+    // every roll goes in the character's roll record, so the DM can see how the stats came about
+    function logRoll(what, values, how) {
+      const c = cur.data;
+      c.rollLog = Array.isArray(c.rollLog) ? c.rollLog : [];
+      c.rollLog.push({ at: new Date().toISOString(), what, how, values });
+      if (c.rollLog.length > 60) c.rollLog = c.rollLog.slice(-60);
+    }
+    function rollStat(k) {
+      const r = rollOne();
+      cur.data.rolls[k] = r.dice; cur.data.stats[k] = r.v;
+      if (cur.data.typed) delete cur.data.typed[k];
+      return r;
+    }
+
+    /* How stats are rolled is the DM's call, per campaign (Session screen): roll a set and assign it (the default),
+       or roll each stat in order; and how many rerolls are allowed. Without a campaign, the default applies. */
+    const ROLL_DEFAULT = { method: 'assign', rerolls: 0 };
+    let campRules = null, campRulesBusy = false;
+    async function loadCampRules() {
+      if (campRulesBusy || !sb() || !user()) return;
+      campRulesBusy = true;
+      const [cp, mem] = await Promise.all([sb().from('campaigns').select('*').order('name', { ascending: true }), sb().from('campaign_members').select('campaign_id, user_id').eq('user_id', user().id)]);
+      campRules = { byId: new Map(((cp && cp.data) || []).map(x => [x.id, x])), mine: ((mem && mem.data) || []).map(x => x.campaign_id) };
+      campRulesBusy = false;
+      if (state.tab === 'chars') render();
+    }
+    function rollRules() {
+      if (!campRules) { loadCampRules(); return { ...ROLL_DEFAULT, from: '' }; }
+      const ids = [cur && cur.campaign_id, ...campRules.mine].filter(Boolean);
+      const cp = ids.map(id => campRules.byId.get(id)).find(Boolean);
+      const st = (cp && cp.settings && cp.settings.stats) || {};
+      return { method: st.method === 'order' ? 'order' : 'assign', rerolls: Number.isFinite(+st.rerolls) ? Math.max(0, Math.min(99, +st.rerolls)) : 0, from: cp ? cp.name : '' };
+    }
+    const groupKey = label => label === 'Stats' ? 'base' : 'combat';
+    const rollsUsed = (c, g) => num((c.rollCount || {})[g]);
+    function bump(c, g) { c.rollCount = c.rollCount || {}; c.rollCount[g] = rollsUsed(c, g) + 1; }
+
+    // roll a whole set for a group, to be placed on the stats in any order
+    function rollSet(keys, label) {
+      const c = cur.data, g = groupKey(label);
+      const set = keys.map(() => rollOne()).sort((a, b) => a.v - b.v);
+      c.pool = c.pool || {};
+      c.pool[g] = set.map(x => ({ ...x, to: null }));
+      for (const k of keys) { c.stats[k] = ''; delete c.rolls[k]; if (c.typed) delete c.typed[k]; }
+      bump(c, g);
+      logRoll(label, set.map(x => x.v), 'set');
+    }
+    function assign(keys, label, k, idx) {
+      const c = cur.data, pool = (c.pool || {})[groupKey(label)] || [];
+      for (const p of pool) if (p.to === k) p.to = null;
+      if (idx >= 0 && pool[idx]) { pool[idx].to = k; c.stats[k] = pool[idx].v; c.rolls[k] = pool[idx].dice; }
+      else { c.stats[k] = ''; delete c.rolls[k]; }
     }
 
     /* ---- stats: one card per stat ---- */
     const STAT_NAMES = { STR: 'Strength', DEX: 'Dexterity', INT: 'Intelligence', WIS: 'Wisdom', PER: 'Perception', CHA: 'Charisma' };
     function statCards(c, d, keys, label) {
       const { keep, sides } = RULES.statDice;
+      const R = rollRules(), g = groupKey(label), used = rollsUsed(c, g);
+      const pool = R.method === 'assign' && c.pool && c.pool[g] && c.pool[g].length === keys.length ? c.pool[g] : null;
+      const rolledAny = keys.some(k => c.stats[k] !== '' && c.stats[k] != null);
+      // rolling again is allowed while the DM's reroll allowance lasts (characters rolled before the record started aren't held to it)
+      const left = R.rerolls - Math.max(0, used - 1);
+      const canRoll = (used === 0 && !rolledAny && !pool) || left > 0;
       const cards = d.stats.filter(s => keys.includes(s.k)).map(s => {
         const dice = c.rolls[s.k], adj = num(c.adjust[s.k]), q = s.mod - adj;
-        const parts = [s.base != null ? `rolled ${s.base}` : null, q ? `quirks ${fmt(q)}` : null, adj ? `adjust ${fmt(adj)}` : null, s.lvlMod ? `levels ${fmt(s.lvlMod)}` : null].filter(Boolean);
+        const typed = c.typed && c.typed[s.k];
+        const parts = [s.base != null ? `${typed ? 'typed in' : 'rolled'} ${s.base}` : null, q ? `quirks ${fmt(q)}` : null, adj ? `adjust ${fmt(adj)}` : null, s.lvlMod ? `levels ${fmt(s.lvlMod)}` : null].filter(Boolean);
+        const slot = pool ? pool.findIndex(p => p.to === s.k) : -1;
         return el('div', { class: 'cc-stat' + (s.final == null ? ' empty' : '') },
           el('span', { class: 'k', title: STAT_NAMES[s.k] || s.k }, s.k),
           el('span', { class: 'v' }, s.final == null ? '—' : String(s.final)),
-          el('span', { class: 'bd' }, parts.length > 1 || s.base == null ? (parts.join(' · ') || 'Not rolled') : '\u00a0'),
+          el('span', { class: 'bd' }, parts.length > 1 || s.base == null ? (parts.join(' · ') || (pool ? 'Not placed' : 'Not rolled')) : '\u00a0'),
           dice ? el('span', { class: 'dice', title: `Rolled ${dice.join(', ')}; the highest is dropped`, html: dice.map((x, i) => i < keep ? String(x) : `<s>${x}</s>`).join(' ') }) : null,
+          pool ? el('select', { class: 'select cc-place', 'aria-label': `Number for ${s.k}`, onchange: e => { assign(keys, label, s.k, e.target.value === '' ? -1 : +e.target.value); changed(); render(); } },
+            el('option', { value: '' }, slot >= 0 ? 'Take it off' : 'Place a number…'),
+            ...pool.map((p, i) => (p.to === null || p.to === s.k) ? el('option', { value: String(i), selected: i === slot }, `${p.v}${p.to === s.k ? ' (here)' : ''}`) : null).filter(Boolean)) : null,
           showAdjust ? el('div', { class: 'cc-stat-edit' },
-            el('label', {}, 'Rolled', el('input', { type: 'number', class: 'num', min: String(keep), max: String(keep * sides), value: s.base == null ? '' : String(s.base), 'aria-label': `${s.k} rolled`, onchange: e => { cur.data.stats[s.k] = e.target.value === '' ? '' : num(e.target.value); delete cur.data.rolls[s.k]; changed(); render(); } })),
+            el('label', {}, 'Rolled', el('input', { type: 'number', class: 'num', min: String(keep), max: String(keep * sides), value: s.base == null ? '' : String(s.base), 'aria-label': `${s.k} rolled`,
+              onchange: e => { const v = e.target.value === '' ? '' : num(e.target.value); if (v === cur.data.stats[s.k] && cur.data.typed && cur.data.typed[s.k]) return; cur.data.stats[s.k] = v; delete cur.data.rolls[s.k]; if (v !== '') { cur.data.typed = cur.data.typed || {}; cur.data.typed[s.k] = true; logRoll(s.k, [v], 'typed'); } if (pool) for (const p of pool) if (p.to === s.k) p.to = null; changed(); render(); } })),
             el('label', {}, 'Adjust', el('input', { type: 'number', class: 'num', value: String(adj), title: '−1 improves the stat, +1 worsens it', 'aria-label': `${s.k} adjustment`, onchange: e => { cur.data.adjust[s.k] = num(e.target.value); changed(); render(); } }))) : null,
-          el('button', { class: 'mini', 'aria-label': `${s.base == null ? 'Roll' : 'Reroll'} ${s.k}`, onclick: () => { rollStat(s.k); changed(); render(); } }, s.base == null ? 'Roll' : 'Reroll'));
+          R.method === 'order' && (s.base == null || canRoll)
+            ? el('button', { class: 'mini', 'aria-label': `${s.base == null ? 'Roll' : 'Reroll'} ${s.k}`, onclick: () => { const r = rollStat(s.k); if (s.base != null) bump(cur.data, g); logRoll(s.k, [r.v], s.base == null ? 'roll' : 'reroll'); changed(); render(); } }, s.base == null ? 'Roll' : 'Reroll') : null);
       });
-      const rolledAny = keys.some(k => c.stats[k] !== '' && c.stats[k] != null);
+      const free = pool ? pool.filter(p => p.to === null) : [];
+      const head = R.method === 'assign'
+        ? el('button', { class: 'btn small' + (pool || rolledAny ? '' : ' primary'), disabled: !canRoll, title: canRoll ? null : 'No rerolls left for this campaign',
+            onclick: () => { rollSet(keys, label); changed(); render(); } }, pool || rolledAny ? `Reroll the ${label.toLowerCase()}` : `Roll your ${label.toLowerCase()}`)
+        : el('button', { class: 'btn small' + (rolledAny ? '' : ' primary'), disabled: rolledAny && !canRoll, title: rolledAny && !canRoll ? 'No rerolls left for this campaign' : null,
+            onclick: () => { const vals = keys.map(k => rollStat(k).v); if (rolledAny) bump(cur.data, g); else { cur.data.rollCount = cur.data.rollCount || {}; cur.data.rollCount[g] = Math.max(1, rollsUsed(cur.data, g)); } logRoll(label, vals, 'in order'); changed(); render(); } }, `${rolledAny ? 'Reroll' : 'Roll'} all ${label.toLowerCase()}`);
       return [
-        el('div', { class: 'cc-stat-head' }, el('h3', { class: 'cc-h3' }, label),
-          el('button', { class: 'btn small' + (rolledAny ? '' : ' primary'), onclick: () => { keys.forEach(rollStat); changed(); render(); } }, `${rolledAny ? 'Reroll' : 'Roll'} all ${label.toLowerCase()}`)),
+        el('div', { class: 'cc-stat-head' }, el('h3', { class: 'cc-h3' }, label), head),
+        pool ? el('div', { class: 'cc-pool', role: 'group', 'aria-label': `Your ${label.toLowerCase()} rolls` },
+          el('span', { class: 'k' }, free.length ? `To place (lower is better):` : 'All placed:'),
+          ...pool.map(p => el('span', { class: 'cc-poolv' + (p.to ? ' used' : ''), title: `${p.dice.join(', ')}${p.to ? ' · on ' + p.to : ''}` }, String(p.v), p.to ? el('span', { class: 'to' }, p.to) : null))) : null,
         el('div', { class: 'cc-statgrid' + (keys.length === 5 ? ' five' : '') }, ...cards),
       ];
     }
     function statsSection(c, d) {
       const { n, sides, keep } = RULES.statDice;
+      const R = rollRules();
+      const how = R.method === 'assign'
+        ? `Roll a set of numbers, then place each one on the stat you want it on.`
+        : `Roll each stat in turn.`;
+      const re = R.rerolls === 0 ? 'No rerolls.' : R.rerolls >= 99 ? 'Rerolls as you like.' : `${R.rerolls} reroll${R.rerolls === 1 ? '' : 's'} of each set.`;
       return [
-        el('p', { class: 'd-note' }, `Each stat is ${n}d${sides}, keeping the lowest ${keep}. Lower is better. Level-up improvements are added for you.`),
+        el('p', { class: 'd-note' }, `Each number is ${n}d${sides}, keeping the lowest ${keep}. Lower is better. ${how} ${re}${R.from ? ` (The rules for ${R.from}.)` : ''} Level-up improvements are added for you.`),
         ...statCards(c, d, BASE_STATS, 'Stats'),
         ...statCards(c, d, COMBAT_STATS, 'Combat stats'),
         el('label', { class: 'toggle cc-adjust-t' }, el('input', { type: 'checkbox', checked: showAdjust, onchange: e => { showAdjust = e.target.checked; render(); } }),
@@ -1249,6 +1439,46 @@
       }
       return catalogue ? catalogue.items.filter(i => !NOT_CARRIED.has(i.cat)) : [];
     }
+    // dice like 1d8, 2d6+3 or 12 (the same forms the dice roller takes)
+    const diceOk = t => /^[+-]?(\d{0,2}d\d{1,4}|\d{1,4})([+-](\d{0,2}d\d{1,4}|\d{1,4})){0,5}$/i.test(String(t || '').replace(/\s/g, ''));
+    function knownSpellsWithDice(c, d) {
+      const out = [];
+      for (const slot of d.slots) {
+        if (!slot.g) continue;
+        if (c.buys.general[slot.g.key] && slot.g.spellsTag) out.push(...spellsWith(slot.g.spellsTag));
+        for (const sub of slot.g.items) { const tiers = c.buys.tiers[sub.id] || []; if (tiers.length) out.push(...spellsWith(sub.spellsTag).filter(sp => tiers.includes(sp.tier))); }
+      }
+      const seen = new Set();
+      return out.filter(sp => sp.dice && /\d*d\d+/.test(sp.dice) && !seen.has(sp.name) && seen.add(sp.name));
+    }
+    function attacksSection(c, d) {
+      const A = c.attacks, ar = c.armour;
+      const statVal = k => { const s = d.stats.find(x => x.k === k); return s && s.final != null ? s.final : null; };
+      const rows = A.map((a, i) => el('div', { class: 'cc-atk' },
+        el('input', { type: 'text', class: 'cc-atk-name', value: a.name, maxlength: '80', placeholder: 'Longsword, Firebolt…', 'aria-label': 'Attack name', oninput: e => { a.name = e.target.value; changed(); } }),
+        el('select', { class: 'select cc-atk-stat', 'aria-label': `Stat ${a.name || 'this attack'} hits with`, onchange: e => { a.stat = e.target.value; changed(); render(); } },
+          ...['Melee', 'Ranged', 'Casting'].map(k => el('option', { value: k, selected: a.stat === k }, `${k}${statVal(k) != null ? ' ' + statVal(k) : ''}`))),
+        el('input', { type: 'text', class: 'cc-atk-dice' + (a.dice && !diceOk(a.dice) ? ' bad' : ''), value: a.dice, maxlength: '30', placeholder: '1d8', 'aria-label': `Damage dice for ${a.name || 'this attack'}`,
+          oninput: e => { a.dice = e.target.value; e.target.classList.toggle('bad', !!a.dice && !diceOk(a.dice)); changed(); } }),
+        el('input', { type: 'text', class: 'cc-atk-notes', value: a.notes, maxlength: '200', placeholder: 'Notes (reach, range, effects)', 'aria-label': `Notes for ${a.name || 'this attack'}`, oninput: e => { a.notes = e.target.value; changed(); } }),
+        el('button', { class: 'mini danger', 'aria-label': `Remove ${a.name || 'this attack'}`, onclick: () => { A.splice(i, 1); changed(); render(); } }, 'Remove')));
+      const spells = knownSpellsWithDice(c, d).filter(sp => !A.some(a => a.name === sp.name)).slice(0, 16);
+      return [
+        el('p', { class: 'd-note' }, 'An attack hits on a d20 of its stat or more, plus the target’s Defence. Damage is the weapon’s or spell’s dice; feats and abilities can add to it. These show on your sheet and in the Play view, where you can roll them.'),
+        rows.length ? el('div', { class: 'cc-atks' }, ...rows) : el('p', { class: 'hint' }, 'No attacks yet.'),
+        el('div', { class: 'cc-row' },
+          el('button', { class: 'btn small' + (A.length ? '' : ' primary'), disabled: A.length >= 30, onclick: () => { A.push({ id: itemId(), name: '', stat: 'Melee', dice: '', notes: '' }); changed(); render(); } }, '+ Add an attack')),
+        spells.length ? el('div', { class: 'cc-sugg' }, el('span', { class: 'hint' }, 'From your spells: '),
+          ...spells.map(sp => el('button', { class: 'chip', onclick: () => { A.push({ id: itemId(), name: sp.name, stat: 'Casting', dice: (sp.dice.match(/\d*d\d+(\s*[+-]\s*\d+)?/i) || [''])[0].replace(/\s/g, ''), notes: `Tier ${sp.tier} spell` }); changed(); render(); } }, `${sp.name} (${sp.dice})`))) : null,
+        el('h3', { class: 'cc-h3' }, 'Armour'),
+        el('div', { class: 'cc-armour' },
+          el('label', {}, 'Armour', el('input', { type: 'text', value: ar.name, maxlength: '80', placeholder: 'Leather, chainmail…', oninput: e => { ar.name = e.target.value; changed(); } })),
+          el('label', {}, 'Defence +', el('input', { type: 'number', class: 'num', min: '0', max: '20', value: String(ar.defence), onchange: e => { ar.defence = Math.max(0, Math.min(20, num(e.target.value))); changed(); render(); } })),
+          el('label', {}, 'Min hit', el('input', { type: 'number', class: 'num', min: '0', max: '50', value: String(ar.minHit), onchange: e => { ar.minHit = Math.max(0, Math.min(50, num(e.target.value))); changed(); render(); } }))),
+        el('p', { class: 'hint' }, `Your Defence: ${d.defence}${d.classDefence ? ` (class ${d.classDefence}${ar.defence ? ` + armour ${ar.defence}` : ''})` : ar.defence ? ' (armour)' : ''}. Attackers need that much more on their d20. Weapon damage under your Min hit (${d.minHit}) doesn’t count; spells, status damage and area effects always do.`),
+      ];
+    }
+
     function inventorySection(c) {
       const items = c.items;
       const touch = () => changed();
@@ -1299,11 +1529,16 @@
       out.blocks.push({ h: 'Combat stats', table: [['Stat', ...cs.map(s => s[0])], ['Score', ...cs.map(s => s[1])]], note: 'Roll-under: lower is better.' });
       const live = d.slots.filter(x => x.cls);
       const weapons = [...new Set(live.flatMap(x => (x.cls.meta.weapons || '').split(/,\s*/)).filter(Boolean))].join(', ');
-      const vitals = [['HP', String(d.hp)], ['Hit die', bestDie(d) || '—'], ['Defence', (d.cls && d.cls.meta.defence) || '—'],
+      const vitals = [['HP', String(d.hp)], ['Hit die', bestDie(d) || '—'], ['Defence', d.defence ? `+${d.defence}` : ((d.cls && d.cls.meta.defence) || '—')], ...(d.minHit ? [['Min hit', String(d.minHit)]] : []), ...(c.armour.name ? [['Armour', c.armour.name]] : []),
         ['Weapons', weapons || '—'], ['Languages', [d.r && d.r.meta.languages, d.r2 && d.r2.meta.languages].filter(Boolean).join(', ') || '—'],
         ['Renown', String(d.R)], ['SP', `${d.spent} spent of ${d.total}`], ...(d.fp ? [['FP', String(d.fp)]] : [])];
       if (c.age) vitals.splice(0, 0, ['Age', c.age]);
       out.blocks.push({ h: 'At a glance', pairs: vitals });
+      const atks = c.attacks.filter(a => a.name.trim() || a.dice.trim());
+      if (atks.length) {
+        const sv = k => { const st = d.stats.find(x => x.k === k); return st && st.final != null ? st.final : '—'; };
+        out.blocks.push({ h: 'Attacks', grid: [['Attack', 'Hits on', 'Damage', 'Notes'], ...atks.map(a => [a.name.trim() || 'Attack', `${a.stat} ${sv(a.stat)}`, a.dice.trim() || '—', a.notes.trim()])] });
+      }
       if (c.background) out.blocks.push({ h: 'Background', text: c.background });
       if (d.r) {
         const t1 = raceTraits(d.r), t2 = d.r2 ? raceTraits(d.r2) : null;
@@ -1319,9 +1554,13 @@
           const tr = (slot.cls.body.split(/\n### /).slice(1).find(p => p.startsWith(slot.cls.meta.trait)) || '').split('\n').slice(1).join(' ');
           items.push({ name: `Class trait: ${slot.cls.meta.trait}`, text: plain(tr) });
         }
-        if (slot.g && c.buys.general[slot.g.key]) items.push({ name: `${slot.g.title}: class-wide benefits`, text: plain(slot.g.intro || '') });
+        // class-wide benefits and subclass feats: one line per benefit or ability, like every other ability on the sheet
+        if (slot.g && c.buys.general[slot.g.key]) items.push({ name: `${slot.g.title}: class-wide benefits`, text: '' }, ...bulletsOf(slot.g.intro));
         if (slot.g) for (const sub of slot.g.items) {
-          if (slot.magic && c.buys.feat[sub.id]) items.push({ name: `${sub.name} (subclass feat)`, text: abilities(sub).map(a => `${a.name}. ${plain(a.text)}`).join(' ') || plain(sub.body) });
+          if (slot.magic && c.buys.feat[sub.id]) {
+            const ab = abilities(sub);
+            items.push({ name: `${sub.name} (subclass feat)`, text: ab.length ? '' : plain(sub.body) }, ...ab.map(a => ({ name: a.name, text: plain(a.text), sub: true })));
+          }
           for (const a of abilities(sub)) if ((c.buys.abil[sub.id] || []).includes(a.key)) items.push({ name: `${a.name} (${sub.name})`, text: plain(a.text) });
         }
         out.blocks.push({ h: `${slot.i ? 'Extra class' : 'Class'}: ${slot.label}`, items });
@@ -1356,19 +1595,22 @@
       if (c.gear) out.blocks.push({ h: 'Starting gear', text: c.gear });
       if (c.equipment) out.blocks.push({ h: 'Equipment', text: c.equipment });
       if (c.notes) out.blocks.push({ h: 'Notes', text: c.notes });
+      // table order: what you need mid-fight first (HP, attacks, stats), then abilities and spells, then gear, then background
+      const RANK = { 'At a glance': 0, 'Attacks': 1, 'Stats': 2, 'Combat stats': 3, 'Soft skills': 6, 'Milestone boons': 7, 'Drawbacks and quirks': 8, 'Inventory': 9, 'Starting gear': 9, 'Equipment': 9, 'Background': 10, 'Notes': 11 };
+      out.blocks = out.blocks.map((b, i) => ({ b, i, r: RANK[b.h] == null ? 5 : RANK[b.h] })).sort((x, y) => x.r - y.r || x.i - y.i).map(x => x.b);
       return out;
     }
 
     function sheetHTML(data) {
       const kids = [el('header', { class: 'sh-head' }, el('h1', {}, data.title), el('p', {}, data.subtitle))];
       for (const b of data.blocks) {
-        const sec = el('section', { class: 'sh-block' + (b.table ? ' sh-stats' : '') }, el('h2', {}, b.h));
-        if (b.table) sec.append(el('div', { class: 'sh-statrow', style: `grid-template-columns: repeat(${b.table[0].length - 1}, 1fr)` }, ...b.table[0].slice(1).map((k, i) => el('div', { class: 'sh-stat' }, el('span', { class: 'k' }, k), el('span', { class: 'v' }, b.table[1][i + 1])))), b.note ? el('p', { class: 'sh-note' }, b.note) : '');
+        const sec = el('section', { class: 'sh-block' + (b.table ? ' sh-stats' : ''), 'data-h': b.h }, el('h2', {}, b.h));
+        if (b.table) sec.append(el('div', { class: 'sh-statrow', style: `grid-template-columns: repeat(${b.table[0].length - 1}, minmax(0, 1fr))` }, ...b.table[0].slice(1).map((k, i) => el('div', { class: 'sh-stat' }, el('span', { class: 'k' }, k), el('span', { class: 'v' }, b.table[1][i + 1])))), b.note ? el('p', { class: 'sh-note' }, b.note) : '');
         if (b.grid) sec.append(el('table', { class: 'sh-table' }, el('thead', {}, el('tr', {}, ...b.grid[0].map(t => el('th', {}, t)))),
           el('tbody', {}, ...b.grid.slice(1).map(r => el('tr', {}, ...r.map(t => el('td', {}, t)))))));
         if (b.pairs) sec.append(el('dl', { class: 'sh-pairs' }, ...b.pairs.flatMap(([k, v]) => [el('dt', {}, k), el('dd', {}, v)])));
         if (b.text) sec.append(...b.text.split(/\n+/).map(t => el('p', {}, t)));
-        if (b.items) sec.append(...b.items.map(it => el('p', { class: 'sh-item' }, el('strong', {}, it.name + '. '), it.text)));
+        if (b.items) sec.append(...b.items.map(it => el('p', { class: 'sh-item' + (it.sub ? ' sh-sub' : '') }, it.name ? el('strong', {}, it.text ? it.name + '. ' : it.name) : null, it.text)));
         if (b.spells) sec.append(...b.spells.map(s => el('p', { class: 'sh-item' }, el('strong', {}, s.name), ` (T${s.tier}${s.dice ? ', ' + s.dice : ''}). `, plain(s.desc))));
         kids.push(sec);
       }
@@ -1404,7 +1646,7 @@
         if (b.grid) out.push(table(b.grid.map((r, i) => `<w:tr>${r.map(t => cell(t, { b: i === 0 })).join('')}</w:tr>`)));
         if (b.pairs) out.push(table(b.pairs.map(([k, v]) => `<w:tr>${cell(k, { b: true })}${cell(v)}</w:tr>`)));
         if (b.text) for (const t of b.text.split(/\n+/)) out.push(para(run(t)));
-        if (b.items) for (const it of b.items) out.push(para(run(it.name + '. ', { b: true }) + run(it.text)));
+        if (b.items) for (const it of b.items) out.push(para((it.sub ? run('• ') : '') + (it.name ? run(it.text ? it.name + '. ' : it.name, { b: true }) : '') + run(it.text)));
         if (b.spells) for (const s of b.spells) out.push(para(run(s.name, { b: true }) + run(` (T${s.tier}${s.dice ? ', ' + s.dice : ''}). `) + run(plain(s.desc))));
       }
       return out.join('');
@@ -1464,13 +1706,16 @@
     return {
       init, renderList, renderDetail,
       maxHp: data => { try { return derived(normalize(JSON.parse(JSON.stringify(data || {})))).hp; } catch (e) { return 0; } },
+      // the signed-in player's own saved characters, for the home page (null until the list has loaded)
+      mine: () => { if (!list) { refreshList().then(() => { if (state.tab === 'all') render(); }); return null; } return user() ? list.filter(r => r.owner_id === user().id) : []; },
       // what the balance lab needs: HP, level, combat stats (null when not rolled yet) and class defence
       fightStats: data => {
         try {
           const d = derived(normalize(JSON.parse(JSON.stringify(data || {}))));
           const st = Object.fromEntries(d.stats.map(s => [s.k.toLowerCase(), s.final]));
-          return { hp: d.hp, level: d.L, melee: st.melee, ranged: st.ranged, casting: st.casting, dodge: st.dodge,
-            defence: d.slots.reduce((a, x) => Math.max(a, x.cls ? num(String(x.cls.meta.defence || '').replace('+', '')) : 0), 0) };
+          const c = normalize(JSON.parse(JSON.stringify(data || {})));
+          const attacks = c.attacks.filter(a => diceOk(a.dice)).map(a => ({ name: a.name || 'Attack', stat: a.stat, dice: a.dice.replace(/\s/g, ''), hit: st[a.stat.toLowerCase()] }));
+          return { hp: d.hp, level: d.L, melee: st.melee, ranged: st.ranged, casting: st.casting, dodge: st.dodge, defence: d.defence, minHit: d.minHit, attacks };
         } catch (e) { return null; }
       },
       _test: { sheetData, docxFiles, derived, blank, normalize, featList, skillList, RULES, abilities, traitLists, current: () => cur },

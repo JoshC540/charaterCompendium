@@ -7,8 +7,8 @@ window.HandbookBestiary = function (H) {
   const { el, md, esc, norm, state, go, render, Notes, $ } = H;
   const statusMd = H.statusMd || (() => '');
 
-  const TABS = ['beast', 'vol2', 'vol3', 'named', 'forge', 'encounter', 'fight', 'lab', 'brules'];
-  const LABEL = { beast: 'Volume I', vol2: 'Volume II', vol3: 'Volume III', named: 'Named monsters', forge: 'Dragons & elementals', encounter: 'Encounters', fight: 'Combat tracker', lab: 'Balance lab', brules: 'Monster rules' };
+  const TABS = ['session', 'beast', 'vol2', 'vol3', 'named', 'forge', 'encounter', 'fight', 'lab', 'brules'];
+  const LABEL = { beast: 'Volume I', vol2: 'Volume II', vol3: 'Volume III', named: 'Named monsters', forge: 'Dragons & elementals', encounter: 'Encounters', fight: 'Combat tracker', lab: 'Balance lab', brules: 'Monster rules', session: 'Session' };
   const TIERS = ['Juvenile', 'Adult', 'Elder', 'Ancient', 'Primordial'];
   const STATS = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
   const COMBAT = ['melee', 'ranged', 'dodge', 'disengage', 'casting'];
@@ -1761,7 +1761,50 @@ window.HandbookBestiary = function (H) {
           el('span', { class: 'nm' }, r.name), el('span', { class: 'bs-hitg' }, `Level ${r.level} · max HP ${r.max || '–'}`), el('span', { class: 'bs-kr' }, inFight ? 'In the fight' : 'Add')); }))),
       el('p', { class: 'bs-fine' }, 'Their HP, statuses and uses stay in sync with each player’s live sheet (Characters → Play).'));
   }
+  /* Players can follow the fight on their phones (fight_view): the order, whose turn it is, statuses, and enemies'
+     health in words only. Sent a moment after each change while the DM has a campaign picked for it. */
+  let shareT = null, shareErr = '', sharedTo = '';
+  function healthWord(f) {
+    if (f.kind === 'monster') { const m = f.max || 1; return f.hp <= 0 ? 'Down' : f.hp >= m ? 'Unhurt' : f.hp > m / 2 ? 'Hurt' : 'Badly hurt'; }
+    return isDown(f) ? 'Down' : null;
+  }
+  function shareView() {
+    const stl = ((H.statuses && H.statuses()) || {}).statuses || [];
+    const sName = id => (stl.find(x => x.id === id) || {}).name || id;
+    return { active: true, started: !!FIGHT.started, round: FIGHT.round || 0, at: new Date().toISOString(),
+      order: order().filter(f => f.kind !== 'lair').map(f => {
+        const L = linked(f) ? liveOf(f) : null;
+        return { name: f.name, side: f.kind === 'pc' ? 'party' : 'foe', charId: f.charId || null, now: !!FIGHT.started && f.id === FIGHT.cur,
+          health: healthWord(f), hp: L ? L.hp : null, max: L ? L.max : null,
+          statuses: Object.entries(stsOf(f) || {}).filter(([, n]) => n > 0).map(([id, n]) => n > 1 ? `${sName(id)} ×${n}` : sName(id)) };
+      }) };
+  }
+  function shareFight(now) {
+    const to = FIGHT && FIGHT.share ? FIGHT.share : '';
+    clearTimeout(shareT);
+    if (!to && !sharedTo) return;
+    shareT = setTimeout(async () => {
+      const off = sharedTo && sharedTo !== to ? sharedTo : '';
+      if (off) await sb().from('fight_view').upsert({ campaign_id: off, data: { active: false }, updated_at: new Date().toISOString() });
+      if (to) {
+        const r = await sb().from('fight_view').upsert({ campaign_id: to, data: FIGHT && FIGHT.list.length ? shareView() : { active: false }, updated_at: new Date().toISOString() });
+        shareErr = r.error ? (/fight_view|does not exist|schema cache/i.test(String(r.error.message)) ? 'Run the latest supabase/setup.sql to let players follow fights.' : String(r.error.message)) : '';
+      }
+      sharedTo = to;
+    }, now ? 0 : 700);
+  }
+  let shareCamps = null;
+  function shareBox() {
+    if (!shareCamps) { shareCamps = []; sb().from('campaigns').select('id, name').order('name', { ascending: true }).then(r => { shareCamps = r.data || []; render(); }); }
+    if (!shareCamps.length) return null;
+    return el('div', { class: 'ft-share' },
+      el('label', {}, 'Players follow it in ', el('select', { class: 'select', 'aria-label': 'Campaign whose players can follow this fight', onchange: e => { FIGHT.share = e.target.value; fightSave(); render(); } },
+        el('option', { value: '' }, 'nobody (hidden)'), ...shareCamps.map(c => el('option', { value: c.id, selected: FIGHT.share === c.id }, c.name)))),
+      el('span', { class: 'bs-fine' }, FIGHT.share ? 'They see the order, whose turn it is, statuses, and enemies as unhurt, hurt, badly hurt or down.' : ''),
+      shareErr ? el('span', { class: 'notes-msg' }, shareErr) : null);
+  }
   function fightSave() {
+    shareFight();
     if (!FIGHT) { try { localStorage.removeItem(FIGHT_KEY); } catch (e) { /* ignore */ } return; }
     FIGHT.mech = [...MECH.entries()].filter(([k]) => k.startsWith('fight:'));
     try { localStorage.setItem(FIGHT_KEY, JSON.stringify(FIGHT)); } catch (e) { /* this visit only */ }
@@ -1784,9 +1827,11 @@ window.HandbookBestiary = function (H) {
     if (!f.name) f.name = v ? v.name : c.name;
     return f;
   }
-  function fightFromEncounter() {
+  // chars: saved characters ({ id, name, level, max }) to fight as themselves, linked to their live sheets
+  function fightFromEncounter(chars) {
     const list = [];
-    ENC.party.forEach((lvl, i) => list.push({ id: fid(), kind: 'pc', name: `Adventurer ${i + 1}`, level: lvl, init: null, statuses: {}, down: false, note: '' }));
+    if (chars && chars.length) for (const r of chars) list.push({ id: fid(), kind: 'pc', charId: r.id, name: r.name, level: r.level, max: r.max, init: null, statuses: {}, down: false, note: '' });
+    else ENC.party.forEach((lvl, i) => list.push({ id: fid(), kind: 'pc', name: `Adventurer ${i + 1}`, level: lvl, init: null, statuses: {}, down: false, note: '' }));
     for (const r of ENC.rows) {
       const c = D.byId.get(r.ref); if (!c) continue;
       const v = rowView(r);
@@ -1907,6 +1952,7 @@ window.HandbookBestiary = function (H) {
           const u = FIGHT.undo.pop(); const t = FIGHT.list.find(x => x.id === u.id); if (t) t.hp = u.hp; if (u.tick && FIGHT.ticked === u.tick) FIGHT.ticked = ''; fightSave(); render();
         } }, '↶ Undo') : null,
         el('button', { class: 'btn small primary', onclick: () => step(1) }, FIGHT.started ? 'Next turn →' : 'Start the fight')),
+      shareBox(),
       el('p', { class: 'ft-hint' }, FIGHT.started ? 'Statuses and recharge timers are checked at the start of each creature’s own turn. Change an initiative any time, then press Sort.' : 'Type everyone’s initiative (Enter moves to the next), then start. Highest goes first; ties keep their order.'));
     const now = FIGHT.started ? FIGHT.list.find(x => x.id === cur) : null;
     const notes = now ? turnNotes(now) : [];
@@ -2096,6 +2142,7 @@ window.HandbookBestiary = function (H) {
     else if (state.tab === 'encounter') renderEncounter(box, meta);
     else if (state.tab === 'fight') renderFightList(box, meta);
     else if (state.tab === 'lab') { if (LAB) LAB.renderList(box, meta); }
+    else if (state.tab === 'session') { if (SESSION) SESSION.renderList(box, meta); }
     else if (state.tab === 'brules') renderRulesList(box, meta);
   }
 
@@ -2107,7 +2154,7 @@ window.HandbookBestiary = function (H) {
       document.body.classList.remove('has-detail');
       pane.classList.remove('placeholder');
       pane.replaceChildren();
-      document.body.classList.toggle('bs-wide', !!D && ['forge', 'encounter', 'lab'].includes(state.tab));
+      document.body.classList.toggle('bs-wide', !!D && ['forge', 'encounter', 'lab', 'session'].includes(state.tab));
       return false;
     }
     document.body.classList.remove('bs-wide');
@@ -2166,6 +2213,17 @@ window.HandbookBestiary = function (H) {
   // the balance lab (lab.js) works from the same data and the same encounter
   const LAB = window.HandbookLab ? window.HandbookLab({ el, go, render, Notes, fightStats: H.fightStats,
     B: { data: () => D, view: (c, tpl, forge) => view(c, tpl, forge), rowView, encounter: () => ENC, encMaths, open: (c, tpl) => openCreature(c, tpl), krText } }) : null;
+
+  // the session screen (session.js): planned encounters go through the same builder and tracker
+  const SESSION = window.HandbookSession ? window.HandbookSession({ el, go, render, Notes, Play: H.Play, Atlas: H.Atlas, Dice: H.Dice, charHp: H.charHp, statuses: H.statuses,
+    B: { data: () => D, rowView, krText,
+      encounter: () => ENC,
+      mathsFor: enc => { const keep = ENC; ENC = enc; try { return encMaths(); } finally { ENC = keep; } },
+      useEncounter: enc => { ENC = { party: enc.party.slice(), rows: JSON.parse(JSON.stringify(enc.rows)) }; encSave(); },
+      startFight: (enc, chars, camp) => {
+        ENC = { party: chars.length ? chars.map(c => c.level) : enc.party.slice(), rows: JSON.parse(JSON.stringify(enc.rows)) }; encSave();
+        fightRestored = true; fightFromEncounter(chars); if (camp && FIGHT) { FIGHT.share = camp; fightSave(); } go({ tab: 'fight', mon: '' }, true);
+      } } }) : null;
 
   // for tests and future tools (combat simulator, price tool)
   const api = { view: (id, tpl, forge) => D && view(D.byId.get(id), tpl, forge), data: () => D, encounter: () => D && encMaths(),
