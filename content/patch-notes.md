@@ -7,8 +7,31 @@
 
 # 2026
 
+## 26 Nov 2026
+
+- **Weapons and armour on the character sheet:** typed in by hand → tick Equipped in your inventory: weapons become attacks with their damage, and armour and shields add their Defence, Min hit and temp HP
+- **Weapons and armour from the item list:** price and weight only → damage dice, Defence, Min hit and temp HP for each one
+- **Armour temp HP:** — → every armour gives temp HP, back on a long rest: 15 to 25 for light body armour (instead of Min hit), 23 to 40 for heavy armour (as well as Min hit)
+- **Materials:** — → choose what your weapons and armour are made of: a better material (mithral, dragonhide, ironroot…) adds damage, a bigger damage die, Min hit, Defence and temp HP; a worse one takes them off
+- **Material effects:** — → special materials have their own effect on weapons and armour (silver against lycanthropes, frost and fire, lifesteal, resistances…), shown on your sheet, in shops and when crafting
+- **Quality:** price only → Great, Masterwork, Legendary and Artifact gear add to damage, and to Defence for armour and shields
+- **Untrained weapons:** — → attacking with a weapon your class isn't trained in is done with disadvantage
+- **Starting kit:** — → your class's starting weapons and equipment as one-tap picks in your inventory
+- **Rests:** reset your uses → Short rest also rolls your hit die for HP; Long rest also gives full HP and your armour's temp HP
+- **Uses:** — → per combat, with End of combat
+- **Marks:** — → awarded by the DM for a deed, and shown on your character sheet with what earned them
+- **From the DM:** — → bonus feats, soft skill ranks, traits and SP the DM gives your character show on your sheet; extra feat and skill picks are yours to choose
+- **DM gear:** — → the DM can give your character a weapon or armour with any numbers (any dice, like d30 or d75), set the numbers on a weapon or armour you carry, and add extra Defence, Min hit or temp HP
+- **Death saves:** on your sheet only → shown to the party during a fight, with Stable or Dead at three
+- **Shops:** — → buy from your purse at the shops the DM opens, and offer things to sell
+- **Contracts:** — → the guild's contract board: take on a contract, and its reward goes into the party account
+- **Handouts:** — → letters and pictures from the DM pop up on your screen and stay under Notes
+- **Next session:** — → say which dates you can play; the date shows on your home page and in Notes
+- **Table screen:** — → a page for a TV at the table with the turn order, the dice, a map and handouts
+
 ## 25 Nov 2026
 
+- **Atlas maps:** every name showed at once when you pointed at the map → numbered pins with a key underneath, a button to show one kind of pin, and Enlarge to zoom in full screen
 - **Stat rolling:** each stat rolled in order → roll a set, then place each number on the stat you want; the DM sets the method and how many rerolls for each campaign, and every roll is recorded on the sheet
 - **Class-wide benefits and subclass feats on the sheet:** run together in one paragraph → each benefit and ability on its own line
 - **Attacks and armour:** — → a section on the character sheet for your attacks (the stat each uses and its damage dice) and the armour you wear, and a Core rules entry for how they work

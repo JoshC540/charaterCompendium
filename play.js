@@ -14,13 +14,14 @@ window.HandbookPlay = function (H) {
   const pending = new Map();        // character id -> number of writes in flight (a poll mustn't undo them)
   const syncing = new Set();        // characters whose max HP is being set from their sheet
   let channel = null, live = false, pollT = null, lastErr = '';
-  const PERS = [['rest', 'Per rest'], ['long', 'Per long rest'], ['day', 'Per day'], ['session', 'Per session'], ['arc', 'Per arc'], ['none', 'Doesn’t reset']];
+  const PERS = [['combat', 'Per combat'], ['rest', 'Per rest'], ['long', 'Per long rest'], ['day', 'Per day'], ['session', 'Per session'], ['arc', 'Per arc'], ['none', 'Doesn’t reset']];
   const PER_LABEL = Object.fromEntries(PERS);
   const uid = () => Math.random().toString(36).slice(2, 9);
   const statusList = () => ((H.statuses && H.statuses()) || { statuses: [] }).statuses;
   const stOf = id => statusList().find(s => s.id === id);
   const stCap = id => { const n = parseInt((stOf(id) || {}).max, 10); return isNaN(n) ? Infinity : n; };
 
+  const resting = new Set(), restNote = new Map();   // short rests rolling now, and what the last rest did
   let redrawT = 0;
   const redraw = () => { if (redrawT) return; redrawT = setTimeout(() => { redrawT = 0; render(); }, 60); };
 
@@ -122,7 +123,7 @@ window.HandbookPlay = function (H) {
   /* ---------- the sheet ---------- */
   const ago = t => { if (!t) return ''; const s = Math.max(0, (Date.now() - Date.parse(t)) / 1000); return s < 50 ? 'just now' : s < 3600 ? `${Math.round(s / 60)} min ago` : s < 86400 ? `${Math.round(s / 3600)} h ago` : `${Math.round(s / 86400)} days ago`; };
 
-  // opts: { id, name, maxHp, canEdit, suggestions: [{name, per, max}], compact }
+  // opts: { id, name, maxHp, canEdit, suggestions: [{name, per, max}], compact, hitDie, armourThp, campaign }
   function sheet(opts) {
     const id = opts.id;
     if (!cache.has(id)) load([id]);
@@ -152,6 +153,7 @@ window.HandbookPlay = function (H) {
         el('span', { class: 'k' }, 'HP'),
         el('span', { class: 'v' }, String(hp), el('small', {}, ` / ${max || '–'}`)),
         temp ? el('span', { class: 'pl-temp' }, `+${temp} temporary`) : null,
+        opts.armourThp ? el('span', { class: 'bs-fine pl-athp' }, `Armour: ${opts.armourThp} temp HP each long rest`) : null,
         down ? el('span', { class: 'pl-down' }, 'Down') : null),
       bar,
       edit ? el('div', { class: 'pl-dmg' }, amt,
@@ -167,7 +169,8 @@ window.HandbookPlay = function (H) {
       onclick: () => change(id, 0, { saves: { ...saves, [k]: i < (saves[k] | 0) ? i : i + 1 } }) });
     const deathBox = down ? el('section', { class: 'pl-saves' }, el('span', { class: 'k' }, 'Death saves'),
       el('span', { class: 'grp' }, el('span', { class: 'lbl' }, 'Passed'), ...[0, 1, 2].map(i => pip('pass', i))),
-      el('span', { class: 'grp' }, el('span', { class: 'lbl' }, 'Failed'), ...[0, 1, 2].map(i => pip('fail', i)))) : null;
+      el('span', { class: 'grp' }, el('span', { class: 'lbl' }, 'Failed'), ...[0, 1, 2].map(i => pip('fail', i))),
+      (saves.pass | 0) >= 3 ? el('span', { class: 'pl-stable' }, 'Stable') : (saves.fail | 0) >= 3 ? el('span', { class: 'pl-dead' }, 'Dead') : el('span', { class: 'bs-fine' }, 'Your DM says when to roll.')) : null;
 
     // statuses (the shared list from Core rules)
     const sts = p.statuses || {};
@@ -201,7 +204,30 @@ window.HandbookPlay = function (H) {
         onclick: () => { const next = trk.slice(); next[i] = { ...t, used: k < (t.used | 0) ? k : k + 1 }; setTrk(next); } }))),
       el('span', { class: 'left' }, `${Math.max(0, t.max - (t.used | 0))} left`),
       edit ? el('button', { class: 'mini', 'aria-label': `Remove ${t.name}`, onclick: () => setTrk(trk.filter((_, k) => k !== i)) }, 'Remove') : null));
-    const reset = pers => { const next = trk.map(t => pers.includes(t.per) ? { ...t, used: 0 } : t); setTrk(next); };
+    const resetList = pers => trk.map(t => pers.includes(t.per) ? { ...t, used: 0 } : t);
+    const reset = pers => setTrk(resetList(pers));
+    const armourThp = Math.max(0, opts.armourThp | 0);
+    const restMsg = restNote.get(id) || '';
+    const shortRest = async () => {
+      if (resting.has(id)) return;
+      const die = String(opts.hitDie || '').match(/(\d*)d(\d+)/i);
+      let gain = 0, how = '';
+      if (die && hp < max) {
+        resting.add(id); render();
+        const dice = `${die[1] || 1}d${die[2]}`;
+        let r = null;
+        if (opts.campaign) { try { r = await sb().rpc('roll_dice', { c: opts.campaign, ch: id, what: 'Short rest: hit die', dice, need: null, mode: 'normal', bonus: 0, exh: 0, halve: false, secret: false }); } catch (e) { r = null; } }
+        if (r && !r.error && r.data) { gain = r.data.total | 0; how = ' (in the dice log)'; }
+        else { const n = Math.max(1, parseInt(die[1] || '1', 10)), f = parseInt(die[2], 10); for (let k = 0; k < n; k++) gain += 1 + Math.floor(Math.random() * f); }
+        resting.delete(id);
+        restNote.set(id, `Short rest: rolled ${dice} for ${gain} HP${how}.`);
+      } else restNote.set(id, hp >= max ? 'Short rest: already at full HP.' : 'Short rest: no hit die on the sheet to roll.');
+      change(id, gain, { trackers: resetList(['combat', 'rest']) });
+    };
+    const longRest = () => {
+      restNote.set(id, `Long rest: full HP${armourThp ? `, ${armourThp} temp HP from your armour` : ''}, and your uses are back.`);
+      change(id, 0, { hp: max, temp: armourThp, saves: { pass: 0, fail: 0 }, trackers: resetList(['combat', 'rest', 'long']) });
+    };
     let addRow = null;
     if (edit) {
       const nm = el('input', { type: 'text', placeholder: 'e.g. Second Wind, tier 1 spells', maxlength: '60', 'aria-label': 'What it counts' });
@@ -216,12 +242,14 @@ window.HandbookPlay = function (H) {
     }
     const trkBox = el('section', { class: 'pl-sec' }, el('h2', {}, 'Uses'),
       tRows.length ? el('div', { class: 'pl-trks' }, ...tRows) : el('p', { class: 'pl-none' }, edit ? 'Add anything you use a set number of times: a feat, a skill, spells of a tier.' : 'None.'),
-      edit && trk.length ? el('div', { class: 'pl-rests' }, el('span', { class: 'k' }, 'Reset after a'),
-        el('button', { class: 'btn small', onclick: () => reset(['rest']), title: 'Per rest uses come back' }, 'Short rest'),
-        el('button', { class: 'btn small', onclick: () => reset(['rest', 'long']), title: 'Per rest and per long rest uses come back' }, 'Long rest'),
-        el('button', { class: 'mini', onclick: () => reset(['day']) }, 'New day'),
-        el('button', { class: 'mini', onclick: () => reset(['session']) }, 'New session'),
-        el('button', { class: 'mini', onclick: () => reset(['arc']) }, 'New arc')) : null,
+      edit ? el('div', { class: 'pl-rests' }, el('span', { class: 'k' }, 'Rest'),
+        el('button', { class: 'btn small', disabled: resting.has(id), onclick: shortRest, title: 'Roll your hit die for HP; per combat and per rest uses come back' }, resting.has(id) ? 'Rolling…' : 'Short rest'),
+        el('button', { class: 'btn small', onclick: longRest, title: `Full HP${armourThp ? ' and your armour’s temp HP' : ''}; per combat, per rest and per long rest uses come back` }, 'Long rest'),
+        trk.some(t => t.per === 'combat') ? el('button', { class: 'mini', onclick: () => reset(['combat']) }, 'End of combat') : null,
+        trk.some(t => t.per === 'day') ? el('button', { class: 'mini', onclick: () => reset(['day']) }, 'New day') : null,
+        trk.some(t => t.per === 'session') ? el('button', { class: 'mini', onclick: () => reset(['session']) }, 'New session') : null,
+        trk.some(t => t.per === 'arc') ? el('button', { class: 'mini', onclick: () => reset(['arc']) }, 'New arc') : null) : null,
+      edit && restMsg ? el('p', { class: 'pl-restmsg', role: 'status' }, restMsg) : null,
       addRow);
 
     const noteBox = opts.compact ? null : el('section', { class: 'pl-sec' }, el('h2', {}, 'Table notes'),

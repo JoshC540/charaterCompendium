@@ -1776,6 +1776,7 @@ window.HandbookBestiary = function (H) {
         const L = linked(f) ? liveOf(f) : null;
         return { name: f.name, side: f.kind === 'pc' ? 'party' : 'foe', charId: f.charId || null, now: !!FIGHT.started && f.id === FIGHT.cur,
           health: healthWord(f), hp: L ? L.hp : null, max: L ? L.max : null,
+          saves: L && L.max && L.hp <= 0 && L.saves && ((L.saves.pass | 0) || (L.saves.fail | 0)) ? { pass: L.saves.pass | 0, fail: L.saves.fail | 0 } : null,
           statuses: Object.entries(stsOf(f) || {}).filter(([, n]) => n > 0).map(([id, n]) => n > 1 ? `${sName(id)} ×${n}` : sName(id)) };
       }) };
   }
@@ -1793,8 +1794,13 @@ window.HandbookBestiary = function (H) {
       sharedTo = to;
     }, now ? 0 : 700);
   }
-  let shareCamps = null;
+  let shareCamps = null, shareLiveKey = '';
   function shareBox() {
+    // a player's HP, death saves or statuses changed on their own sheet: pass it on to the players' view
+    if (FIGHT && FIGHT.share) {
+      const k = JSON.stringify(order().filter(linked).map(f => { const L = liveOf(f) || {}; return [f.id, L.hp, L.max, L.saves, L.statuses]; }));
+      if (k !== shareLiveKey) { const first = !shareLiveKey; shareLiveKey = k; if (!first) shareFight(); }
+    }
     if (!shareCamps) { shareCamps = []; sb().from('campaigns').select('id, name').order('name', { ascending: true }).then(r => { shareCamps = r.data || []; render(); }); }
     if (!shareCamps.length) return null;
     return el('div', { class: 'ft-share' },
@@ -1854,7 +1860,7 @@ window.HandbookBestiary = function (H) {
     if (!linked(f)) return null;
     const p = H.Play.get(f.charId) || {};
     const max = p.max || f.max || 0;
-    return { hp: p.hp == null ? max : p.hp, max, temp: p.temp | 0, statuses: p.statuses || {} };
+    return { hp: p.hp == null ? max : p.hp, max, temp: p.temp | 0, statuses: p.statuses || {}, saves: p.saves || null };
   }
   const stsOf = f => { const L = liveOf(f); return L ? L.statuses : f.statuses || {}; };
   const isDown = f => f.kind === 'monster' ? f.hp <= 0 : f.kind === 'pc' ? (linked(f) ? (liveOf(f).max > 0 && liveOf(f).hp <= 0) : !!f.down) : false;
@@ -1983,7 +1989,8 @@ window.HandbookBestiary = function (H) {
           f.kind === 'lair' ? el('span', { class: 'ft-sub' }, 'Initiative 20, when fought at home') : null,
           linked(f) ? (() => { const L = liveOf(f); return el('span', { class: 'ft-hp' },
             el('span', { class: 'ft-bar pc' }, el('span', { style: `width:${L.max ? Math.max(0, L.hp) / L.max * 100 : 0}%` })),
-            el('span', { class: 'ft-hpn' }, `${L.hp} / ${L.max || '–'}${L.temp ? ` +${L.temp}` : ''}`)); })()
+            el('span', { class: 'ft-hpn' }, `${L.hp} / ${L.max || '–'}${L.temp ? ` +${L.temp}` : ''}`),
+            L.max && L.hp <= 0 ? el('span', { class: 'ft-saves' }, (L.saves && L.saves.pass >= 3) ? 'Stable' : (L.saves && L.saves.fail >= 3) ? 'Dead' : `Death saves ${(L.saves && L.saves.pass) | 0} passed, ${(L.saves && L.saves.fail) | 0} failed`) : null); })()
             : f.kind === 'pc' ? el('span', { class: 'ft-sub' }, `Level ${f.level ?? '–'}${f.down ? ' · down' : ''}`) : null,
           el('span', { class: 'ft-chips' }, ...statusChips(f, true),
             ph > (f.seenPhase || 0) ? el('span', { class: 'ft-alert' }, `Phase ${ph}!`) : ph ? el('span', { class: 'ft-ph' }, `Phase ${ph}`) : null,
@@ -2215,7 +2222,7 @@ window.HandbookBestiary = function (H) {
     B: { data: () => D, view: (c, tpl, forge) => view(c, tpl, forge), rowView, encounter: () => ENC, encMaths, open: (c, tpl) => openCreature(c, tpl), krText } }) : null;
 
   // the session screen (session.js): planned encounters go through the same builder and tracker
-  const SESSION = window.HandbookSession ? window.HandbookSession({ el, go, render, Notes, Play: H.Play, Atlas: H.Atlas, Dice: H.Dice, charHp: H.charHp, statuses: H.statuses,
+  const SESSION = window.HandbookSession ? window.HandbookSession({ el, go, render, Notes, Play: H.Play, Atlas: H.Atlas, Dice: H.Dice, Table: H.Table, charHp: H.charHp, statuses: H.statuses,
     B: { data: () => D, rowView, krText,
       encounter: () => ENC,
       mathsFor: enc => { const keep = ENC; ENC = enc; try { return encMaths(); } finally { ENC = keep; } },

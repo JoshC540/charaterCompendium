@@ -406,10 +406,11 @@
       if (!chars) return [];
       return chars.filter(c => L.picked.includes(c.id)).map(c => {
         const st = c.st || {}, lvl = st.level | 0, std = S.stdStats(lvl), h = best(st);
-        // the character's own best attack (from Attacks and armour on their sheet), when they've written one
-        const atk = (st.attacks || []).map(a => ({ ...a, d: S.dice(a.dice) })).filter(a => a.d && (a.d.n || a.d.b)).sort((x, y) => S.avg(y.d) - S.avg(x.d))[0] || null;
+        // the character's own best attack (equipped weapons and Attacks and armour on their sheet); one they're trained with first
+        const atk = (st.attacks || []).map(a => ({ ...a, d: S.dice(a.dice) })).filter(a => a.d && (a.d.n || a.d.b)).sort((x, y) => (x.dis ? 1 : 0) - (y.dis ? 1 : 0) || S.avg(y.d) - S.avg(x.d))[0] || null;
         const hit = atk && atk.hit != null ? atk.hit : h === 99 ? std.hit : h;
-        return { key: c.id, name: c.name, level: lvl, hp: st.hp || Math.round(std.hp), hit, dodge: st.dodge != null ? st.dodge : std.dodge, defence: st.defence || 0, minHit: st.minHit || 0, atk,
+        // armour's temp HP is there at the start of a fight after a long rest, so it counts towards their HP here
+        return { key: c.id, name: c.name, level: lvl, hp: (st.hp || Math.round(std.hp)) + (st.thp | 0), hit, dodge: st.dodge != null ? st.dodge : std.dodge, defence: st.defence || 0, minHit: st.minHit || 0, atk,
           est: { hp: !st.hp, hit: !atk && h === 99, dodge: st.dodge == null }, book: S.calibrate(cv, lvl) };
       });
     }

@@ -2,9 +2,9 @@
    Network first: when online you always get the latest files, and each one is saved as it arrives.
    With no connection, the saved copy is used. Only this site's own files are kept; anything from
    Supabase (notes, characters, party money, the bestiary) is never stored here and needs a connection. */
-const CACHE = 'handbook-v5';
+const CACHE = 'handbook-v9';
 const FILES = [
-  './', 'index.html', 'style.css', 'notes.js', 'play.js', 'dice.js', 'creator.js', 'bank.js', 'craft.js', 'atlas.js', 'session.js', 'lab.js', 'bestiary.js', 'app.js', 'vendor/supabase.js',
+  './', 'index.html', 'style.css', 'notes.js', 'play.js', 'dice.js', 'creator.js', 'bank.js', 'craft.js', 'atlas.js', 'table.js', 'session.js', 'lab.js', 'bestiary.js', 'app.js', 'vendor/supabase.js',
   'content/races.md', 'content/classes.md', 'content/subclasses.md', 'content/spells.md', 'content/advancement.md',
   'content/gods.md', 'content/patch-notes.md', 'content/items.json', 'content/statuses.json',
   'fonts/cinzel-latin-700-normal.woff2', 'fonts/cinzel-latin-600-normal.woff2', 'fonts/cinzel-decorative-latin-700-normal.woff2',

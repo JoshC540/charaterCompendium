@@ -111,11 +111,13 @@ window.HandbookDice = function (H) {
     if (Number(st.poisoned) > 0) notes.push('Poisoned: disadvantage on one type of roll (the DM says which), and on death saves.');
     if (frozen) notes.push('Freeze: rolled dice are halved (damage and other dice rolls).');
 
-    const roll = async (what, dice, need) => {
+    // an attack with a weapon the character isn't trained in rolls to hit with disadvantage (advantage cancels it)
+    const withDis = m => m === 'adv' ? 'normal' : 'dis';
+    const roll = async (what, dice, need, dis) => {
       if (U.busy) return;
       U.busy = true; U.msg = ''; H.render();
       const r = await sb().rpc('roll_dice', { c, ch: opts.charId || null, what, dice, need: need == null ? null : need,
-        mode: effMode, bonus: effBonus, exh: exh >= 3 && exh <= 4 ? exh : 0, halve: need == null && !!U.halve, secret: !!(opts.dm && U.secret) });
+        mode: dis ? withDis(effMode) : effMode, bonus: effBonus, exh: exh >= 3 && exh <= 4 ? exh : 0, halve: need == null && !!U.halve, secret: !!(opts.dm && U.secret) });
       U.busy = false;
       if (r.error) U.msg = /roll_dice|function/i.test(String(r.error.message)) && /find|exist/i.test(String(r.error.message)) ? 'Run the latest supabase/setup.sql to switch on the dice.' : friendly(r.error);
       else { U.last = r.data; const L = logOf(c); if (r.data && !L.rows.some(x => x.id === r.data.id)) L.rows = [r.data, ...L.rows].slice(0, 40); }
@@ -132,8 +134,8 @@ window.HandbookDice = function (H) {
     const statBtns = (opts.stats || []).filter(s => s.v != null && s.v !== '').map(s => el('button', { type: 'button', class: 'dc-stat', disabled: U.busy, title: `Roll a d20: ${s.v} or more succeeds`, onclick: () => roll(`${s.k} check`, 'd20', Number(s.v)) },
       el('span', { class: 'k' }, s.k), el('span', { class: 'v' }, String(s.v))));
     const atkRows = (opts.attacks || []).map(a => el('div', { class: 'dc-atk' },
-      el('span', { class: 'nm' }, a.name),
-      a.need != null ? el('button', { type: 'button', class: 'btn small', disabled: U.busy, title: `Roll a d20: ${a.need} or more, plus the target’s Defence`, onclick: () => roll(`${a.name}: to hit`, 'd20', Number(a.need)) }, `To hit · ${a.stat} ${a.need}`) : el('span', { class: 'bs-fine' }, `Roll ${a.stat} first`),
+      el('span', { class: 'nm' }, a.name, a.dis ? el('span', { class: 'dc-untr' }, 'Not trained: disadvantage') : null),
+      a.need != null ? el('button', { type: 'button', class: 'btn small', disabled: U.busy, title: `Roll a d20: ${a.need} or more, plus the target’s Defence${a.dis ? ', with disadvantage (not trained)' : ''}`, onclick: () => roll(`${a.name}: to hit${a.dis ? ' (not trained)' : ''}`, 'd20', Number(a.need), !!a.dis) }, `To hit · ${a.stat} ${a.need}`) : el('span', { class: 'bs-fine' }, `Roll ${a.stat} first`),
       a.dice ? el('button', { type: 'button', class: 'btn small', disabled: U.busy, onclick: () => roll(`${a.name}: damage`, a.dice, null) }, `Damage · ${a.dice}`) : null));
     const free = () => { const ex = (U.expr || '').trim(); if (!ex) { U.msg = 'Type the dice first, like 2d6+3.'; H.render(); return; } roll((U.label || '').trim() || ex, ex, null); };
     return el('section', { class: 'dc' },
@@ -190,7 +192,8 @@ window.HandbookDice = function (H) {
       el('ol', { class: 'fv-list' }, ...d.order.map(x => el('li', { class: 'fv-row ' + x.side + (x.now ? ' now' : '') + (x.health === 'Down' ? ' down' : '') + (x.charId && x.charId === me ? ' me' : '') },
         el('span', { class: 'nm' }, x.name, x.charId && x.charId === me ? el('span', { class: 'you' }, ' (you)') : null),
         el('span', { class: 'hp' }, x.side === 'party' && x.max ? `${x.hp} / ${x.max}` : x.health || ''),
-        x.statuses && x.statuses.length ? el('span', { class: 'sts' }, x.statuses.join(', ')) : null))));
+        x.statuses && x.statuses.length ? el('span', { class: 'sts' }, x.statuses.join(', ')) : null,
+        x.saves ? el('span', { class: 'fv-saves' }, x.saves.pass >= 3 ? 'Stable' : x.saves.fail >= 3 ? 'Dead' : `Death saves: ${x.saves.pass} passed, ${x.saves.fail} failed`) : null))));
   }
 
   return { panel, log: logView, fight: fightView };

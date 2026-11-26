@@ -881,3 +881,352 @@ do $$ begin
     alter publication supabase_realtime add table public.fight_view;
   end if;
 end $$;
+
+-- =====================================================================
+--  Shops. The DM opens a shop for a campaign, with stock and prices. Players buy straight from a character's purse;
+--  what they buy waits on that character's sheet to add to their inventory. Selling to a shop is an offer the DM
+--  accepts (the coin goes into the purse) or turns down (the item goes back to the sheet).
+-- =====================================================================
+alter table public.money_tx drop constraint if exists money_tx_kind_check;
+alter table public.money_tx add constraint money_tx_kind_check check (kind in ('deposit', 'withdrawal', 'gift', 'spend', 'adjust', 'sale', 'reward'));
+
+create table if not exists public.shops (
+  id          uuid primary key default gen_random_uuid(),
+  campaign_id uuid not null references public.campaigns(id) on delete cascade,
+  name        text not null check (length(name) between 1 and 80),
+  place       text check (place is null or length(place) <= 80),
+  blurb       text check (blurb is null or length(blurb) <= 1000),
+  price_pct   int not null default 100 check (price_pct between 1 and 1000),
+  sell_pct    int not null default 50 check (sell_pct between 0 and 100),
+  open        boolean not null default false,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+create table if not exists public.shop_stock (
+  id         uuid primary key default gen_random_uuid(),
+  shop_id    uuid not null references public.shops(id) on delete cascade,
+  ref        text check (ref is null or length(ref) <= 80),
+  name       text not null check (length(name) between 1 and 120),
+  quality    text not null default 'Normal' check (length(quality) <= 20),
+  price_cp   bigint not null check (price_cp >= 0),
+  qty        int check (qty is null or qty >= 0),
+  notes      text check (notes is null or length(notes) <= 300),
+  gear       jsonb check (gear is null or length(gear::text) <= 2000),
+  created_at timestamptz not null default now()
+);
+create index if not exists shop_stock_shop_idx on public.shop_stock(shop_id);
+create table if not exists public.shop_log (
+  id           bigserial primary key,
+  shop_id      uuid references public.shops(id) on delete set null,
+  campaign_id  uuid not null references public.campaigns(id) on delete cascade,
+  character_id uuid references public.characters(id) on delete set null,
+  kind         text not null check (kind in ('buy', 'sell')),
+  item         text not null,
+  qty          int not null,
+  total_cp     bigint not null,
+  created_by   uuid default auth.uid() references public.profiles(id) on delete set null,
+  created_at   timestamptz not null default now()
+);
+create index if not exists shop_log_campaign_idx on public.shop_log(campaign_id, id desc);
+create table if not exists public.shop_offers (
+  id           uuid primary key default gen_random_uuid(),
+  shop_id      uuid not null references public.shops(id) on delete cascade,
+  campaign_id  uuid not null references public.campaigns(id) on delete cascade,
+  character_id uuid not null references public.characters(id) on delete cascade,
+  item         jsonb not null check (length(item::text) <= 4000),
+  qty          int not null check (qty > 0),
+  ask_cp       bigint not null check (ask_cp >= 0),
+  status       text not null default 'pending' check (status in ('pending', 'accepted', 'declined', 'cancelled')),
+  offered_by   uuid default auth.uid() references public.profiles(id) on delete set null,
+  resolved_at  timestamptz,
+  created_at   timestamptz not null default now()
+);
+create index if not exists shop_offers_campaign_idx on public.shop_offers(campaign_id, status);
+drop trigger if exists shops_touch on public.shops;
+create trigger shops_touch before update on public.shops for each row execute function public.touch_updated_at();
+
+alter table public.shops       enable row level security;
+alter table public.shop_stock  enable row level security;
+alter table public.shop_log    enable row level security;
+alter table public.shop_offers enable row level security;
+revoke all on public.shops, public.shop_stock, public.shop_log, public.shop_offers from anon;
+revoke insert, update, delete on public.shop_log, public.shop_offers from authenticated;
+drop policy if exists "open shops" on public.shops;
+drop policy if exists "DM runs shops" on public.shops;
+drop policy if exists "stock of open shops" on public.shop_stock;
+drop policy if exists "DM stocks shops" on public.shop_stock;
+drop policy if exists "the party sees it" on public.shop_log;
+drop policy if exists "the party sees it" on public.shop_offers;
+create policy "open shops" on public.shops for select to authenticated using (public.is_admin() or (open and public.is_member(campaign_id)));
+create policy "DM runs shops" on public.shops for all to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy "stock of open shops" on public.shop_stock for select to authenticated using (
+  public.is_admin() or exists (select 1 from public.shops s where s.id = shop_id and s.open and public.is_member(s.campaign_id)));
+create policy "DM stocks shops" on public.shop_stock for all to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy "the party sees it" on public.shop_log for select to authenticated using (public.is_admin() or public.is_member(campaign_id));
+create policy "the party sees it" on public.shop_offers for select to authenticated using (public.is_admin() or public.is_member(campaign_id));
+
+-- something arrives on a character's sheet (bought, or handed back), to add to their inventory
+create or replace function public._sheet_inbox(ch uuid, thing jsonb) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  insert into character_play (character_id, data, updated_by, updated_at) values (ch, '{}'::jsonb, auth.uid(), now()) on conflict (character_id) do nothing;
+  update character_play set data = jsonb_set(data, '{inbox}', coalesce(data->'inbox', '[]'::jsonb) || jsonb_build_array(thing || jsonb_build_object('at', now()))),
+    updated_by = auth.uid(), updated_at = now() where character_id = ch;
+end $$;
+revoke all on function public._sheet_inbox(uuid, jsonb) from public, anon, authenticated;
+
+create or replace function public.shop_buy(st uuid, ch uuid, n int default 1) returns text
+language plpgsql security definer set search_path = public as $$
+declare k public.shop_stock; s public.shops; total bigint;
+begin
+  select * into k from shop_stock where id = st for update;
+  if not found then raise exception 'That isn''t for sale any more'; end if;
+  select * into s from shops where id = k.shop_id;
+  perform public._money_member(s.campaign_id); perform public._money_own(s.campaign_id, ch);
+  if not s.open and not public.is_admin() then raise exception 'This shop is closed'; end if;
+  if coalesce(n, 0) < 1 or n > 999 then raise exception 'Choose how many'; end if;
+  if k.qty is not null and k.qty < n then raise exception 'They only have % left', k.qty; end if;
+  total := k.price_cp * n;
+  perform public._money_lock(s.campaign_id);
+  if total > 0 then
+    if public._money_balance(s.campaign_id, ch) < total then raise exception 'Not enough in this purse (it has %)', public._money_fmt(public._money_balance(s.campaign_id, ch)); end if;
+    insert into money_tx (campaign_id, character_id, amount_cp, kind, reason)
+    values (s.campaign_id, ch, -total, 'spend', left(format('Bought %s%s at %s', case when n > 1 then n || ' × ' else '' end, k.name, s.name), 200));
+  end if;
+  if k.qty is not null then update shop_stock x set qty = k.qty - n where x.id = k.id; end if;
+  insert into shop_log (shop_id, campaign_id, character_id, kind, item, qty, total_cp) values (s.id, s.campaign_id, ch, 'buy', k.name, n, total);
+  perform public._sheet_inbox(ch, jsonb_strip_nulls(jsonb_build_object('name', k.name, 'qty', n, 'notes', coalesce(k.notes, ''), 'from', s.name,
+    'ref', k.ref, 'q', nullif(k.quality, 'Normal'), 'g', k.gear)));
+  return public._money_fmt(total);
+end $$;
+
+create or replace function public.shop_offer(sh uuid, ch uuid, item jsonb, n int, ask bigint) returns uuid
+language plpgsql security definer set search_path = public as $$
+declare s public.shops; rid uuid;
+begin
+  select * into s from shops where id = sh;
+  if not found then raise exception 'That shop isn''t there any more'; end if;
+  perform public._money_member(s.campaign_id); perform public._money_own(s.campaign_id, ch);
+  if not s.open and not public.is_admin() then raise exception 'This shop is closed'; end if;
+  if coalesce(n, 0) < 1 then raise exception 'Choose how many'; end if;
+  if item is null or coalesce(item->>'name', '') = '' then raise exception 'Choose what to sell'; end if;
+  insert into shop_offers (shop_id, campaign_id, character_id, item, qty, ask_cp) values (sh, s.campaign_id, ch, item, n, greatest(0, coalesce(ask, 0)))
+  returning id into rid;
+  return rid;
+end $$;
+
+create or replace function public.shop_offer_answer(oid uuid, accept boolean) returns void
+language plpgsql security definer set search_path = public as $$
+declare o public.shop_offers; s public.shops;
+begin
+  if not public.is_admin() then raise exception 'Only the DM can answer an offer'; end if;
+  select * into o from shop_offers where id = oid for update;
+  if not found or o.status <> 'pending' then raise exception 'That offer has already been answered'; end if;
+  select * into s from shops where id = o.shop_id;
+  if accept then
+    perform public._money_lock(o.campaign_id);
+    if o.ask_cp > 0 then
+      insert into money_tx (campaign_id, character_id, amount_cp, kind, reason)
+      values (o.campaign_id, o.character_id, o.ask_cp, 'sale', left(format('Sold %s%s to %s', case when o.qty > 1 then o.qty || ' × ' else '' end, o.item->>'name', coalesce(s.name, 'a shop')), 200));
+    end if;
+    insert into shop_log (shop_id, campaign_id, character_id, kind, item, qty, total_cp) values (o.shop_id, o.campaign_id, o.character_id, 'sell', o.item->>'name', o.qty, o.ask_cp);
+  else
+    perform public._sheet_inbox(o.character_id, o.item || jsonb_build_object('qty', o.qty, 'from', coalesce(s.name, 'the shop') || ' (not sold)'));
+  end if;
+  update shop_offers set status = case when accept then 'accepted' else 'declined' end, resolved_at = now() where id = oid;
+end $$;
+
+create or replace function public.shop_offer_cancel(oid uuid) returns void
+language plpgsql security definer set search_path = public as $$
+declare o public.shop_offers;
+begin
+  select * into o from shop_offers where id = oid for update;
+  if not found or o.status <> 'pending' then raise exception 'That offer has already been answered'; end if;
+  if not (public.is_admin() or o.offered_by = auth.uid()) then raise exception 'Only whoever made the offer can take it back'; end if;
+  perform public._sheet_inbox(o.character_id, o.item || jsonb_build_object('qty', o.qty, 'from', 'your offer (taken back)'));
+  update shop_offers set status = 'cancelled', resolved_at = now() where id = oid;
+end $$;
+revoke all on function public.shop_buy(uuid, uuid, int), public.shop_offer(uuid, uuid, jsonb, int, bigint), public.shop_offer_answer(uuid, boolean), public.shop_offer_cancel(uuid) from public, anon;
+grant execute on function public.shop_buy(uuid, uuid, int), public.shop_offer(uuid, uuid, jsonb, int, bigint), public.shop_offer_answer(uuid, boolean), public.shop_offer_cancel(uuid) to authenticated;
+
+-- =====================================================================
+--  The guild's contract board. The DM posts contracts; the campaign's players see them and take one on.
+--  When the DM marks one done, its reward goes into the party account.
+-- =====================================================================
+create table if not exists public.contracts (
+  id          uuid primary key default gen_random_uuid(),
+  campaign_id uuid not null references public.campaigns(id) on delete cascade,
+  title       text not null check (length(title) between 1 and 120),
+  client      text check (client is null or length(client) <= 80),
+  tier        int check (tier is null or tier between 0 and 20),
+  reward_cp   bigint not null default 0 check (reward_cp >= 0),
+  details     text check (details is null or length(details) <= 3000),
+  deadline    text check (deadline is null or length(deadline) <= 60),
+  status      text not null default 'open' check (status in ('draft', 'open', 'taken', 'done', 'failed', 'withdrawn')),
+  taken_by    uuid references public.profiles(id) on delete set null,
+  taken_at    timestamptz,
+  closed_at   timestamptz,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+create index if not exists contracts_campaign_idx on public.contracts(campaign_id, status);
+drop trigger if exists contracts_touch on public.contracts;
+create trigger contracts_touch before update on public.contracts for each row execute function public.touch_updated_at();
+alter table public.contracts enable row level security;
+revoke all on public.contracts from anon;
+drop policy if exists "the party reads the board" on public.contracts;
+drop policy if exists "DM posts contracts" on public.contracts;
+create policy "the party reads the board" on public.contracts for select to authenticated using (
+  public.is_admin() or (status not in ('draft', 'withdrawn') and public.is_member(campaign_id)));
+create policy "DM posts contracts" on public.contracts for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+create or replace function public.contract_take(k uuid, take boolean default true) returns void
+language plpgsql security definer set search_path = public as $$
+declare x public.contracts;
+begin
+  select * into x from contracts where id = k for update;
+  if not found or x.status in ('draft', 'withdrawn') then raise exception 'That contract isn''t on the board'; end if;
+  perform public._money_member(x.campaign_id);
+  if take then
+    if x.status <> 'open' then raise exception 'That contract has already been taken'; end if;
+    update contracts set status = 'taken', taken_by = auth.uid(), taken_at = now() where id = k;
+  else
+    if x.status <> 'taken' then raise exception 'That contract isn''t taken'; end if;
+    update contracts set status = 'open', taken_by = null, taken_at = null where id = k;
+  end if;
+end $$;
+
+create or replace function public.contract_close(k uuid, done boolean, pay boolean default true) returns text
+language plpgsql security definer set search_path = public as $$
+declare x public.contracts;
+begin
+  if not public.is_admin() then raise exception 'Only the DM can close a contract'; end if;
+  select * into x from contracts where id = k for update;
+  if not found then raise exception 'That contract isn''t there any more'; end if;
+  if x.status in ('done', 'failed') then raise exception 'That contract is already closed'; end if;
+  update contracts set status = case when done then 'done' else 'failed' end, closed_at = now() where id = k;
+  if done and pay and x.reward_cp > 0 then
+    perform public._money_lock(x.campaign_id);
+    insert into money_tx (campaign_id, character_id, amount_cp, kind, reason) values (x.campaign_id, null, x.reward_cp, 'reward', left('Contract: ' || x.title, 200));
+    return public._money_fmt(x.reward_cp);
+  end if;
+  return '';
+end $$;
+revoke all on function public.contract_take(uuid, boolean), public.contract_close(uuid, boolean, boolean) from public, anon;
+grant execute on function public.contract_take(uuid, boolean), public.contract_close(uuid, boolean, boolean) to authenticated;
+
+-- =====================================================================
+--  Handouts: a letter, a note or a picture the DM shows the campaign's players during a session.
+--  Players only see one once it's shown; it pops up on their screens and stays in their notes.
+-- =====================================================================
+create table if not exists public.handouts (
+  id          uuid primary key default gen_random_uuid(),
+  campaign_id uuid not null references public.campaigns(id) on delete cascade,
+  title       text not null check (length(title) between 1 and 120),
+  body        text check (body is null or length(body) <= 5000),
+  image_path  text check (image_path is null or image_path ~ '^[0-9a-f-]{36}/[A-Za-z0-9._-]{1,100}$'),
+  image_url   text check (image_url is null or (length(image_url) <= 1000 and image_url ~* '^https://')),
+  shown       boolean not null default false,
+  shown_at    timestamptz,
+  created_at  timestamptz not null default now()
+);
+create index if not exists handouts_campaign_idx on public.handouts(campaign_id, shown_at desc);
+alter table public.handouts enable row level security;
+revoke all on public.handouts from anon;
+drop policy if exists "shown to the party" on public.handouts;
+drop policy if exists "DM writes handouts" on public.handouts;
+create policy "shown to the party" on public.handouts for select to authenticated using (public.is_admin() or (shown and public.is_member(campaign_id)));
+create policy "DM writes handouts" on public.handouts for all to authenticated using (public.is_admin()) with check (public.is_admin());
+do $$
+begin
+  if to_regclass('storage.buckets') is not null then
+    insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+      values ('handouts', 'handouts', false, 8388608, array['image/webp', 'image/jpeg', 'image/png', 'image/gif'])
+      on conflict (id) do update set public = false, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
+    execute 'drop policy if exists "handout pictures: shown to the party" on storage.objects';
+    execute 'drop policy if exists "handout pictures: DM uploads" on storage.objects';
+    execute 'drop policy if exists "handout pictures: DM changes" on storage.objects';
+    execute 'drop policy if exists "handout pictures: DM deletes" on storage.objects';
+    execute $p$create policy "handout pictures: shown to the party" on storage.objects for select to authenticated using (
+      bucket_id = 'handouts' and (public.is_admin() or exists (
+        select 1 from public.handouts h where h.id::text = split_part(storage.objects.name, '/', 1) and h.shown and public.is_member(h.campaign_id))))$p$;
+    execute $p$create policy "handout pictures: DM uploads" on storage.objects for insert to authenticated with check (bucket_id = 'handouts' and public.is_admin())$p$;
+    execute $p$create policy "handout pictures: DM changes" on storage.objects for update to authenticated using (bucket_id = 'handouts' and public.is_admin())$p$;
+    execute $p$create policy "handout pictures: DM deletes" on storage.objects for delete to authenticated using (bucket_id = 'handouts' and public.is_admin())$p$;
+  end if;
+end $$;
+
+-- =====================================================================
+--  The next session: the DM offers some dates, players say yes, maybe or no to each, and the DM picks one.
+--  And the table screen (a TV at the table): which map it shows, set by the DM.
+-- =====================================================================
+create table if not exists public.next_session (
+  campaign_id uuid primary key references public.campaigns(id) on delete cascade,
+  options     jsonb not null default '[]'::jsonb check (jsonb_typeof(options) = 'array' and length(options::text) <= 4000),
+  chosen      text check (chosen is null or length(chosen) <= 20),
+  note        text check (note is null or length(note) <= 300),
+  updated_at  timestamptz not null default now()
+);
+create table if not exists public.next_session_votes (
+  campaign_id uuid not null references public.campaigns(id) on delete cascade,
+  user_id     uuid not null default auth.uid() references public.profiles(id) on delete cascade,
+  option_id   text not null check (length(option_id) <= 20),
+  answer      text not null check (answer in ('yes', 'maybe', 'no')),
+  updated_at  timestamptz not null default now(),
+  primary key (campaign_id, user_id, option_id)
+);
+create table if not exists public.table_screen (
+  campaign_id uuid primary key references public.campaigns(id) on delete cascade,
+  data        jsonb not null default '{}'::jsonb check (length(data::text) <= 4000),
+  updated_at  timestamptz not null default now()
+);
+alter table public.next_session       enable row level security;
+alter table public.next_session_votes enable row level security;
+alter table public.table_screen       enable row level security;
+revoke all on public.next_session, public.next_session_votes, public.table_screen from anon;
+drop policy if exists "the party sees it" on public.next_session;
+drop policy if exists "DM sets it" on public.next_session;
+drop policy if exists "the party sees votes" on public.next_session_votes;
+drop policy if exists "players vote for themselves" on public.next_session_votes;
+drop policy if exists "players change their vote" on public.next_session_votes;
+drop policy if exists "players take back their vote" on public.next_session_votes;
+drop policy if exists "the party sees it" on public.table_screen;
+drop policy if exists "DM sets it" on public.table_screen;
+create policy "the party sees it" on public.next_session for select to authenticated using (public.is_admin() or public.is_member(campaign_id));
+create policy "DM sets it" on public.next_session for all to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy "the party sees votes" on public.next_session_votes for select to authenticated using (public.is_admin() or public.is_member(campaign_id));
+create policy "players vote for themselves" on public.next_session_votes for insert to authenticated with check (user_id = auth.uid() and (public.is_member(campaign_id) or public.is_admin()));
+create policy "players change their vote" on public.next_session_votes for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid() and (public.is_member(campaign_id) or public.is_admin()));
+create policy "players take back their vote" on public.next_session_votes for delete to authenticated using (user_id = auth.uid() or public.is_admin());
+create policy "the party sees it" on public.table_screen for select to authenticated using (public.is_admin() or public.is_member(campaign_id));
+create policy "DM sets it" on public.table_screen for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+do $$ begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
+    if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'handouts') then
+      alter publication supabase_realtime add table public.handouts;
+    end if;
+    if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'table_screen') then
+      alter publication supabase_realtime add table public.table_screen;
+    end if;
+  end if;
+end $$;
+
+-- =====================================================================
+--  From the DM: feats, soft skill ranks, traits, Marks and anything else the DM gives a character.
+--  Kept apart from the character itself: only the DM writes it, and the character's owner reads it,
+--  so a player can't change or remove what they were given, and an open sheet can't overwrite it.
+-- =====================================================================
+create table if not exists public.character_grants (
+  character_id uuid primary key references public.characters(id) on delete cascade,
+  data         jsonb not null default '{}'::jsonb check (jsonb_typeof(data) = 'object' and length(data::text) <= 20000),
+  updated_at   timestamptz not null default now(),
+  updated_by   uuid default auth.uid() references public.profiles(id) on delete set null
+);
+alter table public.character_grants enable row level security;
+revoke all on public.character_grants from anon;
+drop policy if exists "owner or DM reads" on public.character_grants;
+drop policy if exists "DM gives" on public.character_grants;
+create policy "owner or DM reads" on public.character_grants for select to authenticated using (
+  public.is_admin() or exists (select 1 from public.characters c where c.id = character_id and c.owner_id = auth.uid()));
+create policy "DM gives" on public.character_grants for all to authenticated using (public.is_admin()) with check (public.is_admin());

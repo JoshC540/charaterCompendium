@@ -100,7 +100,9 @@ window.HandbookCraft = function (H) {
       for (const n of m.needs || []) if (!needs.includes(n)) needs.push(n);
       if (c === 'metal' && m.tier >= 3 && !needs.includes(EXOTIC_METAL)) needs.push(EXOTIC_METAL);
       if (c === 'wood' && m.tier >= 3 && !needs.includes(EXOTIC_WOOD)) needs.push(EXOTIC_WOOD);
-      if (m.id !== sd.id && m.note) notes.push([matName(m), m.note]);
+      // the main material's own effect on a weapon or armour (content/items.json "fx")
+      const F = base.fight, fx = F && F.mat === c && m.fx && (F.kind === 'weapon' || F.kind === 'armour') ? m.fx[F.kind === 'weapon' ? 'w' : 'a'] : '';
+      if (m.id !== sd.id && (m.note || fx)) notes.push([matName(m), [m.note, fx ? `On this ${F.kind === 'weapon' ? 'weapon' : 'armour'}: ${fx}` : ''].filter(Boolean).join(' ')]);
     }
     const labour = Math.max(base.cp * 0.3, base.cp - std);
     const work = labour * q.mult * diff;

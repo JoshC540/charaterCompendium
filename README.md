@@ -135,12 +135,30 @@ classes, subclasses, spells, drawbacks and quirks show up in it automatically.
 - **Level up** raises the character one level and lists what that level gives, with each choice in one
   place (stat, hit die, soft skill ranks, feat, milestone boon, SP or FP). **Cancel level-up** puts
   everything back. Earlier levels can still be changed in the Level-ups section.
-- **Inventory** is a list of items with quantity, notes and an Equipped tick. Older characters' gear text
-  is turned into items, one per line, when they're opened.
+- **From the DM:** the DM (signed in, looking at a player's character) opens **DM: give this character something** above the sheet. It gives:
+  - **a feat** outright, or an extra pick up to a tier (the player chooses; Renown doesn't hold it back);
+  - **soft skill ranks** in a named skill (on top of the player's own), or extra ranks to spend;
+  - **a drawback or quirk** (Drawbacks, Mythic Drawbacks or Quirks). A drawback the DM gives doesn't use the player's two picks and gives no SP back unless **Gives its SP back** is ticked (Advancement says play-acquired and Mythic drawbacks refund SP, so tick it when that applies);
+  - **a Mark** from the Marks or Mythic Marks lists, or one the DM writes, with the deed that earned it;
+  - **something else** with a name and what it does, and **extra SP**.
+  - **a weapon or armour** the DM makes up, with any numbers: damage dice of any size (1d30, 2d50+3, 1d75; up to 50 dice of 1000 sides, as the dice log rolls), Melee, Ranged or Casting, and for armour the place it's worn, Defence, Min hit, temp HP and a note. It shows in Attacks and armour marked *from the DM* and counts like worn gear (DM armour takes its place first);
+  - **an item's numbers** (*Set an item's numbers*): pick a weapon or armour the character carries and set its dice, what it hits with, Defence, Min hit or temp HP. A box left empty keeps the item's own number; what the DM sets is final (quality and material aren't added on top). *Back to its own numbers* undoes it;
+  - **extra Defence, Min hit and temp HP**, added to the armour totals.
+
+  They're kept in their own table (`character_grants`): only the DM writes it and only the character's owner (and the DM) reads it, so a player can't change or remove them and an open sheet can't overwrite them. The player sees them on the sheet (Feats, Soft skills, Marks, From the DM, Drawbacks and quirks), in the exports, and in a **From the DM** section in Edit. Run the latest `supabase/setup.sql` to switch it on.
+- **Inventory** is a list of items with quantity, notes, quality and an Equipped tick. Older characters' gear text
+  is turned into items, one per line, when they're opened. Weapons and armour from the item list come with their fighting numbers (shown under each one); anything else can be given its own with **Use as a weapon or armour** (damage, the stat it hits with, its type and two-handed; or Defence, Min hit, temp HP and where it's worn). Editing the numbers makes them the item's own; **Use the item list's numbers** goes back. Your class's starting weapons and equipment (from its subclass page) are offered as one-tap picks.
 - Saving needs the `characters` table: run the latest `supabase/setup.sql` once more.
 - **Play** (on a saved character) is the live sheet for the table: see *Live character sheets* below.
 - **Stats** are rolled the way the DM sets for the campaign (Session screen → Character rules): roll a set and place each number (the default, no rerolls) or roll each stat in order, with none, one, two or unlimited rerolls. Every set rolled, reroll and number typed in by hand is listed under **Stat rolls** on the sheet.
-- **Attacks and armour:** each attack has a name, the stat it hits with (Melee, Ranged or Casting) and its damage dice (spells with dice can be added in one tap). Armour adds its Defence to the class's and sets Min hit. The rule is in Core rules → Attacks and armour.
+- **Attacks and armour** work from what's equipped in the inventory:
+  - **Weapons** become attacks with their damage dice and the stat they hit with. A weapon your classes aren't trained in (from each class's weapons line, e.g. Soldier: swords, spears, polearms, shields) is marked, and its To hit rolls with disadvantage in the dice roller. Weapons from your class's starting kit always count as trained.
+  - **Spells and other attacks** (unarmed, anything that isn't a weapon you carry) are added by hand, as before; spells with dice can be added in one tap.
+  - **Armour:** one piece counts for each place (body, shield, head, hands, arms, legs, neck); a second body armour is listed as not counting. Their Defence adds to the class's, the highest Min hit counts, and their temp HP adds up. Barding is for a mount and doesn't count for the character.
+  - **Quality:** Great +1, Masterwork +2, Legendary +3, Artifact +4 to a weapon's damage, and to Defence for body armour and shields. Broken gear doesn't count until it's repaired.
+  - **Made of:** the material, from the item list's metals, woods, hides and cloths; a better or worse one scales the numbers (see *Item list* below).
+  - The old typed-in armour box is turned into an equipped item when a character is opened.
+  - The rules are in Core rules → Attacks and armour.
 - **The sheet** reads in table order (At a glance and Attacks first, background and notes last), with a bar to jump to each part; tap a long section's heading to fold it.
 
 The rules it applies are at the top of `creator.js` (`RULES`), so they're easy to change:
@@ -164,15 +182,16 @@ The rules it applies are at the top of `creator.js` (`RULES`), so they're easy t
 
 Every saved character has a **Play** view (Characters → the character → **Play**) for use at the table:
 
-- **HP:** damage and healing (damage takes temp HP first; HP never goes below 0 or above max), temp HP, and back to full. At 0 HP it shows death-save pips (3 passed, 3 failed) to tick.
+- **HP:** damage and healing (damage takes temp HP first; HP never goes below 0 or above max), temp HP, and back to full. At 0 HP it shows death-save pips (3 passed, 3 failed) to tick, with **Stable** or **Dead** at three; the DM rules on them at the table. Death saves also show in the combat tracker, the players' fight view and the table screen.
+- **Rests:** **Short rest** rolls the character's hit die (into the dice log) for HP and brings back per-combat and per-rest uses. **Long rest** gives full HP, clears death saves, sets temp HP to what the equipped armour gives, and brings back per-combat, per-rest and per-long-rest uses.
 - **Statuses:** add any status from the shared list, with stacks capped at each status's max and its rules beside it.
-- **Uses:** anything used a set number of times (a feat, a skill, spells of a tier), each resetting after a rest, a long rest, a day, a session, an arc or never. **Short rest**, **Long rest** (resets per-rest uses too), **New day**, **New session** and **New arc** reset the right ones. Feats whose text says "once per rest" and so on are offered as one-tap suggestions.
+- **Uses:** anything used a set number of times (a feat, a skill, spells of a tier), each resetting after a combat, a rest, a long rest, a day, a session, an arc or never. **End of combat**, **New day**, **New session** and **New arc** appear when something resets that way. Feats whose text says "once per rest", and bought subclass abilities that say "three times a combat", "twice per long rest" and so on, are offered as one-tap suggestions.
 - **Table notes:** a free box for concentration, debts, anything.
 - **Dice:** check buttons for every stat, To hit and Damage for every attack, and any dice (`2d6+3`). Rolls are made by the database (`roll_dice` in `setup.sql`), so nobody can type a result in, and every roll goes in the campaign's dice log, which everyone in the campaign sees. Exhaustion 1 (−2), 2 (disadvantage), 3 and 4 (the extra dice) and Freeze (halved dice) are applied for you; Fear and Poisoned show as reminders. The DM rolls from the Session screen and can roll in secret.
 - **Following a fight:** when the DM runs a fight for the campaign, the Play view shows the turn order, whose turn it is and who's next, the party's HP, and enemies only as unhurt, hurt, badly hurt or down.
 - **Abilities, feats and spells:** everything from the sheet in one searchable list.
 - **No signal?** Changes are kept on the device and sent, in order, when the connection is back (the sheet says how many are waiting).
-- **From the party stash:** anything handed over waits on the sheet with **Add to my inventory**.
+- **From the party stash or a shop:** anything handed over or bought waits on the sheet with **Add to my inventory** (weapons and armour keep their quality and numbers).
 
 The same sheet shows in the DM's **Combat tracker**: **+ Add saved characters** brings anyone in (grouped by campaign), and from then on HP, statuses and uses are one shared record. When the DM deals damage, the player's sheet changes within a few seconds, and the other way round. Bleed, burn and toxic on a saved character's turn apply to the live sheet.
 
@@ -191,6 +210,7 @@ The **Atlas** tab (under Your table) holds places, factions, people, creatures, 
 - Players see only revealed entries, can filter by kind and search them, and the main search box finds them too.
 - **Pictures:** in the editor, choose a picture or drop one on the box. It's shrunk in the browser (at most 2400 px, WebP) and stored in a private Supabase Storage bucket (`atlas`), so players can only load it once its entry is revealed. A link to a picture hosted elsewhere still works.
 - **Maps:** any entry with a picture can be a map. Signed in as the DM, press **Use as a map: place pins**, click the picture where a pin goes and pick the entry it points to. Players see a pin only once the map and that entry are both revealed, and each entry lists the maps it's on.
+- **Busy maps:** pins are numbered, with a key under the map grouped by kind; pointing at a pin or a line in the key picks it out and fades the rest. Only one name shows at a time unless **Show all names** is on (it's on by default for 8 pins or fewer). The kind buttons under the map show only places, people and so on. **Enlarge** opens the map full screen: drag to move around, and zoom with + and −, a pinch, or Ctrl + scroll (up to 600%), so crowded pins spread apart. Esc or Close goes back.
 
 This is enforced by the database (row-level security on `atlas`, `atlas_dm` and `atlas_pins` in `setup.sql`), not just hidden in the page. **Setting it up (once):** run the latest `supabase/setup.sql`.
 
@@ -206,6 +226,9 @@ This is enforced by the database (row-level security on `atlas`, `atlas_dm` and 
 - **Table dice:** roll for the table or in secret; the campaign's dice log is underneath.
 - **End of the session:** fights started, entries revealed, coin paid out, items handed out and levels given are noted as you go. **Write the recap** turns them into a draft you can edit, then **Post to Notes** adds it to a new session (or an existing one) for the players.
 - **Character rules:** how players in this campaign roll stats, and how many rerolls they get.
+- **Contracts:** what's on the board or taken, with **Done** (pays the reward into the party account) and **Failed**. Both go into the recap.
+- **Next session:** offer dates (and where), see who said yes, maybe or no, and **Pick this one**. Players answer on their home page and in Notes, and see the picked date there.
+- **Handouts:** write a letter or note, add a picture (shrunk before it's sent) or a link, then **Show it now** or **Save for later** and **Show** it when the moment comes. Shown handouts go into the recap.
 - Starting a fight from here also lets the campaign's players follow it on their phones; in the combat tracker, **Players follow it in** picks the campaign (or nobody).
 - **Backup:** **Download everything** saves the whole database as one JSON file (campaigns, sessions, notes, characters, live sheets, party money, the atlas with your notes and pins, and these plans). The bestiary isn't in it; that's in `bestiary-data`.
 
@@ -239,13 +262,39 @@ The **Party money** tab (under Your table) gives each campaign a shared **party 
 
 In **Party money**, the **Party stash** holds spoils and gear the party shares. Anyone in the campaign can **Put something in** (same name and notes stack up). To take something out, **Ask for it** for one of your characters: like a party account withdrawal, asking counts as the first approval, a second player's approval hands it over, and the DM's approval (or the DM asking) hands it over at once. It then waits on that character's sheet until the player adds it to their inventory, so nothing is overwritten on a sheet someone is editing. The DM can also remove things (used up, sold, lost). Everything is in the stash history. The Session screen's Loot can send items straight into the stash.
 
+## Shops
+
+The **Shops** tab (under Your table) lists the shops open in the campaign. The DM makes a shop with **+ New shop**: a name, where it is, a line players see, its prices as a % of the item list (set it for the town, supply and the party's standing; 100 is the item list's price) and what it pays for things (the item list's usual is 50%). Stock it from the item list (the price is worked out from the item, its quality and the shop's %, and can be changed) or with anything else at a price you write, with a number in stock or no limit. Players only see a shop once it's **open**.
+
+- **Buying:** choose the character, how many and **Buy**. The coin comes out of that character's purse at once (it has to be there), stock goes down, and the item waits on the sheet to add to the inventory.
+- **Selling:** pick something from the character's inventory and an asking price (the shop's share of the item list's price is suggested). It leaves the sheet while the offer stands. The DM **Pays it** (the coin goes into the purse) or **Turns it down** (it goes back on the sheet); the player can **Take it back** before then.
+- Everything is in the shop's **Recent sales** and in Party money.
+
+Files: `table.js`. Buying, offers and answers go through `shop_buy`, `shop_offer`, `shop_offer_answer` and `shop_offer_cancel` in `setup.sql`.
+
+## Contracts
+
+The **Contracts** tab is the guild's board for the campaign. The DM writes a contract (title, client, guild tier, reward, deadline, details), saves it as a draft or **posts** it. Players see posted contracts and **take** one (or give it up). When the DM marks it **done**, the reward goes into the party account; **failed** pays nothing. Drafts and withdrawn contracts are only seen by the DM.
+
+## Handouts and the next session
+
+Handouts the DM shows pop up on players' screens (on whatever page they're on, within about 20 seconds) and are listed under **Notes**, with the latest on the home page. Pictures are stored in a private Supabase Storage bucket (`handouts`), so players can only load one once its handout is shown.
+
+The next session's dates are at the top of **Notes** and on the home page: answer **Yes**, **Maybe** or **No** for each date (tap again to take it back). Once the DM picks one, it shows there instead.
+
+## Table screen
+
+**Table screen** (under Your table) is for a TV or laptop at the table. Pick the campaign; it shows the fight the DM is running (turn order, whose turn, the party's HP, enemies in words, death saves), the last few rolls from the dice log (never the DM's secret ones), and the map the DM picks (with revealed pins only, even when the DM is signed in). A handout the DM shows takes the main space for 15 minutes, or until **Stop showing the handout**. **Full screen** hides the rest of the site. It updates every few seconds.
+
 ## Crafting
 
 The **Crafting** tab (under Your table) is for players: pick an item, its materials and a quality for an estimate of what it costs to commission, what it costs to make yourself, what it's worth and what a merchant pays for it (half its value), how long it takes and how much it weighs. Making it yourself costs the materials and any special work, plus a rented forge (metal items, by the day) or workshop (by the week) if you tick it, and the tools for each Crafting skill the item needs: already yours, hired (about a tenth of their price a week) or bought. The Artisan feat halves the materials for the skill you pick. **Copy a link to this estimate** gives a link that opens the same choices for someone else. It uses the item list, recipes and maths from the Market Price Ledger, priced for an ordinary market, without the ledger's town settings or enchantments. Choices are remembered in the browser.
 
 ## Item list
 
-`content/items.json` is the item list from the Market Price Ledger (items, materials, qualities and crafting recipes). The character builder's inventory suggests items from it as you type.
+`content/items.json` is the item list from the Market Price Ledger (items, materials, qualities and crafting recipes). The character builder's inventory suggests items from it as you type, and shops are stocked from it. Weapons and armour carry a `fight` entry with their fighting numbers: weapons `dice`, `stat` (Melee or Ranged), `hands` and `tags` (the weapon types matched against each class's weapons line); armour `slot`, `def` (Defence), `minHit` and `thp` (temp HP). Both have `mat` and `kg`: their main material (`metal`, `wood`, `leather` or `cloth`) and how much of it, from the item's recipe. The numbers are for the standard material (steel, oak, cured leather, wool). Armour's come from its recipe: light armour (tier 1 or lower) gets temp HP from how much cloth, leather and metal it holds (15–25 for body armour) and no Min hit; heavy armour gets 20–40 temp HP, Defence and Min hit from its metal. Featherlight chain shirt and dragonhide armour are a chain shirt and hide armour with a set `material` (mithral, dragonhide).
+
+**Materials.** In the inventory and when stocking a shop, an item from the list can be made of any material of its kind (**Made of**). Its numbers then scale by that material's tier against the standard's: each tier up alternately adds +1 damage and a bigger damage die (1d8 → 1d8+1 → 1d10 → 1d10+1 → 1d12; past a d20 it's +2 a tier); armour gets +1 Min hit and +20% temp HP a tier, and +1 Defence every two tiers (body armour and shields). A worse material takes the same off. A shop's suggested price adds the difference in what the main material costs per kg. The rule is in Core rules → Attacks and armour. Special materials also carry `fx`: `w` (on a weapon) and `a` (on armour), a line of rules text each. It counts only when the material is the item's main one, and shows in the sheet's attack notes and armour list, the inventory, the PDF and Word sheet, shop stock and the crafting estimate. It's text for the table to apply, not worked into the numbers. `fightDraft: true` means the numbers are a first draft; change any in the file, and set it to `false` once they're signed off (the inventory stops saying they're being checked).
 
 
 ## Offline and phones

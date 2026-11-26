@@ -328,7 +328,8 @@ window.HandbookSession = function (H) {
   }
 
   /* ---------- backup ---------- */
-  const TABLES = ['profiles', 'campaigns', 'campaign_members', 'sessions', 'notes', 'characters', 'character_play', 'money_tx', 'money_requests', 'money_votes', 'atlas', 'atlas_dm', 'atlas_pins', 'dm_store'];
+  const TABLES = ['profiles', 'campaigns', 'campaign_members', 'sessions', 'notes', 'characters', 'character_play', 'money_tx', 'money_requests', 'money_votes', 'atlas', 'atlas_dm', 'atlas_pins', 'dm_store',
+    'character_grants', 'stash', 'stash_log', 'stash_requests', 'stash_votes', 'rolls', 'shops', 'shop_stock', 'shop_log', 'shop_offers', 'contracts', 'handouts', 'next_session', 'next_session_votes'];
   async function backup() {
     backupState = 'Gathering…'; render();
     const out = { made: new Date().toISOString(), note: 'Everything in the handbook’s database except the bestiary (which is in bestiary-data).', tables: {}, problems: {} };
@@ -381,12 +382,14 @@ window.HandbookSession = function (H) {
       return;
     }
     if (!plan) { box.replaceChildren(head, el('div', { class: 'empty' }, 'Opening tonight’s plan…')); return; }
+    // handouts, the next session's dates and contracts (table.js); what they do goes into tonight's recap
+    const T = H.Table ? H.Table.dmCards(campId, (kind, text) => { if (plan) { logEvent(kind, text); changed(); } }) : null;
     box.replaceChildren(el('div', { class: 'lab ss' }, head,
       el('p', { class: 'd-note ss-intro' }, 'Only you see this page. Everything on it saves as you go.'),
       msg ? el('p', { class: 'notes-msg' + (/^(Done|Revealed|Hidden|Saved|Posted|\d|.*paid into|.*in the party stash)/.test(msg) ? ' ok' : ''), role: 'status' }, msg) : null,
       el('div', { class: 'lab-cols' },
-        el('div', { class: 'lab-col' }, partyCard(), encountersCard(), recapCard(), rulesCard()),
-        el('div', { class: 'lab-col' }, H.Dice ? card('Table dice', H.Dice.panel({ campaign: campId, dm: true, key: 'dm|' + campId, title: '' })) : null, revealCard(), lootCard(), notesCard(), backupCard()))));
+        el('div', { class: 'lab-col' }, partyCard(), encountersCard(), T ? T.contracts : null, recapCard(), T ? T.next : null, rulesCard()),
+        el('div', { class: 'lab-col' }, H.Dice ? card('Table dice', H.Dice.panel({ campaign: campId, dm: true, key: 'dm|' + campId, title: '' })) : null, T ? T.handouts : null, revealCard(), lootCard(), notesCard(), backupCard()))));
   }
 
   return { renderList, parseCoin };

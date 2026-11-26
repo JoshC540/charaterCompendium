@@ -13,7 +13,7 @@ window.HandbookBank = function (H) {
       .filter(([v]) => v).map(([v, k]) => `${v.toLocaleString()} ${k}`);
     return (cp < 0 ? '−' : '') + (out.join(' ') || '0 cp');
   };
-  const KIND = { deposit: 'Deposit', withdrawal: 'Withdrawal', gift: 'Gift', spend: 'Spent', adjust: 'DM' };
+  const KIND = { deposit: 'Deposit', withdrawal: 'Withdrawal', gift: 'Gift', spend: 'Spent', adjust: 'DM', sale: 'Sold', reward: 'Reward' };
 
   let data = null, loading = false, loadErr = '';
   let camp = null;                       // { id, tx, requests, votes, chars } for the open campaign

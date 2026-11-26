@@ -10,6 +10,7 @@ window.HandbookAtlas = function (H) {
 
   let rows = null, dm = new Map(), pins = [], loading = false, loadErr = '', loadedAt = 0;
   let placing = '', pinDraft = null, pinPick = '';   // the map the DM is placing pins on, and the spot just clicked
+  const mapOnly = new Map(), mapNames = new Map();     // per map: the one kind of pin shown, and whether every name is shown
   let kind = '', find = '';
   let edit = null;          // the entry being written: { id|null, kind, name, region, image_url, summary, notes, revealed }
   let msg = '', busy = false, delAsk = false;
@@ -322,15 +323,50 @@ window.HandbookAtlas = function (H) {
     return true;
   }
 
-  /* ---------- maps: pins on an entry's picture ---------- */
-  function mapFigure(r) {
-    const mine = pins.filter(p => p.map_id === r.id && byId(p.entry_id));
-    const isPlacing = admin() && placing === r.id;
+  /* ---------- maps: pins on an entry's picture ----------
+     Pins are numbered and listed in a key under the map, so a busy map stays readable: one name shows at a time
+     (pointing at a pin, or at its line in the key), unless "Show all names" is on. Enlarge opens the map full screen
+     with zoom, where crowded pins spread apart. */
+  const NAMES_AT = 8;   // with this many pins or fewer, every name shows by default
+  function mapPins(r, revealedOnly) {
+    const all = pins.filter(p => p.map_id === r.id && byId(p.entry_id) && (!revealedOnly || byId(p.entry_id).revealed)).map(p => ({ p, e: byId(p.entry_id) }));
+    const order = Object.fromEntries(KINDS.map(([k], i) => [k, i]));
+    all.sort((a, b) => (order[a.e.kind] ?? 9) - (order[b.e.kind] ?? 9) || a.e.name.localeCompare(b.e.name));
+    all.forEach((x, i) => { x.n = i + 1; });
+    const only = mapOnly.get(r.id) || '';
+    return { all, shown: only ? all.filter(x => x.e.kind === only) : all, only };
+  }
+  const namesOn = (r, n) => mapNames.has(r.id) ? mapNames.get(r.id) : n <= NAMES_AT;
+
+  function pinEl(x, onHover) {
+    const { p, e, n } = x;
+    return el('a', { class: 'at-pin' + (e.revealed ? '' : ' hid'), 'data-pin': p.id, href: `#tab=atlas&ent=${encodeURIComponent(e.id)}`,
+      style: `left:${p.x}%;top:${p.y}%`, 'aria-label': `${n}: ${e.name}${e.revealed ? '' : ' (hidden)'}`,
+      onmouseenter: onHover ? () => onHover(p.id, true) : null, onmouseleave: onHover ? () => onHover(p.id, false) : null,
+      onfocus: onHover ? () => onHover(p.id, true) : null, onblur: onHover ? () => onHover(p.id, false) : null },
+      el('span', { class: 'num', 'aria-hidden': 'true' }, String(n)), el('span', { class: 'lbl', 'aria-hidden': 'true' }, e.name));
+  }
+  // light up one pin (and its line in the key); the rest fade
+  function lightUp(root, id, on) {
+    if (!root) return;
+    root.querySelectorAll('.hl').forEach(x => x.classList.remove('hl'));
+    root.querySelectorAll('.at-mapbox').forEach(b => b.classList.toggle('focus', !!on));
+    if (on) root.querySelectorAll(`[data-pin="${id}"]`).forEach(x => x.classList.add('hl'));
+  }
+
+  // bare: for the table screen (no tools, and only what players may see, even when the DM is signed in)
+  function mapFigure(r, opts) {
+    const bare = !!(opts && opts.bare);
+    const isPlacing = !bare && admin() && placing === r.id;
+    const { all, shown, only } = mapPins(r, bare);
+    const names = namesOn(r, shown.length);
     const src = pictureOf(r);
     if (!src) { signPictures(); return el('figure', { class: 'at-img at-map' }, el('p', { class: 'd-note' }, 'Opening the picture…')); }
-    const img = el('img', { src, alt: mine.length ? `Map: ${r.name}` : r.name, loading: 'lazy', referrerpolicy: 'no-referrer', draggable: 'false',
+    const img = el('img', { src, alt: all.length ? `Map: ${r.name}` : r.name, loading: 'lazy', referrerpolicy: 'no-referrer', draggable: 'false',
       onerror: ev => { const f = ev.target.closest('figure'); if (f) f.replaceChildren(el('p', { class: 'd-note' }, 'The picture couldn’t be loaded.')); } });
-    const box = el('div', { class: 'at-mapbox' + (isPlacing ? ' placing' : ''),
+    let fig = null;
+    const hover = (id, on) => lightUp(fig, id, on);
+    const box = el('div', { class: 'at-mapbox' + (isPlacing ? ' placing' : '') + (names ? ' names' : ''),
       onclick: isPlacing ? ev => {
         if (ev.target.closest('.at-pin')) return;
         const b = ev.currentTarget.getBoundingClientRect();
@@ -338,11 +374,33 @@ window.HandbookAtlas = function (H) {
         render();
       } : null },
       img,
-      ...mine.map(p => { const e = byId(p.entry_id); return el('a', { class: 'at-pin' + (e.revealed ? '' : ' hid'), href: `#tab=atlas&ent=${encodeURIComponent(e.id)}`, style: `left:${p.x}%;top:${p.y}%`, title: e.name, 'aria-label': `${e.name} (on the map)` }, el('span', { class: 'lbl' }, e.name)); }),
+      ...(isPlacing ? all : shown).map(x => pinEl(x, hover)),
       isPlacing && pinDraft ? el('span', { class: 'at-pin draft', style: `left:${pinDraft.x}%;top:${pinDraft.y}%`, 'aria-hidden': 'true' }) : null);
     const kids = [box];
-    if (admin()) {
-      if (!isPlacing) kids.push(el('div', { class: 'at-mapbar' }, el('button', { type: 'button', class: 'mini', onclick: () => { placing = r.id; pinDraft = null; pinPick = ''; render(); } }, mine.length ? `Edit the pins (${mine.length})` : 'Use as a map: place pins')));
+
+    if (!isPlacing && !bare) {
+      const kindsHere = KINDS.filter(([k]) => all.some(x => x.e.kind === k));
+      const tools = el('div', { class: 'at-maptools' },
+        el('button', { type: 'button', class: 'mini', onclick: ev => openZoom(r, ev.currentTarget) }, 'Enlarge'),
+        all.length ? el('button', { type: 'button', class: 'mini', 'aria-pressed': String(names), onclick: () => { mapNames.set(r.id, !names); render(); } }, names ? 'Hide the names' : 'Show all names') : null,
+        kindsHere.length > 1 ? el('div', { class: 'at-kinds at-mapkinds', role: 'group', 'aria-label': 'Pins to show' },
+          el('button', { type: 'button', class: 'at-kind' + (!only ? ' on' : ''), 'aria-pressed': String(!only), onclick: () => { mapOnly.delete(r.id); render(); } }, 'All pins', el('span', { class: 'n' }, String(all.length))),
+          ...kindsHere.map(([k, pl]) => { const c = all.filter(x => x.e.kind === k).length; return el('button', { type: 'button', class: 'at-kind' + (only === k ? ' on' : ''), 'aria-pressed': String(only === k), onclick: () => { if (only === k) mapOnly.delete(r.id); else mapOnly.set(r.id, k); render(); } }, pl, el('span', { class: 'n' }, String(c))); })) : null);
+      kids.push(tools);
+      const keyLine = x => el('li', { 'data-pin': x.p.id },
+          el('a', { href: `#tab=atlas&ent=${encodeURIComponent(x.e.id)}`, class: x.e.revealed ? null : 'hid',
+            onmouseenter: () => hover(x.p.id, true), onmouseleave: () => hover(x.p.id, false), onfocus: () => hover(x.p.id, true), onblur: () => hover(x.p.id, false) },
+            el('span', { class: 'num' }, String(x.n)), el('span', { class: 'nm' }, x.e.name), x.e.revealed ? null : el('span', { class: 'bs-fine' }, ' (hidden)')));
+      const keyKinds = KINDS.filter(([k]) => shown.some(x => x.e.kind === k));
+      if (shown.length) kids.push(el('div', { class: 'at-key', role: 'group', 'aria-label': 'On this map' },
+        ...keyKinds.map(([k, pl]) => el('div', { class: 'at-keyg' },
+          keyKinds.length > 1 ? el('h3', { class: 'at-keyh' }, pl) : null,
+          el('ol', {}, ...shown.filter(x => x.e.kind === k).map(keyLine))))));
+    }
+
+    if (bare && shown.length) kids.push(el('ol', { class: 'at-key' }, ...shown.map(x => el('li', {}, el('span', { class: 'num' }, String(x.n)), el('span', { class: 'nm' }, x.e.name)))));
+    if (admin() && !bare) {
+      if (!isPlacing) kids.push(el('div', { class: 'at-mapbar' }, el('button', { type: 'button', class: 'mini', onclick: () => { placing = r.id; pinDraft = null; pinPick = ''; render(); } }, all.length ? `Edit the pins (${all.length})` : 'Use as a map: place pins')));
       else {
         const others = rows.filter(x => x.id !== r.id);
         const addPin = async () => {
@@ -360,13 +418,121 @@ window.HandbookAtlas = function (H) {
               el('option', { value: '' }, 'Pick an entry…'), ...others.map(x => el('option', { value: x.id, selected: pinPick === x.id }, `${x.name}${x.revealed ? '' : ' (hidden)'}`))),
             el('button', { type: 'button', class: 'btn small primary', disabled: busy, onclick: addPin }, 'Pin it'),
             el('button', { type: 'button', class: 'mini', onclick: () => { pinDraft = null; render(); } }, 'Not there')) : null,
-          mine.length ? el('ul', { class: 'at-pinlist' }, ...mine.map(p => el('li', {}, el('span', {}, byId(p.entry_id).name),
-            el('button', { type: 'button', class: 'mini', disabled: busy, onclick: async () => { busy = true; render(); const res = await sb().from('atlas_pins').delete().eq('id', p.id); busy = false; if (res.error) { msg = friendly(res.error); render(); return; } await load(true); } }, 'Remove')))) : null,
+          all.length ? el('ul', { class: 'at-pinlist' }, ...all.map(x => el('li', { 'data-pin': x.p.id, onmouseenter: () => hover(x.p.id, true), onmouseleave: () => hover(x.p.id, false) },
+            el('span', {}, `${x.n}. ${x.e.name}`),
+            el('button', { type: 'button', class: 'mini', 'aria-label': `Remove the pin for ${x.e.name}`, disabled: busy, onclick: async () => { busy = true; render(); const res = await sb().from('atlas_pins').delete().eq('id', x.p.id); busy = false; if (res.error) { msg = friendly(res.error); render(); return; } await load(true); } }, 'Remove')))) : null,
           el('button', { type: 'button', class: 'btn small', onclick: () => { placing = ''; pinDraft = null; render(); } }, 'Done')));
       }
     }
-    return el('figure', { class: 'at-img at-map' }, ...kids);
+    fig = el('figure', { class: 'at-img at-map' }, ...kids);
+    return fig;
   }
+
+  /* ---------- the map full screen, with zoom ----------
+     Built straight into the page (not through render()), so zooming and panning keep their place.
+     Drag or swipe to move around; pinch, Ctrl + scroll, or the + and − buttons to zoom. */
+  let zoomClose = null;
+  function openZoom(r, opener) {
+    if (zoomClose) zoomClose();
+    const { shown } = mapPins(r);
+    let names = namesOn(r, shown.length), z = 1;
+    const MIN = 1, MAX = 6;
+    // 100% shows the whole map in the window
+    const fitW = () => { const a = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 1.5; return Math.max(1, Math.min(pane.clientWidth, pane.clientHeight * a)); };
+    const img = el('img', { src: pictureOf(r), alt: `Map: ${r.name}`, draggable: 'false', referrerpolicy: 'no-referrer' });
+    const box = el('div', { class: 'at-mapbox' + (names ? ' names' : '') }, img, ...shown.map(x => pinEl(x, null)));
+    const pane = el('div', { class: 'at-zoompane', tabindex: '0', 'aria-label': 'The map: drag to move around' }, box);
+    const pct = el('span', { class: 'at-zoompct', 'aria-live': 'polite' }, '100%');
+    const nameBtn = el('button', { type: 'button', class: 'mini', 'aria-pressed': String(names) }, names ? 'Hide the names' : 'Show all names');
+    const closeBtn = el('button', { type: 'button', class: 'btn small' }, 'Close');
+    const outBtn = el('button', { type: 'button', class: 'btn small at-zb', 'aria-label': 'Zoom out' }, '−');
+    const inBtn = el('button', { type: 'button', class: 'btn small at-zb', 'aria-label': 'Zoom in' }, '+');
+    const wrap = el('div', { class: 'at-zoom', role: 'dialog', 'aria-modal': 'true', 'aria-label': `Map: ${r.name}` },
+      el('div', { class: 'at-zoombar' }, el('strong', { class: 'at-zoomt' }, r.name), outBtn, pct, inBtn, nameBtn, closeBtn), pane);
+
+    // zoom about a point in the pane (default: its centre), keeping that point still
+    function setZoom(nz, cx, cy) {
+      nz = Math.max(MIN, Math.min(MAX, nz));
+      const pr = pane.getBoundingClientRect();
+      if (cx == null) { cx = pr.width / 2; cy = pr.height / 2; }
+      const fx = (pane.scrollLeft + cx) / box.offsetWidth, fy = (pane.scrollTop + cy) / box.offsetHeight;
+      z = nz; box.style.width = Math.round(fitW() * z) + 'px';
+      pane.scrollLeft = fx * box.offsetWidth - cx; pane.scrollTop = fy * box.offsetHeight - cy;
+      pct.textContent = Math.round(z * 100) + '%';
+      outBtn.disabled = z <= MIN; inBtn.disabled = z >= MAX;
+    }
+    outBtn.onclick = () => setZoom(z / 1.5);
+    inBtn.onclick = () => setZoom(z * 1.5);
+    nameBtn.onclick = () => { names = !names; box.classList.toggle('names', names); nameBtn.setAttribute('aria-pressed', String(names)); nameBtn.textContent = names ? 'Hide the names' : 'Show all names'; };
+    pane.addEventListener('wheel', ev => {
+      if (!ev.ctrlKey && !ev.metaKey) return;   // plain scrolling moves around; Ctrl + scroll (or a trackpad pinch) zooms
+      ev.preventDefault();
+      const pr = pane.getBoundingClientRect();
+      setZoom(z * Math.exp(-ev.deltaY * 0.0025), ev.clientX - pr.left, ev.clientY - pr.top);
+    }, { passive: false });
+    // drag to pan (mouse, pen or one finger); two fingers pinch to zoom
+    const pts = new Map(); let moved = 0, pinch = null;
+    pane.addEventListener('pointerdown', ev => { if (ev.button > 0) return; pts.set(ev.pointerId, { x: ev.clientX, y: ev.clientY }); moved = pts.size > 1 ? 99 : 0; pinch = null; });
+    pane.addEventListener('pointermove', ev => {
+      const was = pts.get(ev.pointerId); if (!was) return;
+      if (pts.size === 1) {
+        const dx = ev.clientX - was.x, dy = ev.clientY - was.y;
+        moved += Math.abs(dx) + Math.abs(dy);
+        if (moved > 4) { pane.scrollLeft -= dx; pane.scrollTop -= dy; if (!pane.hasPointerCapture(ev.pointerId)) pane.setPointerCapture(ev.pointerId); }
+        pts.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+      } else if (pts.size === 2) {
+        pts.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+        const [a, b] = [...pts.values()], d = Math.hypot(a.x - b.x, a.y - b.y), pr = pane.getBoundingClientRect();
+        const mx = (a.x + b.x) / 2 - pr.left, my = (a.y + b.y) / 2 - pr.top;
+        if (pinch) { setZoom(z * d / pinch.d, mx, my); pane.scrollLeft -= mx - pinch.mx; pane.scrollTop -= my - pinch.my; }
+        pinch = { d, mx, my };
+      }
+    });
+    const up = ev => { pts.delete(ev.pointerId); if (pts.size < 2) pinch = null; };
+    pane.addEventListener('pointerup', up); pane.addEventListener('pointercancel', up);
+    pane.addEventListener('click', ev => { if (moved > 4) { ev.preventDefault(); ev.stopPropagation(); } }, true);   // a drag isn't a click on a pin
+    pane.addEventListener('keydown', ev => {
+      const step = 60;
+      if (ev.key === '+' || ev.key === '=') { setZoom(z * 1.5); ev.preventDefault(); }
+      else if (ev.key === '-' || ev.key === '_') { setZoom(z / 1.5); ev.preventDefault(); }
+      else if (ev.key === 'ArrowLeft') { pane.scrollLeft -= step; ev.preventDefault(); }
+      else if (ev.key === 'ArrowRight') { pane.scrollLeft += step; ev.preventDefault(); }
+      else if (ev.key === 'ArrowUp') { pane.scrollTop -= step; ev.preventDefault(); }
+      else if (ev.key === 'ArrowDown') { pane.scrollTop += step; ev.preventDefault(); }
+    });
+
+    const onKey = ev => {
+      if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); close(); return; }
+      if (ev.key === 'Tab') {   // keep Tab inside the dialog
+        const f = [...wrap.querySelectorAll('button:not([disabled]), a[href], [tabindex="0"]')];
+        if (!f.length) return;
+        const i = f.indexOf(document.activeElement);
+        if (ev.shiftKey && i <= 0) { f[f.length - 1].focus(); ev.preventDefault(); }
+        else if (!ev.shiftKey && i === f.length - 1) { f[0].focus(); ev.preventDefault(); }
+      }
+    };
+    const onHash = () => close(true);
+    function close(navigating) {
+      document.removeEventListener('keydown', onKey, true);
+      window.removeEventListener('hashchange', onHash);
+      window.removeEventListener('resize', onResize);
+      document.documentElement.classList.remove('at-zooming');
+      wrap.remove(); zoomClose = null;
+      if (!navigating && opener && opener.isConnected) opener.focus();
+    }
+    closeBtn.onclick = () => close();
+    document.addEventListener('keydown', onKey, true);
+    window.addEventListener('hashchange', onHash);
+    document.documentElement.classList.add('at-zooming');
+    document.body.append(wrap);
+    zoomClose = close;
+    const start = () => setZoom(1);
+    const onResize = () => setZoom(z);
+    window.addEventListener('resize', onResize);
+    if (img.complete) start(); else img.addEventListener('load', start, { once: true });
+    closeBtn.focus();
+  }
+
   // the maps this entry is pinned on
   function onMaps(r) {
     const maps = [...new Set(pins.filter(p => p.entry_id === r.id).map(p => p.map_id))].map(byId).filter(Boolean);
@@ -402,5 +568,12 @@ window.HandbookAtlas = function (H) {
     },
   };
 
-  return { init, renderList, renderDetail, onEscape, siteHits, KIND, api };
+  // a revealed map, for the table screen
+  function figure(id, opts) {
+    const r = byId(id);
+    if (!r || !r.revealed || !hasPicture(r)) return null;
+    return mapFigure(r, opts);
+  }
+
+  return { init, renderList, renderDetail, onEscape, siteHits, KIND, api, figure };
 };

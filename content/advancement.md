@@ -35,8 +35,12 @@ Stats are roll-under: a lower number is better (5 is strong, 14 is weak).
 
   - **Attacking:** roll a d20. You hit on your **Melee**, **Ranged** or **Casting** or more, plus the target's **Defence**.
   - **Damage** is the weapon's or spell's dice. Feats, abilities and bonuses can add to it.
-  - **Defence** comes from your class and the armour you wear, added together. Each point makes attackers need 1 more on their d20.
+  - **Defence** comes from your class and the armour you wear, added together. Each point makes attackers need 1 more on their d20. Armour and a shield add together.
   - **Min hit** comes from your armour. Weapon damage below it doesn't count. Spells, status damage and area effects always count.
+  - **Temp HP:** all armour gives temp HP, which comes back on a long rest. Lighter armour (tier 1 and below) gives it instead of Min hit; heavier armour gives more, as well as Min hit.
+  - **Material:** gear is made in steel, oak, cured leather or wool unless it says otherwise. Each tier a better material is above that alternately adds +1 damage and a bigger damage die (d8, d8+1, d10, d10+1…); armour gets +1 Min hit and a fifth more temp HP for each tier, and +1 Defence for every two. A worse material takes the same off. Special materials (silver, mithral, dragonhide and the like) also have an effect of their own, which only counts when it's the weapon's or armour's main material; it's listed with the material in the item list and shows on your sheet.
+  - **Quality:** better-made gear adds to damage, and to Defence for armour and shields: Great +1, Masterwork +2, Legendary +3, Artifact +4.
+  - **Training:** attacking with a weapon your class isn't trained in is done with disadvantage.
 
 ## Renown
 
