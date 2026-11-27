@@ -470,9 +470,11 @@
     let mode = 'edit';                 // 'sheet' (read), 'edit' (every section), 'guide' (new-character steps) or 'play' (live sheet at the table)
     let drawer = false, showAdjust = false;
     const openSubs = new Set();        // subclasses expanded under Subclass points
+    let wantPlay = '';                 // set by openPlay: the next time this character opens, open it in play mode
     function enterMode() {
       lvlup = null; drawer = false; confirmDel = false; msg = '';
       mode = !cur ? 'edit' : cur.readOnly || cur.id ? 'sheet' : cur.data.guide.done ? 'edit' : 'guide';
+      if (cur && cur.id && wantPlay === cur.id) { mode = 'play'; wantPlay = ''; }
     }
     const pl = (n, one, many) => `${n} ${n === 1 ? one : (many || one + 's')}`;
 
@@ -2311,6 +2313,8 @@
 
     return {
       init, renderList, renderDetail,
+      // the home page's "Play mode" button
+      openPlay: id => { wantPlay = id; if (cur && cur.id === id) { mode = 'play'; wantPlay = ''; } go({ tab: 'chars', char: id }, true); },
       maxHp: data => { try { return derived(normalize(JSON.parse(JSON.stringify(data || {})))).hp; } catch (e) { return 0; } },
       // the signed-in player's own saved characters, for the home page (null until the list has loaded)
       mine: () => { if (!list) { refreshList().then(() => { if (state.tab === 'all') render(); }); return null; } return user() ? list.filter(r => r.owner_id === user().id) : []; },

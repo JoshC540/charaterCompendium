@@ -13,7 +13,7 @@
   };
   const TYPES = ['race', 'class', 'subclass', 'spell', 'adv', 'god', 'patch'];
   const DOC_TYPES = ['adv', 'god', 'patch'];
-  const TYPE_LABEL = { all: 'All', race: 'Races', class: 'Classes', subclass: 'Subclasses', spell: 'Spells', adv: 'Advancement', god: 'Gods', notes: 'Notes', chars: 'Characters', bank: 'Party money', craft: 'Crafting', atlas: 'Atlas', patch: 'Patch Notes', settings: 'Settings', beast: 'Volume I', vol2: 'Volume II', vol3: 'Volume III', named: 'Named monsters', forge: 'Dragons & elementals', encounter: 'Encounters', fight: 'Combat tracker', lab: 'Balance lab', brules: 'Monster rules', session: 'Session', shops: 'Shops', jobs: 'Contracts', screen: 'Table screen', finals: 'Final classes' };
+  const TYPE_LABEL = { all: 'All', race: 'Races', class: 'Classes', subclass: 'Subclasses', spell: 'Spells', adv: 'Rules', god: 'Gods', notes: 'Notes', chars: 'Characters', bank: 'Party money', craft: 'Crafting', atlas: 'Atlas', patch: 'Patch Notes', settings: 'Settings', beast: 'Volume I', vol2: 'Volume II', vol3: 'Volume III', named: 'Named monsters', forge: 'Dragons & elementals', encounter: 'Encounters', fight: 'Combat tracker', lab: 'Balance lab', brules: 'Monster rules', session: 'Session', shops: 'Shops', jobs: 'Contracts', screen: 'Table screen', finals: 'Final classes' };
   const DM_TABS = ['session', 'beast', 'vol2', 'vol3', 'named', 'forge', 'encounter', 'fight', 'lab', 'brules'];
   const TYPE_ONE = { race: 'Race', class: 'Class', subclass: 'Subclass', spell: 'Spell', adv: 'Advancement', god: 'Book of Gods', patch: 'Patch notes' };
 
@@ -438,9 +438,11 @@
 
   // Top-level groups; the active group shows its own sections in a second row.
   const GROUPS = [
-    { key: 'character', label: 'Character', tabs: ['race', 'class', 'subclass', 'spell', 'finals'] },
-    { key: 'rules', label: 'Rules', tabs: ['adv', 'god'] },
-    { key: 'table', label: 'Your table', tabs: ['chars', 'bank', 'shops', 'jobs', 'craft', 'notes', 'atlas', 'screen'] },
+    // five places, by what people do: home, your character, the book, the party's shared things, and the DM's tools
+    { key: 'home', label: 'Home', tabs: ['all'] },
+    { key: 'character', label: 'Character', tabs: ['chars'] },
+    { key: 'handbook', label: 'Handbook', tabs: ['race', 'class', 'subclass', 'spell', 'finals', 'adv', 'god', 'craft'] },
+    { key: 'party', label: 'Party', tabs: ['bank', 'shops', 'jobs', 'notes', 'atlas', 'screen'] },
     { key: 'dm', label: 'DM', tabs: DM_TABS, dm: true },
   ];
   const lastInGroup = {};
@@ -454,10 +456,13 @@
     const shownGroups = GROUPS.filter(g => !g.dm || g === cur || (Beast && Beast.isAdmin()));
     nav.replaceChildren(...shownGroups.map(g => el('button', {
       class: 'tab', role: 'tab', 'aria-selected': String(cur === g), 'data-g': g.key,
-      onclick: () => { const t = lastInGroup[g.key] || g.tabs[0]; go({ tab: t, sel: state.tab === t ? state.sel : null }, true); },
+      onclick: () => {
+        if (g.key === 'home') { go({ tab: 'all', q: '', sel: null }, true); window.scrollTo(0, 0); return; }
+        const t = lastInGroup[g.key] || g.tabs[0]; go({ tab: t, sel: state.tab === t ? state.sel : null }, true);
+      },
     }, g.label)));
     // Final classes only show for the DM and the players the DM has let see them
-    const subTabs = cur ? cur.tabs.filter(t => t !== 'finals' || t === state.tab || (Finals && Finals.visible())) : ['patch', 'settings'].includes(state.tab) ? [state.tab] : [];
+    const subTabs = cur ? (cur.tabs.length > 1 ? cur.tabs.filter(t => t !== 'finals' || t === state.tab || (Finals && Finals.visible())) : []) : ['patch', 'settings'].includes(state.tab) ? [state.tab] : [];
     sub.hidden = !subTabs.length;
     sub.replaceChildren(...subTabs.map(t => el('button', {
       class: 'subtab', 'aria-current': state.tab === t ? 'page' : null,
@@ -602,37 +607,70 @@
       Promise.all([sb.from('notes').select('id, body, created_at, session_id').order('created_at', { ascending: false }).limit(1), sb.from('sessions').select('id, number, title, campaign_id')])
         .then(([n, ss]) => { const x = n && n.data && n.data[0]; homeNote = x ? { ...x, ses: ((ss && ss.data) || []).find(s => s.id === x.session_id) || null } : false; if (state.tab === 'all' && !state.q) render(); }).catch(() => {});
     }
-    const rows = [];
-    if (mine && mine.length && Play) {
-      Play.load(mine.map(r => r.id));
-      for (const r of mine.slice(0, 6)) {
-        const live = Play.get(r.id) || {};
-        const max = live.max || 0, hp = live.hp == null ? max : live.hp;
-        const lvl = (r.data && r.data.level) | 0, owed = (live.levelTo | 0) > lvl;
-        const inbox = Array.isArray(live.inbox) && live.inbox.length;
-        rows.push(el('button', { class: 'yt-char', onclick: () => go({ tab: 'chars', char: r.id }, true) },
-          el('span', { class: 'nm' }, r.name || 'Unnamed'),
-          el('span', { class: 'sub' }, r.summary || ''),
-          max ? el('span', { class: 'hp' }, `${hp} / ${max} HP`) : null,
-          max ? el('span', { class: 'ft-bar pc yt-bar', 'aria-hidden': 'true' }, el('span', { style: `width:${Math.max(0, Math.min(100, Math.round(hp / max * 100)))}%` })) : null,
-          owed || inbox ? el('span', { class: 'yt-flag' }, [owed ? `Level ${live.levelTo} to take` : null, inbox ? 'Something from the party stash' : null].filter(Boolean).join(' · ')) : null));
-      }
+    // live HP from play mode; before the character has been played, their full HP from the sheet
+    const live = r => { const L = (Play && Play.get(r.id)) || {}; const max = L.max || (Creator && Creator.maxHp ? Creator.maxHp(r.data) : 0) || 0; return { ...L, max, hp: L.hp == null ? max : L.hp }; };
+    if (mine && mine.length && Play) Play.load(mine.map(r => r.id));
+    const flags = (r, L) => {
+      const lvl = (r.data && r.data.level) | 0, owed = (L.levelTo | 0) > lvl, inbox = Array.isArray(L.inbox) && L.inbox.length;
+      return owed || inbox ? el('span', { class: 'yt-flag' }, [owed ? `Level ${L.levelTo} to take` : null, inbox ? 'Something from the party stash' : null].filter(Boolean).join(' · ')) : null;
+    };
+    // your first character, large, with what you need at the table
+    let hero = null;
+    if (mine && mine.length) {
+      const r = mine[0], L = live(r);
+      const F = Creator.fightStats ? Creator.fightStats(r.data) : null;
+      const stat = (k, v, sub) => el('div', { class: 'hm-stat' }, el('span', { class: 'k' }, k), el('span', { class: 'v' }, v), sub || null);
+      hero = el('section', { class: 'hm-char framed', 'aria-label': 'Your character' },
+        el('div', { class: 'hm-who' },
+          el('span', { class: 'hm-seal', 'aria-hidden': 'true' }, (r.name || '?').trim().charAt(0).toUpperCase()),
+          el('div', { class: 'hm-name' }, el('h2', {}, r.name || 'Unnamed'), el('p', {}, r.summary || '')),
+          el('div', { class: 'hm-acts' },
+            Creator.openPlay ? el('button', { class: 'btn primary', onclick: () => Creator.openPlay(r.id) }, 'Play mode') : null,
+            el('button', { class: 'btn', onclick: () => go({ tab: 'chars', char: r.id }, true) }, 'Open sheet'))),
+        el('div', { class: 'hm-stats' },
+          L.max ? stat('Hit points', el('span', {}, String(L.hp), el('small', {}, ` / ${L.max}`)), el('span', { class: 'ft-bar pc yt-bar', 'aria-hidden': 'true' }, el('span', { style: `width:${Math.max(0, Math.min(100, Math.round(L.hp / L.max * 100)))}%` }))) : null,
+          F && F.thp ? stat('Temp HP from armour', String(L.temp != null ? L.temp : F.thp), el('span', { class: 'sub' }, 'back on a long rest')) : null,
+          F ? stat('Defence', `+${F.defence | 0}`, F.minHit ? el('span', { class: 'sub' }, `Min hit ${F.minHit}`) : null) : null,
+          F ? stat('Level', String(F.level | 0)) : null),
+        flags(r, L));
     }
+    const others = (mine || []).slice(1, 6).map(r => { const L = live(r); return el('button', { class: 'yt-char', onclick: () => go({ tab: 'chars', char: r.id }, true) },
+      el('span', { class: 'nm' }, r.name || 'Unnamed'), el('span', { class: 'sub' }, r.summary || ''),
+      L.max ? el('span', { class: 'hp' }, `${L.hp} / ${L.max} HP`) : null, flags(r, L)); });
     const A = Atlas && Atlas.api ? Atlas.api.rows() : null;
     if (A === null && Atlas && Atlas.api && !homeAtlasAsked) { homeAtlasAsked = true; Atlas.api.load(); }
     const fresh = (A || []).filter(x => x.revealed && x.revealed_at && Date.now() - Date.parse(x.revealed_at) < 30 * 86400000).sort((a, b) => Date.parse(b.revealed_at) - Date.parse(a.revealed_at)).slice(0, 4);
-    const kids = [
-      rows.length ? el('div', { class: 'yt-chars' }, ...rows) : mine && !mine.length ? el('button', { class: 'home-notes chars', onclick: () => go({ tab: 'chars', char: 'new' }, true) }, el('span', { class: 'lbl' }, 'Make your character'), el('span', { class: 'hint' }, 'You haven’t saved one yet.'), el('span', { class: 'go' }, 'Start →')) : null,
+    const next = Table ? Table.nextCard(null, true) : null;
+    const news = [
+      ...(Table ? Table.homeLines().filter(x => !x.classList.contains('ns')) : []),
       homeNote ? el('button', { class: 'yt-line', onclick: () => go({ tab: 'notes', ses: homeNote.session_id }, true) },
         el('span', { class: 'k' }, 'Latest note' + (homeNote.ses ? ` · Session ${homeNote.ses.number}${homeNote.ses.title ? ': ' + homeNote.ses.title : ''}` : '')),
         el('span', { class: 'v' }, plain(homeNote.body).slice(0, 140) + (homeNote.body.length > 140 ? '…' : ''))) : null,
       fresh.length ? el('div', { class: 'yt-line yt-atlas' }, el('span', { class: 'k' }, 'New in the atlas'),
         el('span', { class: 'v' }, ...fresh.map((x, i) => [i ? ', ' : '', el('a', { class: 'at-link', href: `#tab=atlas&ent=${encodeURIComponent(x.id)}` }, x.name)]))) : null,
-      ...(Table ? Table.homeLines() : []),
       Beast && Beast.isAdmin() ? el('button', { class: 'yt-line', onclick: () => go({ tab: 'session' }, true) }, el('span', { class: 'k' }, 'DM'), el('span', { class: 'v' }, 'Open the session screen →')) : null,
     ].filter(Boolean);
-    if (!kids.length) return null;
-    return el('section', { class: 'yt' }, el('h2', { class: 'section-head' }, 'Your table'), ...kids);
+    const camp = Table && Table.campaign ? Table.campaign() : null;
+    const start = !hero && mine && !mine.length ? el('button', { class: 'home-notes chars', onclick: () => go({ tab: 'chars', char: 'new' }, true) }, el('span', { class: 'lbl' }, 'Make your character'), el('span', { class: 'hint' }, 'You haven’t saved one yet.'), el('span', { class: 'go' }, 'Start →')) : null;
+    return el('section', { class: 'hm' },
+      el('div', { class: 'hm-head' }, el('p', { class: 'kick' }, 'Your table'), el('h1', {}, camp ? camp.name : 'Welcome back'), el('span', { class: 'orn', 'aria-hidden': 'true' })),
+      el('div', { class: 'hm-grid' },
+        el('div', { class: 'hm-main' }, hero || start || (mine === null ? el('p', { class: 'hint' }, 'Opening your characters…') : null),
+          others.length ? el('div', { class: 'yt-chars' }, ...others) : null,
+          news.length ? el('section', { class: 'hm-news' }, el('h2', { class: 'section-head' }, 'Since last session'), ...news) : null),
+        next ? el('div', { class: 'hm-side' }, next) : null));
+  }
+
+  // signed in: the handbook as one strip under your table, rather than the welcome page
+  function handbookStrip() {
+    const c = counts();
+    const link = (t, n) => el('button', { class: 'hm-cat', onclick: () => go({ tab: t, sel: null }, true) }, TYPE_LABEL[t], n != null ? el('span', { class: 'n' }, String(n)) : null);
+    const latest = DB.docs.patch.length ? (DB.docs.patch.find(x => x.name !== x.chapter) || DB.docs.patch[0]) : null;
+    return el('section', { class: 'hm-book' },
+      el('h2', { class: 'section-head' }, 'The Handbook'),
+      el('div', { class: 'hm-cats' }, link('race', c.race), link('class', c.class), link('subclass', c.subclass), link('spell', c.spell), link('adv'), link('god'), link('craft')),
+      latest ? el('button', { class: 'hm-patch', onclick: () => go({ tab: 'patch', sel: latest.id }, true) }, `Latest update · ${latest.name} →`) : null,
+      el('p', { class: 'home-tips', html: 'Press <code>/</code> to search for a race, class, spell or rule.' }));
   }
 
   function renderHome() {
@@ -642,8 +680,10 @@
         ? el('span', { class: 'big' }, String(new Set(DB.docs[t].map(x => x.chapter)).size), el('small', {}, ' chapters'))
         : el('span', { class: 'big' }, String(c[t])),
       el('span', { class: 'lbl' }, TYPE_LABEL[t]), el('span', { class: 'hint' }, hint));
+    const yt = yourTable();
+    document.body.classList.toggle('hm-wide', !!yt);
+    if (yt) return [yt, handbookStrip()];
     return [
-      yourTable(),
       el('div', { class: 'home-intro' },
         el('h1', {}, 'The Player’s Handbook'),
         el('p', {}, 'Everything you need to build and grow your character: races, classes, subclasses, spells, advancement and the gods. Search for anything, or open a chapter.')),
@@ -907,6 +947,7 @@
     if (state.tab !== 'chars') document.body.classList.remove('cc-open');
     if (!DM_TABS.includes(state.tab)) document.body.classList.remove('bs-wide', 'bs-card-open');
     if (state.tab !== 'craft') document.body.classList.remove('cf-wide');
+    if (state.tab !== 'all' || state.q) document.body.classList.remove('hm-wide');
     if (state.tab !== 'screen') document.body.classList.remove('ts-on');
     if (state.tab === 'craft') {
       layout.classList.add('no-detail');
@@ -981,7 +1022,9 @@
         pane.replaceChildren(...ov.filter(Boolean));
         return;
       }
-      pane.replaceChildren(el('div', { class: 'empty' }, el('strong', {}, 'Pick something to read'), 'Select any entry on the left to see the full details here.'));
+      // nothing open and no overview: the list takes the full width instead of sitting beside an empty page
+      layout.classList.add('no-detail');
+      pane.replaceChildren();
       return;
     }
     const kicker = [el('span', { class: `badge ${i.type}` }, TYPE_ONE[i.type])];

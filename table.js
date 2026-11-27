@@ -865,5 +865,7 @@ window.HandbookTable = function (H) {
     return false;
   }
 
-  return { init, renderList, renderDetail, handoutsCard, nextCard, dmCards, homeLines, watchHandouts, parseCoin };
+  // the campaign the party pages are showing, for the home page's heading
+  const campaign = () => { if (!user()) return null; if (!camps) { loadCamps(); return null; } return camps.find(c => c.id === campId) || null; };
+  return { init, renderList, renderDetail, handoutsCard, nextCard, dmCards, homeLines, watchHandouts, parseCoin, campaign };
 };

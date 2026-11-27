@@ -7,6 +7,12 @@
 
 # 2026
 
+## 27 Nov 2026
+
+- **Site layout:** Character, Rules, Your table, DM → Home, Character, Handbook, Party, DM
+- **Home page:** — → signed in, it shows your character (HP, temp HP, Defence, Play mode), the next session and what's new since last session
+- **Lists:** shown beside an empty page → full width until you open something
+
 ## 26 Nov 2026
 
 - **Weapons and armour on the character sheet:** typed in by hand → tick Equipped in your inventory: weapons become attacks with their damage, and armour and shields add their Defence, Min hit and temp HP

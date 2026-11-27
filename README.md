@@ -201,7 +201,7 @@ Who can see and change it: the player who owns the character and the DM can chan
 
 ## Atlas
 
-The **Atlas** tab (under Your table) holds places, factions, people, creatures, items and lore. The DM writes every entry and decides when players see it:
+The **Atlas** tab (under Party) holds places, factions, people, creatures, items and lore. The DM writes every entry and decides when players see it:
 
 - Signed in as the DM, **+ New entry** adds one: kind, name, region (entries are grouped by kind, then region), an optional picture link, what the players learn, and **your notes**.
 - Every entry starts **hidden**. **Reveal to players** shows it to every signed-in player; **Hide it again** takes it back.
@@ -240,7 +240,7 @@ The gear button in the header (and the footer link) opens **Settings**: theme (m
 
 ## Party money
 
-The **Party money** tab (under Your table) gives each campaign a shared **party account** and each character a **purse**.
+The **Party money** tab (under Party) gives each campaign a shared **party account** and each character a **purse**.
 
 **Setting it up (once):** run `supabase/setup.sql` again in the Supabase SQL editor. It's safe to re-run; it adds the new tables and leaves existing notes and characters alone. Then, signed in as the admin:
 
@@ -264,7 +264,7 @@ In **Party money**, the **Party stash** holds spoils and gear the party shares. 
 
 ## Shops
 
-The **Shops** tab (under Your table) lists the shops open in the campaign. The DM makes a shop with **+ New shop**: a name, where it is, a line players see, its prices as a % of the item list (set it for the town, supply and the party's standing; 100 is the item list's price) and what it pays for things (the item list's usual is 50%). Stock it from the item list (the price is worked out from the item, its quality and the shop's %, and can be changed) or with anything else at a price you write, with a number in stock or no limit. Players only see a shop once it's **open**.
+The **Shops** tab (under Party) lists the shops open in the campaign. The DM makes a shop with **+ New shop**: a name, where it is, a line players see, its prices as a % of the item list (set it for the town, supply and the party's standing; 100 is the item list's price) and what it pays for things (the item list's usual is 50%). Stock it from the item list (the price is worked out from the item, its quality and the shop's %, and can be changed) or with anything else at a price you write, with a number in stock or no limit. Players only see a shop once it's **open**.
 
 - **Buying:** choose the character, how many and **Buy**. The coin comes out of that character's purse at once (it has to be there), stock goes down, and the item waits on the sheet to add to the inventory.
 - **Selling:** pick something from the character's inventory and an asking price (the shop's share of the item list's price is suggested). It leaves the sheet while the offer stands. The DM **Pays it** (the coin goes into the purse) or **Turns it down** (it goes back on the sheet); the player can **Take it back** before then.
@@ -284,11 +284,11 @@ The next session's dates are at the top of **Notes** and on the home page: answe
 
 ## Table screen
 
-**Table screen** (under Your table) is for a TV or laptop at the table. Pick the campaign; it shows the fight the DM is running (turn order, whose turn, the party's HP, enemies in words, death saves), the last few rolls from the dice log (never the DM's secret ones), and the map the DM picks (with revealed pins only, even when the DM is signed in). A handout the DM shows takes the main space for 15 minutes, or until **Stop showing the handout**. **Full screen** hides the rest of the site. It updates every few seconds.
+**Table screen** (under Party) is for a TV or laptop at the table. Pick the campaign; it shows the fight the DM is running (turn order, whose turn, the party's HP, enemies in words, death saves), the last few rolls from the dice log (never the DM's secret ones), and the map the DM picks (with revealed pins only, even when the DM is signed in). A handout the DM shows takes the main space for 15 minutes, or until **Stop showing the handout**. **Full screen** hides the rest of the site. It updates every few seconds.
 
 ## Crafting
 
-The **Crafting** tab (under Your table) is for players: pick an item, its materials and a quality for an estimate of what it costs to commission, what it costs to make yourself, what it's worth and what a merchant pays for it (half its value), how long it takes and how much it weighs. Making it yourself costs the materials and any special work, plus a rented forge (metal items, by the day) or workshop (by the week) if you tick it, and the tools for each Crafting skill the item needs: already yours, hired (about a tenth of their price a week) or bought. The Artisan feat halves the materials for the skill you pick. **Copy a link to this estimate** gives a link that opens the same choices for someone else. It uses the item list, recipes and maths from the Market Price Ledger, priced for an ordinary market, without the ledger's town settings or enchantments. Choices are remembered in the browser.
+The **Crafting** tab (under Handbook) is for players: pick an item, its materials and a quality for an estimate of what it costs to commission, what it costs to make yourself, what it's worth and what a merchant pays for it (half its value), how long it takes and how much it weighs. Making it yourself costs the materials and any special work, plus a rented forge (metal items, by the day) or workshop (by the week) if you tick it, and the tools for each Crafting skill the item needs: already yours, hired (about a tenth of their price a week) or bought. The Artisan feat halves the materials for the skill you pick. **Copy a link to this estimate** gives a link that opens the same choices for someone else. It uses the item list, recipes and maths from the Market Price Ledger, priced for an ordinary market, without the ledger's town settings or enchantments. Choices are remembered in the browser.
 
 ## Item list
 
@@ -303,7 +303,9 @@ The **Crafting** tab (under Your table) is for players: pick an item, its materi
 
 On phones (700 px wide or less), the sections (Rules, Characters, Notes and so on) are in a bar at the bottom of the screen, buttons and links are bigger, and an arrow appears beside a section's pages when there are more than fit. Long pages get a round **back to the top** button once you've scrolled down.
 
-Signed in, the home page starts with **Your table**: your characters with their HP (and a flag when there's a level to take or something from the stash), the latest note, and atlas entries revealed in the last 30 days. The DM also gets a link to the Session screen.
+The site has five areas along the top (on a phone, along the bottom): **Home**, **Character** (your characters), **Handbook** (races, classes, subclasses, spells, final classes for those allowed, rules, gods and crafting), **Party** (party money, shops, contracts, notes, atlas and the table screen) and **DM** (the DM only). Old links keep working: the pages kept their `#tab=` names.
+
+Signed in, the home page is your table: the campaign's name, your first character large (HP, temp HP from armour, Defence and Min hit, level, with **Play mode** and **Open sheet**), your other characters, the next session vote, and what's new since last session (contracts, the latest handout, the latest note, atlas entries revealed in the last 30 days; the DM also gets a link to the Session screen), then the handbook's sections. Signed out, it's the handbook's welcome page. A section with nothing open uses the full width rather than sitting beside an empty page.
 
 ## Final classes (DM only, and players you let in)
 
