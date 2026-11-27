@@ -303,6 +303,8 @@ The **Crafting** tab (under Handbook) is for players: pick an item, its material
 
 On phones (700 px wide or less), the sections (Rules, Characters, Notes and so on) are in a bar at the bottom of the screen, buttons and links are bigger, and an arrow appears beside a section's pages when there are more than fit. Long pages get a round **back to the top** button once you've scrolled down.
 
+An open character has its name, HP (live from play mode), temp HP, Defence, Min hit, hit die and Renown pinned at the top with Sheet, Edit and Play; on a laptop the left rail lists SP and ranks left, the to-do list, and the sections (or, on the sheet, its parts to jump to).
+
 The site has five areas along the top (on a phone, along the bottom): **Home**, **Character** (your characters), **Handbook** (races, classes, subclasses, spells, final classes for those allowed, rules, gods and crafting), **Party** (party money, shops, contracts, notes, atlas and the table screen) and **DM** (the DM only). Old links keep working: the pages kept their `#tab=` names.
 
 Signed in, the home page is your table: the campaign's name, your first character large (HP, temp HP from armour, Defence and Min hit, level, with **Play mode** and **Open sheet**), your other characters, the next session vote, and what's new since last session (contracts, the latest handout, the latest note, atlas entries revealed in the last 30 days; the DM also gets a link to the Session screen), then the handbook's sections. Signed out, it's the handbook's welcome page. A section with nothing open uses the full width rather than sitting beside an empty page.
@@ -321,7 +323,7 @@ Files: `finals.js`.
 
 ## Bestiary (DM only)
 
-The **DM** tab group (Session, Volume I, Volume II, Volume III, Named monsters, Dragons & elementals, Encounters, Combat tracker, Balance lab, Monster rules) only appears for the admin account. Everything in it comes from *Bestiary: Volume I*, *Bestiary: Volume II* and *Bestiary: Volume III – Peoples and Powers*.
+The **DM** area only appears for the admin account. Its pages are in groups: **Run** (Session, Combat tracker), **Prep** (Bestiary, Dragons & elementals, Encounters, Balance lab, Monster rules) and **Players** (links to the characters, where grants and DM gear are given, and to who sees the final classes). **Bestiary** is one page with a switch at the top for Volume I, Volume II, Volume III and Named monsters; each keeps its own `#tab=` link (`beast`, `vol2`, `vol3`, `named`), and Bestiary reopens the volume you last used. Everything in it comes from *Bestiary: Volume I*, *Bestiary: Volume II* and *Bestiary: Volume III – Peoples and Powers*.
 
 **Why the data isn't in this repo:** anything in a GitHub Pages repo can be downloaded by anyone, including tactics, tells and exploits. So the monster data lives in Supabase, in a `bestiary` table that only the admin account can read. The site loads it after you sign in as the DM. Players, and people who aren't signed in, get nothing back.
 

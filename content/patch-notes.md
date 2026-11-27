@@ -12,6 +12,7 @@
 - **Site layout:** Character, Rules, Your table, DM → Home, Character, Handbook, Party, DM
 - **Home page:** — → signed in, it shows your character (HP, temp HP, Defence, Play mode), the next session and what's new since last session
 - **Lists:** shown beside an empty page → full width until you open something
+- **Character page:** — → your HP, temp HP, Defence, Min hit and hit die stay at the top while you scroll, with the sheet's parts listed down the side
 
 ## 26 Nov 2026
 

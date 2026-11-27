@@ -446,6 +446,7 @@
     { key: 'dm', label: 'DM', tabs: DM_TABS, dm: true },
   ];
   const lastInGroup = {};
+  let lastVol = 'beast';
   const groupFor = t => GROUPS.find(g => g.tabs.includes(t)) || null;
 
   function renderTabs() {
@@ -464,10 +465,23 @@
     // Final classes only show for the DM and the players the DM has let see them
     const subTabs = cur ? (cur.tabs.length > 1 ? cur.tabs.filter(t => t !== 'finals' || t === state.tab || (Finals && Finals.visible())) : []) : ['patch', 'settings'].includes(state.tab) ? [state.tab] : [];
     sub.hidden = !subTabs.length;
-    sub.replaceChildren(...subTabs.map(t => el('button', {
-      class: 'subtab', 'aria-current': state.tab === t ? 'page' : null,
-      onclick: () => go(state.tab === t ? { tab: t } : { tab: t, sel: null, mon: '', tpl: '', rs: '' }, true),
-    }, TYPE_LABEL[t], c[t] != null && !DOC_TYPES.includes(t) ? el('span', { class: 'n' }, String(c[t])) : null)));
+    const subBtn = (t, label, on, to) => el('button', {
+      class: 'subtab', 'aria-current': on ? 'page' : null,
+      onclick: () => go(state.tab === (to || t) ? { tab: to || t } : { tab: to || t, sel: null, mon: '', tpl: '', rs: '' }, true),
+    }, label || TYPE_LABEL[t], !label && c[t] != null && !DOC_TYPES.includes(t) ? el('span', { class: 'n' }, String(c[t])) : null);
+    if (cur && cur.key === 'dm') {
+      // the DM's pages in two groups: running the session, and preparing for it. The bestiary's volumes are one page.
+      const VOL = ['beast', 'vol2', 'vol3', 'named'];
+      if (VOL.includes(state.tab)) lastVol = state.tab;
+      const grp = (label, ...btns) => [el('span', { class: 'subtab-grp', 'aria-hidden': 'true' }, label), ...btns];
+      sub.replaceChildren(
+        ...grp('Run', subBtn('session', null, state.tab === 'session'), subBtn('fight', null, state.tab === 'fight')),
+        ...grp('Prep', subBtn('beast', 'Bestiary', VOL.includes(state.tab), lastVol), subBtn('forge', null, state.tab === 'forge'),
+          subBtn('encounter', null, state.tab === 'encounter'), subBtn('lab', null, state.tab === 'lab'), subBtn('brules', null, state.tab === 'brules')),
+        // the players' things live with the players; these take the DM straight there
+        ...grp('Players', el('button', { class: 'subtab', onclick: () => go({ tab: 'chars', char: '', sel: null }, true) }, 'Characters and grants'),
+          Finals ? el('button', { class: 'subtab', onclick: () => go({ tab: 'finals', pick: 'access', sel: null }, true) }, 'Who sees final classes') : null));
+    } else sub.replaceChildren(...subTabs.map(t => subBtn(t, null, state.tab === t)));
     const more = $('#sub-more');
     const edge = () => {
       const right = !sub.hidden && sub.scrollLeft + sub.clientWidth < sub.scrollWidth - 4;
@@ -956,7 +970,9 @@
       return;
     }
     if (DM_TABS.includes(state.tab)) {
-      const shown = Beast ? Beast.renderDetail(pane) : false;
+      let shown = Beast ? Beast.renderDetail(pane) : false;
+      // nothing picked yet: the list takes the full width, as elsewhere
+      if (shown && pane.classList.contains('placeholder') && !document.body.classList.contains('has-detail')) { pane.replaceChildren(); shown = false; }
       layout.classList.toggle('no-detail', !shown);
       return;
     }

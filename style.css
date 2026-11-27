@@ -2864,3 +2864,43 @@ body.ts-on #detail, body.ts-on #filters, body.ts-on .to-top { display: none !imp
   .hm-acts .btn { flex: 1; }
 }
 body.hm-wide .layout.no-detail { max-width: 1180px; }
+
+/* ---------- the character page: who they are and their numbers, pinned at the top ---------- */
+.cc-head { margin: 0 0 18px; }
+.cc-who { display: flex; align-items: center; gap: 16px; margin: 0 0 12px; }
+.cc-seal.hm-seal { width: 56px; height: 56px; font-size: 24px; }
+.cc-whoname { min-width: 0; }
+.cc-whoname .d-title { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.cc-whoname .d-title .cc-status { font: italic 400 15px var(--body); letter-spacing: 0; }
+.cc-whoname .cc-subtitle { margin: 2px 0 0; }
+.cc-vitals { display: flex; flex-wrap: wrap; margin: 0 0 14px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.cc-vital { display: flex; flex-direction: column; padding: 8px 18px 8px 0; margin-right: 18px; border-right: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
+.cc-vital:last-child { border-right: 0; margin-right: 0; }
+.cc-vital .k { font-style: italic; color: var(--ink-3); font-size: 15px; }
+.cc-vital .v { font-size: 24px; font-weight: 600; color: var(--ink); font-variant-numeric: lining-nums; line-height: 1.2; }
+.cc-vital .v small { font-size: 16px; font-weight: 400; color: var(--ink-3); }
+.cc-head .cc-modebar { margin: 0; padding-bottom: 0; border-bottom: 0; }
+@media (min-width: 901px) {
+  body.cc-open .layout { grid-template-columns: 240px minmax(0, 1fr); max-width: 1320px; }
+  body.cc-open .detail-pane > .back { display: none; }
+  body.cc-open .cc-head {
+    position: sticky; top: calc(var(--head-h, 124px) - 1px); z-index: 6; margin: -10px -24px 18px; padding: 12px 24px 12px;
+    background-color: var(--surface); background-image: var(--paper); border-bottom: 1px solid var(--line);
+    box-shadow: 0 8px 14px -10px rgba(60, 35, 15, .35);
+  }
+  body.cc-open .cc-jump { display: none; }
+  .cc-rail-jump:empty { display: none; }
+}
+.cc-rail-jump .mk { color: var(--gold) !important; font-size: 9px !important; }
+@media (max-width: 900px) {
+  .cc-vital { padding-right: 12px; margin-right: 12px; }
+  .cc-vital .v { font-size: 20px; }
+  .cc-seal.hm-seal { width: 46px; height: 46px; font-size: 20px; }
+}
+
+/* ---------- DM: Run and Prep groups in the page row; the bestiary's volumes as a switch ---------- */
+.subtab-grp { flex: none; align-self: center; margin: 0 2px 0 14px; padding: 2px 8px; border: 1px solid var(--gold-soft); border-radius: 2px;
+  font: 700 11px var(--head); letter-spacing: .14em; text-transform: uppercase; color: var(--gold-text); }
+.subtab-grp:first-child { margin-left: 0; }
+.bs-vols { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }
+.bs-vols .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }

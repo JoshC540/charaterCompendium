@@ -615,7 +615,7 @@
       const ranks = d.skillRanks - d.skillsUsed;
       const n = (k, v, bad, title) => el('div', { class: 'cc-num' + (bad ? ' bad' : ''), title: title || '' }, el('span', { class: 'v' }, String(v)), el('span', { class: 'k' }, k));
       return el('div', { class: 'cc-nums' },
-        n('HP', d.hp), n('Renown', d.R), n('SP left', d.left, d.left < 0, `${d.spent} spent of ${d.total}`), n('Ranks left', ranks, ranks < 0, 'Soft skill ranks'));
+        n('SP left', d.left, d.left < 0, `${d.spent} spent of ${d.total}`), n('Ranks left', ranks, ranks < 0, 'Soft skill ranks'));
     }
     function todoList(T) {
       if (!T.length) return el('p', { class: 'cc-alldone' }, '✓ Nothing left to do');
@@ -635,10 +635,10 @@
       const T = cur.readOnly ? [] : todos(c, d);
       return el('div', { class: 'cc-rail' },
         el('button', { class: 'mini cc-rail-back', onclick: () => go({ char: '' }, true) }, '← All characters'),
-        el('div', { class: 'cc-rail-id' }, el('strong', {}, c.name || 'New character'), el('span', {}, summaryOf(c))),
         nums(c, d),
         cur.readOnly ? null : [el('h3', { class: 'cc-h3' }, T.length ? `To do · ${T.length}` : 'To do'), todoList(T)],
         cur.readOnly || mode === 'sheet' ? null : [el('h3', { class: 'cc-h3' }, mode === 'guide' ? 'Steps' : 'Sections'), navList(c, d, T)],
+        mode === 'sheet' ? el('nav', { class: 'cc-nav cc-rail-jump', 'aria-label': 'Parts of the sheet' }) : null,
         cur.readOnly ? null : el('div', { class: 'cc-rail-save' }, saveButton(), statusChip()));
     }
     function phoneBar(c, d) {
@@ -722,10 +722,15 @@
       document.title = `${c.name || 'New character'} · Player’s Handbook`;
       const head = [
         el('button', { class: 'back', onclick: () => go({ char: '' }, true) }, '← All characters'),
-        el('div', { class: 'd-kicker' }, el('span', { class: 'badge notes' }, 'Character'), statusChip()),
-        el('h1', { class: 'd-title' }, c.name || 'New character'),
-        el('p', { class: 'cc-subtitle' }, summaryOf(c)),
-        modeBar(c, d),
+        // who they are and the numbers needed at the table, pinned while the sheet scrolls
+        el('div', { class: 'cc-head' },
+          el('div', { class: 'cc-who' },
+            el('span', { class: 'hm-seal cc-seal', 'aria-hidden': 'true' }, (c.name || '?').trim().charAt(0).toUpperCase() || '?'),
+            el('div', { class: 'cc-whoname' },
+              el('h1', { class: 'd-title' }, c.name || 'New character', ' ', statusChip()),
+              el('p', { class: 'cc-subtitle' }, summaryOf(c)))),
+          mode === 'guide' ? null : vitals(c, d),
+          modeBar(c, d)),
         levelNotice(d),
         inboxNotice(c),
         confirmDel ? el('div', { class: 'notice cc-confirm', role: 'alert' }, el('span', {}, 'Delete this character for good? '),
@@ -747,6 +752,21 @@
       else body = [levelUpPanel(c, d), ...editSections(d).map(t => section(t, SECTION_FNS[t](c, d)))];
       pane.replaceChildren(...[...head, ...body].flat().filter(Boolean), phoneBar(c, d) || '');
       return true;
+    }
+
+    // HP (live from play mode when there is any), temp HP from armour, Defence, Min hit and hit die
+    function vitals(c, d) {
+      const L = cur && cur.id && H.Play ? H.Play.get(cur.id) : null;
+      const max = (L && L.max) || d.hp, hp = L && L.hp != null ? L.hp : max;
+      const temp = L && L.temp != null ? L.temp : d.armourThp;
+      const v = (k, val, sub) => el('div', { class: 'cc-vital' }, el('span', { class: 'k' }, k), el('span', { class: 'v' }, val), sub ? el('span', { class: 'sub' }, sub) : null);
+      return el('div', { class: 'cc-vitals' },
+        v('Hit points', el('span', {}, String(hp), el('small', {}, ` / ${max}`))),
+        temp ? v('Temp HP', String(temp)) : null,
+        v('Defence', `+${d.defence | 0}`),
+        d.minHit ? v('Min hit', String(d.minHit)) : null,
+        bestDie(d) ? v('Hit die', bestDie(d)) : null,
+        v('Renown', String(d.R)));
     }
 
     // a markdown bullet list as sheet lines: "- **Name.** text" keeps its name, plain bullets become bullet lines
@@ -774,7 +794,10 @@
         }
       }
       if (secs.length < 4) return null;
-      return el('nav', { class: 'cc-jump', 'aria-label': 'Parts of the sheet' }, ...secs.map(sec => el('button', { type: 'button', class: 'chip', onclick: () => { sec.classList.remove('folded'); sec.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }, sec.getAttribute('data-h'))));
+      const goTo = sec => () => { sec.classList.remove('folded'); sec.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+      // on a laptop the same list sits in the left rail (drawn just before this)
+      setTimeout(() => { const r = document.querySelector('.cc-rail-jump'); if (r) r.replaceChildren(el('h3', { class: 'cc-h3' }, 'On the sheet'), ...secs.map(sec => el('button', { type: 'button', onclick: goTo(sec) }, el('span', { class: 'mk', 'aria-hidden': 'true' }, '◆'), sec.getAttribute('data-h')))); }, 0);
+      return el('nav', { class: 'cc-jump', 'aria-label': 'Parts of the sheet' }, ...secs.map(sec => el('button', { type: 'button', class: 'chip', onclick: goTo(sec) }, sec.getAttribute('data-h'))));
     }
 
     // how the stats came about: every set rolled, reroll and number typed in (on screen only, not in the downloads)

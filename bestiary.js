@@ -2141,10 +2141,16 @@ window.HandbookBestiary = function (H) {
 
   function renderList(box, meta) {
     if (gate(box, meta)) return;
-    if (state.tab === 'beast') renderIndex(box, meta, 'beast');
-    else if (state.tab === 'vol2') renderV2List(box, meta);
-    else if (state.tab === 'vol3') renderV3List(box, meta);
-    else if (state.tab === 'named') renderIndex(box, meta, 'named');
+    const VOLS = [['beast', 'Volume I'], ['vol2', 'Volume II'], ['vol3', 'Volume III'], ['named', 'Named monsters']];
+    if (VOLS.some(v => v[0] === state.tab)) {
+      if (state.tab === 'beast') renderIndex(box, meta, 'beast');
+      else if (state.tab === 'vol2') renderV2List(box, meta);
+      else if (state.tab === 'vol3') renderV3List(box, meta);
+      else renderIndex(box, meta, 'named');
+      // one Bestiary page: the volumes are a switch at the top rather than four tabs
+      box.prepend(el('div', { class: 'bs-vols', role: 'group', 'aria-label': 'Volume' }, ...VOLS.map(([t, label]) =>
+        el('button', { type: 'button', class: 'chip', 'aria-pressed': String(state.tab === t), onclick: () => { if (state.tab !== t) go({ tab: t, sel: null, mon: '', tpl: '', rs: '' }, true); } }, label))));
+    }
     else if (state.tab === 'forge') renderForge(box, meta);
     else if (state.tab === 'encounter') renderEncounter(box, meta);
     else if (state.tab === 'fight') renderFightList(box, meta);
