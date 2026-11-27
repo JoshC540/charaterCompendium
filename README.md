@@ -305,6 +305,18 @@ On phones (700 px wide or less), the sections (Rules, Characters, Notes and so o
 
 Signed in, the home page starts with **Your table**: your characters with their HP (and a flag when there's a level to take or something from the stash), the latest note, and atlas entries revealed in the last 30 days. The DM also gets a link to the Session screen.
 
+## Final classes (DM only, and players you let in)
+
+**Character → Final classes** has every final class: each class's finals (abilities, or base abilities and spells for casters), what every final of that class also gets, and the four new Mage schools (drafts). The tab only shows for the DM and for players the DM has let in; everyone else doesn't see it at all.
+
+**Letting a player see them:** Final classes → **Who can see them**. Open a player and tick the classes whose finals they may read, or **Every final class**. Untick to take it away. A player sees the change the next time they open the page. The new Mage schools stay with the DM.
+
+**Why the text isn't in this repo:** same as the bestiary: anything in a GitHub Pages repo can be downloaded by anyone. The finals live in Supabase, in a `finals` table; the database only hands a class's finals to the DM and to players with a matching row in `final_access` (row-level security in `setup.sql`).
+
+**Setting it up (once):** run the latest `supabase/setup.sql`, then the SQL that loads the text, which is in the separate `finals-data` folder (not this repo): Supabase dashboard → **SQL Editor** → New query → paste all of `finals-data/finals-1.sql` → **Run**, then the same with `finals-2.sql` and `finals-3.sql`. They're safe to run again: they replace the text, and leave who can see what alone. Never commit them, or the `finals-data` folder, to this repo: `.gitignore` blocks them.
+
+Files: `finals.js`.
+
 ## Bestiary (DM only)
 
 The **DM** tab group (Session, Volume I, Volume II, Volume III, Named monsters, Dragons & elementals, Encounters, Combat tracker, Balance lab, Monster rules) only appears for the admin account. Everything in it comes from *Bestiary: Volume I*, *Bestiary: Volume II* and *Bestiary: Volume III – Peoples and Powers*.

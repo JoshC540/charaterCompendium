@@ -1230,3 +1230,38 @@ drop policy if exists "DM gives" on public.character_grants;
 create policy "owner or DM reads" on public.character_grants for select to authenticated using (
   public.is_admin() or exists (select 1 from public.characters c where c.id = character_id and c.owner_id = auth.uid()));
 create policy "DM gives" on public.character_grants for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+-- =====================================================================
+--  Final classes: DM-only until the DM lets a player see them.
+--  The text itself isn't in this repo (it's loaded from the separate finals-data folder, like the bestiary):
+--  this only makes the tables. A player reads a class's finals once final_access has a row for them with that
+--  class, or with '*' (every class). The new Mage schools are drafts and stay with the DM.
+-- =====================================================================
+create table if not exists public.finals (
+  id         text primary key,
+  kind       text not null check (kind in ('class', 'school')),
+  class_id   text not null,
+  sort       int  not null default 0,
+  data       jsonb not null check (jsonb_typeof(data) = 'object'),
+  updated_at timestamptz not null default now()
+);
+create table if not exists public.final_access (
+  user_id    uuid not null references public.profiles(id) on delete cascade,
+  class_id   text not null check (length(class_id) between 1 and 60),
+  granted_at timestamptz not null default now(),
+  primary key (user_id, class_id)
+);
+alter table public.finals enable row level security;
+alter table public.final_access enable row level security;
+revoke all on public.finals from anon;
+revoke all on public.final_access from anon;
+drop policy if exists "DM, or a player let in" on public.finals;
+drop policy if exists "DM loads finals" on public.finals;
+drop policy if exists "DM or the player reads" on public.final_access;
+drop policy if exists "DM lets players in" on public.final_access;
+create policy "DM, or a player let in" on public.finals for select to authenticated using (
+  public.is_admin() or (kind = 'class' and exists (select 1 from public.final_access a
+    where a.user_id = auth.uid() and (a.class_id = '*' or a.class_id = finals.class_id))));
+create policy "DM loads finals" on public.finals for all to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy "DM or the player reads" on public.final_access for select to authenticated using (public.is_admin() or user_id = auth.uid());
+create policy "DM lets players in" on public.final_access for all to authenticated using (public.is_admin()) with check (public.is_admin());

@@ -13,7 +13,7 @@
   };
   const TYPES = ['race', 'class', 'subclass', 'spell', 'adv', 'god', 'patch'];
   const DOC_TYPES = ['adv', 'god', 'patch'];
-  const TYPE_LABEL = { all: 'All', race: 'Races', class: 'Classes', subclass: 'Subclasses', spell: 'Spells', adv: 'Advancement', god: 'Gods', notes: 'Notes', chars: 'Characters', bank: 'Party money', craft: 'Crafting', atlas: 'Atlas', patch: 'Patch Notes', settings: 'Settings', beast: 'Volume I', vol2: 'Volume II', vol3: 'Volume III', named: 'Named monsters', forge: 'Dragons & elementals', encounter: 'Encounters', fight: 'Combat tracker', lab: 'Balance lab', brules: 'Monster rules', session: 'Session', shops: 'Shops', jobs: 'Contracts', screen: 'Table screen' };
+  const TYPE_LABEL = { all: 'All', race: 'Races', class: 'Classes', subclass: 'Subclasses', spell: 'Spells', adv: 'Advancement', god: 'Gods', notes: 'Notes', chars: 'Characters', bank: 'Party money', craft: 'Crafting', atlas: 'Atlas', patch: 'Patch Notes', settings: 'Settings', beast: 'Volume I', vol2: 'Volume II', vol3: 'Volume III', named: 'Named monsters', forge: 'Dragons & elementals', encounter: 'Encounters', fight: 'Combat tracker', lab: 'Balance lab', brules: 'Monster rules', session: 'Session', shops: 'Shops', jobs: 'Contracts', screen: 'Table screen', finals: 'Final classes' };
   const DM_TABS = ['session', 'beast', 'vol2', 'vol3', 'named', 'forge', 'encounter', 'fight', 'lab', 'brules'];
   const TYPE_ONE = { race: 'Race', class: 'Class', subclass: 'Subclass', spell: 'Spell', adv: 'Advancement', god: 'Book of Gods', patch: 'Patch notes' };
 
@@ -321,7 +321,7 @@
     state.camp = state.tab === 'bank' ? (p.get('camp') || '') : '';
     state.acct = state.tab === 'bank' ? (p.get('acct') || '') : '';
     state.ent = state.tab === 'atlas' ? (p.get('ent') || '') : '';
-    state.pick = state.tab === 'shops' || state.tab === 'jobs' ? (p.get('pick') || '') : '';
+    state.pick = ['shops', 'jobs', 'finals'].includes(state.tab) ? (p.get('pick') || '') : '';
     if (Beast) Beast.readHash(p);
   }
   function hashFor(s = state) {
@@ -341,7 +341,7 @@
     if (s.tab === 'bank' && s.camp) p.set('camp', s.camp);
     if (s.tab === 'bank' && s.acct) p.set('acct', s.acct);
     if (s.tab === 'atlas' && s.ent) p.set('ent', s.ent);
-    if ((s.tab === 'shops' || s.tab === 'jobs') && s.pick) p.set('pick', s.pick);
+    if (['shops', 'jobs', 'finals'].includes(s.tab) && s.pick) p.set('pick', s.pick);
     if (Beast) Beast.writeHash(p);
     const h = p.toString();
     return h ? '#' + h : location.pathname + location.search;
@@ -438,7 +438,7 @@
 
   // Top-level groups; the active group shows its own sections in a second row.
   const GROUPS = [
-    { key: 'character', label: 'Character', tabs: ['race', 'class', 'subclass', 'spell'] },
+    { key: 'character', label: 'Character', tabs: ['race', 'class', 'subclass', 'spell', 'finals'] },
     { key: 'rules', label: 'Rules', tabs: ['adv', 'god'] },
     { key: 'table', label: 'Your table', tabs: ['chars', 'bank', 'shops', 'jobs', 'craft', 'notes', 'atlas', 'screen'] },
     { key: 'dm', label: 'DM', tabs: DM_TABS, dm: true },
@@ -456,7 +456,8 @@
       class: 'tab', role: 'tab', 'aria-selected': String(cur === g), 'data-g': g.key,
       onclick: () => { const t = lastInGroup[g.key] || g.tabs[0]; go({ tab: t, sel: state.tab === t ? state.sel : null }, true); },
     }, g.label)));
-    const subTabs = cur ? cur.tabs : ['patch', 'settings'].includes(state.tab) ? [state.tab] : [];
+    // Final classes only show for the DM and the players the DM has let see them
+    const subTabs = cur ? cur.tabs.filter(t => t !== 'finals' || t === state.tab || (Finals && Finals.visible())) : ['patch', 'settings'].includes(state.tab) ? [state.tab] : [];
     sub.hidden = !subTabs.length;
     sub.replaceChildren(...subTabs.map(t => el('button', {
       class: 'subtab', 'aria-current': state.tab === t ? 'page' : null,
@@ -506,7 +507,7 @@
     const f = $('#filters');
     const kids = [];
     if (DM_TABS.includes(state.tab)) { if (Beast) Beast.renderFilters(f); else f.replaceChildren(); return; }
-    if (['notes', 'chars', 'bank', 'craft', 'atlas', 'settings'].includes(state.tab)) { f.replaceChildren(); return; }
+    if (['notes', 'chars', 'bank', 'craft', 'atlas', 'settings', 'finals'].includes(state.tab)) { f.replaceChildren(); return; }
     if (state.tab === 'class') {
       for (const cat of ['', 'Melee', 'Ranged', 'Magic', 'Other']) {
         kids.push(el('button', { class: 'chip' + (state.classCat === cat ? ' on' : ''), onclick: () => go({ classCat: cat }, false) }, cat || 'All'));
@@ -710,6 +711,11 @@
     if (state.tab === 'atlas') {
       if (Atlas) Atlas.renderList(box, meta);
       else { meta.textContent = ''; box.replaceChildren(el('div', { class: 'empty' }, el('strong', {}, 'The atlas is unavailable'), 'atlas.js didn’t load.')); }
+      return;
+    }
+    if (state.tab === 'finals') {
+      if (Finals) Finals.renderList(box, meta);
+      else { meta.textContent = ''; box.replaceChildren(el('div', { class: 'empty' }, el('strong', {}, 'Final classes are unavailable'), 'finals.js didn’t load.')); }
       return;
     }
     if (['shops', 'jobs', 'screen'].includes(state.tab)) {
@@ -938,6 +944,15 @@
       if (!shown) document.title = 'Atlas · Player’s Handbook';
       return;
     }
+    if (state.tab === 'finals') {
+      pane.classList.remove('placeholder', 'overview');
+      const shown = Finals ? Finals.renderDetail(pane) : false;
+      if (!shown) { pane.replaceChildren(); document.body.classList.remove('has-detail'); }
+      else document.body.classList.add('has-detail');
+      layout.classList.toggle('no-detail', !shown);
+      if (!shown) document.title = 'Final classes · Player’s Handbook';
+      return;
+    }
     if (['shops', 'jobs', 'screen'].includes(state.tab)) {
       const shown = Table ? Table.renderDetail(pane) : false;
       if (!shown) { pane.replaceChildren(); document.body.classList.remove('has-detail'); }
@@ -1163,6 +1178,7 @@
     if (Beast) Beast.init();
     if (Atlas) Atlas.init();
     if (Table) Table.init();
+    if (Finals) Finals.init();
     window.addEventListener('popstate', () => { readHash(); render(); });
     window.addEventListener('hashchange', () => { readHash(); render(); });
   }
@@ -1175,6 +1191,7 @@
   const Bank = window.HandbookBank ? window.HandbookBank({ el, state, go, render: () => render(), Notes }) : null;
   const Atlas = window.HandbookAtlas ? window.HandbookAtlas({ el, md, esc, norm, state, go, render: () => render(), Notes }) : null;
   const Table = window.HandbookTable ? window.HandbookTable({ el, state, go, render: () => render(), Notes, Atlas }) : null;
+  const Finals = window.HandbookFinals ? window.HandbookFinals({ el, state, go, render: () => render(), Notes }) : null;
   const Beast = window.HandbookBestiary ? window.HandbookBestiary({ el, md, esc, norm, state, go, render: () => render(), Notes, $, statusMd, statuses: () => STATUSES, db: () => DB, Play, Atlas, Dice, Table, charHp: data => Creator ? Creator.maxHp(data) : 0, fightStats: data => Creator && Creator.fightStats ? Creator.fightStats(data) : null }) : null;
   boot();
 })();
