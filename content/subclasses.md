@@ -1585,6 +1585,199 @@ Echo mages treat air as something to be listened to rather than pushed around. T
 **Feat — Every Sound Carries.**
 You hear everything spoken or struck within 100 ft of you, through walls, doors and magical silence, and can recall any sound you have heard in the last day perfectly. Once per turn, as a reaction, you can take the voice from a creature within 30 ft that is about to speak: it makes a strength save or makes no sound at all until the end of its next turn, and any spell needing spoken words fails. On a pass it still speaks, but the spell is cast at disadvantage.
 
+
+# Mage (Mind)
+class: Mage
+spells: Mage (Mind)
+
+*Mind magic works on thoughts rather than things. It reads, persuades, deceives and breaks minds, and it can unpick another caster's spell by reaching the intent behind it. Creatures without minds (constructs, mindless undead, oozes) ignore most of it.*
+
+- **Foothold.** Once per turn, when one of your spells affects a creature's mind, it makes its next save against your spells at disadvantage.
+
+## Interdiction
+spells: Mage (Mind) – Interdiction
+
+Interdiction mages read the intent behind a spell before it is finished and tear it apart in the caster's head. They are the counterspell specialists of the Mind school: patient, watchful and the bane of every other mage. They do little harm themselves, but very little magic reaches their party.
+
+**Feat — Read the Weave.**
+As a reaction, once per round, you may counter a tier 2 or lower spell being cast within 60ft without using a spell use. Higher tiers can be countered with your Interdiction spells. Whenever you counter a spell, its caster takes 1d6 psychic.
+
+## Phantasm
+spells: Mage (Mind) – Phantasm
+
+Phantasm mages build illusions so complete that the mind treats them as real. A wall that is not there stops an army; a wound that never happened still bleeds. Their power lies in belief, and creatures that see through it are untouched.
+
+**Feat — Believed.**
+A creature that fails a save against one of your illusions takes real damage from it as if it were what it appears to be, up to 2d6 per turn.
+
+## Domination
+spells: Mage (Mind) – Domination
+
+Domination mages bend wills. Guards open gates for them, soldiers lower spears, and in battle an enemy can find its own arm turning against its friends. They are feared and rarely trusted, and creatures of strong will are their greatest problem.
+
+**Feat — Iron Will Over Others.**
+Creatures you have dominated or charmed this day make their saves against your spells at -2.
+
+## Telepathy
+spells: Mage (Mind) – Telepathy
+
+Telepaths live in the space between minds. They link their party into one thinking unit, pluck secrets out of enemies and hear an ambush being planned before it is sprung. They are the most useful mages off the battlefield, and good at keeping their party from being surprised on it.
+
+**Feat — Open Minds.**
+You can speak mind-to-mind with any creature you can see, and your party is linked silently to you at all times within a mile.
+
+## Psionics
+spells: Mage (Mind) – Psionics
+
+Psionic mages turn thought into force. Objects lift and fly, skulls ache and burst, and a mind sharpened to a point can strike harder than any blade. They are the Mind school's damage dealers, and they pay for it in headaches that would kill a lesser caster.
+
+**Feat — Focused Mind.**
+Your psychic damage ignores resistance, and once per turn you may move an object up to 20ft by thought alone.
+
+# Mage (Light and Dark)
+class: Mage
+spells: Mage (Light and Dark)
+
+*Light and dark magic are two halves of one school. Light reveals, heals and burns; dark hides, chills and consumes. Every Light/Dark mage can call on both, and most lean toward one. Neither is good or evil; the sun blinds as surely as night hides.*
+
+- **Dusk and Dawn.** You stand in Light or Dark at all times, and you may switch as a bonus action. In Light, allies within 15ft gain +1 to saves. In Dark, you are hidden while in dim light or darkness until you attack.
+
+## Radiance
+spells: Mage (Light and Dark) – Radiance
+
+Radiance mages are all light. They heal with warmth, burn the undead with noon fire and shine so brightly that nothing can hide near them. They make poor sneaks and worse spies, and that suits them.
+
+**Feat — Inner Sun.**
+Your radiant spells deal +2 per die against undead, fiends and creatures of darkness, and invisible creatures within 30ft of you are revealed.
+
+## Shadow
+spells: Mage (Light and Dark) – Shadow
+
+Shadow mages are all dark. They walk between shadows, chill the blood with necrotic cold and strike from places no eye can reach. Light hurts them, and a well-lit room is their worst battlefield.
+
+**Feat — Born of Shadow.**
+While you are in dim light or darkness, attacks against you are made at disadvantage and your necrotic spells deal +1 per die. In bright light you take -1 to all rolls.
+
+## Twilight
+spells: Mage (Light and Dark) – Twilight
+
+Twilight mages refuse to choose. They switch between light and dark mid-spell, healing one moment and blinding the next, and they are strongest when they balance the two. Their weakness is that they are never quite as strong in either as a specialist.
+
+**Feat — Balanced.**
+Each time you switch between Light and Dark, your next spell gains the other's benefit as well: a Light spell also hides you, a Dark spell also gives allies +1 to saves.
+
+## Spectrum
+spells: Mage (Light and Dark) – Spectrum
+
+Spectrum mages bend light into colour and colour into weapons. They split beams, refract spells and paint the battlefield in hues that each do something different. They are clever, flexible and very dependent on having light to work with.
+
+**Feat — Seven Colours.**
+When you cast a light spell, roll 1d6 for its colour and add the matching rider: 1 red (+1d6 fire), 2 orange (target knocked back 10ft), 3 yellow (blind 1 turn), 4 green (heal an ally 1d6), 5 blue (target slowed), 6 violet (target takes -2 to saves).
+
+## Void
+spells: Mage (Light and Dark) – Void
+
+Void mages follow darkness past shadow into the absence beneath it. Their darkness does not hide; it eats light, sound, warmth and eventually matter. They are the most dangerous Light/Dark mages and the least stable, and something in the void is always watching back.
+
+**Feat — Hungering Dark.**
+Your dark spells destroy light: magical light of tier 3 or lower in their area is snuffed out, and creatures in your darkness lose 1d4 HP at the start of each of their turns.
+
+# Mage (Natural)
+class: Mage
+spells: Mage (Natural)
+
+*Natural magic is the magic of the living cycle: the spark of life, the stillness of death and the soul that passes between them. Natural mages see every creature as a thread of life, and they can strengthen it, cut it or move it from one body to another.*
+
+- **Threads of Life.** You can see how much life each creature within 60ft has left. Once per turn, when one of your spells heals or harms a creature, add its tier to the amount.
+
+## Vitality
+spells: Mage (Natural) – Vitality
+
+Vitality mages are healers who understand life as a force, not a gift. They pour it into allies, swell them past their limits and drag the dying back from the edge. They are less devout than clerics and more willing to push a body past what it should survive.
+
+**Feat — Overflowing Life.**
+Healing you give beyond a target's maximum HP becomes temp HP, up to 15.
+
+## Mortality
+spells: Mage (Natural) – Mortality
+
+Mortality mages study the end of things. They hasten decay, weaken the living and speak with the dead, and they understand dying better than anyone alive. Unlike necromancers they do not raise the dead; they make sure the living join them.
+
+**Feat — Memento Mori.**
+Creatures below half HP take +1 per die from your necrotic spells, and you always know when a creature within 60ft is about to die.
+
+## Soulbinding
+spells: Mage (Natural) – Soulbinding
+
+Soulbinding mages handle souls directly. They move them, trap them, tether them to new vessels and tear them partly out of their bodies. It is the most feared branch of Natural magic and the most tightly forbidden, and every soulbinder carries a few souls they would rather not talk about.
+
+**Feat — Soul Hand.**
+You can touch and hold souls as if they were objects. Once per day you may store a dying creature's soul for later use.
+
+## Verdance
+spells: Mage (Natural) – Verdance
+
+Verdance mages work with life in its wildest form: growth. Vines pull down walls, trees rise in moments and the battlefield becomes a jungle at their word. They overlap with druids, and both sides argue loudly about who learned it first.
+
+**Feat — Green Hand.**
+Plants you create or touch grow at ten times their natural rate, and you can move through plant growth as if it were open ground.
+
+## The Cycle
+spells: Mage (Natural) – The Cycle
+
+Cycle mages see life and death as one wheel and trade freely between them. They take life from one creature and give it to another, turn deaths into healing and wounds into power. They believe nothing is ever truly lost, only moved, and they spend their lives moving it.
+
+**Feat — Nothing Lost.**
+Whenever a creature dies within 30ft of you, you may heal an ally for 1d10, or deal 1d10 necrotic to an enemy.
+
+# Mage (Creation and Destruction)
+class: Mage
+spells: Mage (Creation and Destruction)
+
+*Creation and destruction magic is the oldest and most dangerous school: the power to make something from nothing and to return something to nothing. At its lowest tiers it conjures tools and shatters locks; at its highest it is the magic of gods. Everything it makes, it must take from somewhere.*
+
+- **The Balance Must Hold.** Whenever one of your spells destroys something (kills a creature, destroys an object, summon or construct), gain 1 Essence (max 5). Spend Essence when casting a creation spell: each point adds 1d6 to its damage, healing, HP or barrier. Essence is lost at the end of the day.
+
+## Genesis
+spells: Mage (Creation and Destruction) – Genesis
+
+Genesis mages create. Walls, bridges, weapons, servants: anything they can picture clearly enough becomes real for a while. They are builders and providers, and their greatest danger is creating something that does not want to be uncreated.
+
+**Feat — Lasting Works.**
+Objects and constructs you create last twice as long, and your constructs gain +10 HP.
+
+## Annihilation
+spells: Mage (Creation and Destruction) – Annihilation
+
+Annihilation mages unmake. Their force rays erase matter, their barriers crumble in their hands and anything they touch with intent simply stops being. They deal the most raw damage of any mage, and they leave nothing behind to show what was there.
+
+**Feat — Leave Nothing.**
+Creatures killed by your force spells are disintegrated, and your force damage ignores resistance.
+
+## Transmutation
+spells: Mage (Creation and Destruction) – Transmutation
+
+Transmutation mages change what things are. Lead becomes gold, stone becomes water, a foe's sword becomes a snake. They are endlessly useful and endlessly tempted, and the strictest laws of every kingdom are written about them.
+
+**Feat — Change of Nature.**
+You can tell the true nature of any substance at a glance, and objects you transmute stay changed for twice as long.
+
+## Entropy
+spells: Mage (Creation and Destruction) – Entropy
+
+Entropy mages hasten the end of everything. Metal rusts, stone crumbles, flesh tires and time itself runs faster around them. Their destruction is slow, certain and impossible to stop once it starts, and they are always a little older than they should be.
+
+**Feat — Accelerated Decay.**
+Effects you place that last a number of turns count down twice as fast for enemies' benefits and half as fast for your curses.
+
+## Worldshaping
+spells: Mage (Creation and Destruction) – Worldshaping
+
+Worldshaping mages make and unmake places rather than things. They fold rooms, raise islands, open pocket realms and close doors that were never there. They are rare, slow to work and capable of changing a map in a single spell.
+
+**Feat — Shaper's Eye.**
+You can see the shape of any space you stand in, every hidden room and passage, and your area spells may be made up to twice as large.
+
 # Cleric (Dawn)
 class: Cleric
 spells: Cleric (Dawn)

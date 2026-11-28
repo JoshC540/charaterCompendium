@@ -311,9 +311,9 @@ Signed in, the home page is your table: the campaign's name, your first characte
 
 ## Final classes (DM only, and players you let in)
 
-**Character → Final classes** has every final class: each class's finals (abilities, or base abilities and spells for casters), what every final of that class also gets, and the four new Mage schools (drafts). The tab only shows for the DM and for players the DM has let in; everyone else doesn't see it at all.
+**Character → Final classes** has every final class: each class's finals (abilities, or base abilities and spells for casters), what every final of that class also gets. The tab only shows for the DM and for players the DM has let in; everyone else doesn't see it at all.
 
-**Letting a player see them:** Final classes → **Who can see them**. Open a player and tick the classes whose finals they may read, or **Every final class**. Untick to take it away. A player sees the change the next time they open the page. The new Mage schools stay with the DM.
+**Letting a player see them:** Final classes → **Who can see them**. Open a player and tick the classes whose finals they may read, or **Every final class**. Untick to take it away. A player sees the change the next time they open the page.
 
 **Why the text isn't in this repo:** same as the bestiary: anything in a GitHub Pages repo can be downloaded by anyone. The finals live in Supabase, in a `finals` table; the database only hands a class's finals to the DM and to players with a matching row in `final_access` (row-level security in `setup.sql`).
 

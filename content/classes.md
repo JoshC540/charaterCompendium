@@ -219,7 +219,7 @@ hp: 10
 hit die: 1d6
 weapons: Usually only a knife
 trait: Detect Magic
-magic: Elemental (Fire, Water, Earth, Air)
+magic: Elemental (Fire, Water, Earth, Air), Mind, Light and Dark, Natural, Creation and Destruction
 
 Mages are practitioners of the magics, and can wield them to great effect in combat to destroy hordes or single targets alike. Mages disdain martial combat.
 

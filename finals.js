@@ -1,7 +1,7 @@
 /* Final classes: DM-only until the DM lets a player see them.
    The text lives in Supabase (the `finals` table, loaded from the separate finals-data folder, never this repo).
    A player reads a class's finals once the DM ticks that class (or "every class") for them under "Who can see them";
-   the database enforces it (supabase/setup.sql: finals, final_access). The new Mage schools are drafts: DM only. */
+   the database enforces it (supabase/setup.sql: finals, final_access). The four new Mage schools are public now: Handbook → Spells and Subclasses. */
 window.HandbookFinals = function (H) {
   'use strict';
   const { el, state, go, render, Notes } = H;
@@ -51,7 +51,6 @@ window.HandbookFinals = function (H) {
     render();
   }
   const classes = () => (rows || []).filter(r => r.kind === 'class').map(r => r.data);
-  const schools = () => (rows || []).filter(r => r.kind === 'school').map(r => r.data);
   function findFinal(id) {
     for (const c of classes()) { const f = (c.finals || []).find(x => x.id === id); if (f) return { c, f }; }
     return null;
@@ -94,7 +93,6 @@ window.HandbookFinals = function (H) {
           el('button', { type: 'button', class: 'fc-cname' + (state.pick === 'class:' + c.id ? ' on' : ''), onclick: () => { say(''); go({ pick: 'class:' + c.id }, true); } }, c.name),
           el('div', { class: 'tb-rows' }, ...fs.map(f => row(f.id, f.name, f.subclass))))));
     }).filter(Boolean);
-    const sch = admin() ? schools().filter(s => !q || norm(s.school).includes(norm(q)) || (s.subclasses || []).some(x => norm(x.name).includes(norm(q)))) : [];
     const n = cls.reduce((a, c) => a + (c.finals || []).length, 0);
     box.replaceChildren(el('div', { class: 'tb-list fc-list' },
       el('div', { class: 'tb-head' }, el('h1', { class: 'tb-title' }, 'Final classes'),
@@ -105,9 +103,7 @@ window.HandbookFinals = function (H) {
       el('label', { class: 'fc-search' }, el('span', { class: 'sr-only' }, 'Find a final class'),
         el('input', { type: 'search', class: 'search-in', placeholder: 'Find a final, a subclass or an ability', value: q, oninput: e => { q = e.target.value; const pos = e.target.selectionStart; render(); const i = document.querySelector('.fc-search input'); if (i) { i.focus(); try { i.setSelectionRange(pos, pos); } catch (er) { /* fine */ } } } })),
       ...groups,
-      sch.length ? el('section', { class: 'tb-grp' }, el('h2', { class: 'section-head' }, 'New Mage schools · drafts, DM only'),
-        el('div', { class: 'tb-rows' }, ...sch.map(s => row('school:' + s.id, s.school, (s.subclasses || []).map(x => x.name).join(', '))))) : null,
-      !groups.length && !sch.length ? el('div', { class: 'empty' }, 'Nothing matches that.') : null));
+      !groups.length ? el('div', { class: 'empty' }, 'Nothing matches that.') : null));
   }
 
   /* ---------- reading ---------- */
@@ -150,19 +146,7 @@ window.HandbookFinals = function (H) {
     ].filter(Boolean));
     document.title = `${c.name} finals · Player’s Handbook`;
   }
-  function schoolView(pane, s) {
-    const B = s.subclass_block || {};
-    pane.replaceChildren(...[
-      back(),
-      el('div', { class: 'd-kicker' }, el('span', { class: 'badge' }, 'Mage school'), el('span', {}, 'Draft'), dmBadge()),
-      el('h1', { class: 'd-title' }, s.school),
-      prose([s.description]),
-      s.base_spells ? section('School spells', ...tiers(s.base_spells)) : null,
-      B.trait || B.new_spells ? section('Every subclass of the school gets', B.trait ? ability(B.trait) : null, ...(B.new_spells ? tiers(B.new_spells) : [])) : null,
-      ...(s.subclasses || []).map(x => section(x.name, prose([x.description]), x.feat ? ability({ ...x.feat, tag: 'Feat' }) : null, ...tiers(x.spells))),
-    ].filter(Boolean));
-    document.title = `${s.school} · Mage schools · Player’s Handbook`;
-  }
+
 
   /* ---------- the DM: who can see them ---------- */
   let saving = false;
@@ -187,7 +171,7 @@ window.HandbookFinals = function (H) {
       back(),
       el('div', { class: 'd-kicker' }, dmBadge()),
       el('h1', { class: 'd-title' }, 'Who can see them'),
-      el('p', { class: 'd-note' }, 'Tick a class to let a player read its finals, or “Every final class”. The new Mage schools stay with you.'),
+      el('p', { class: 'd-note' }, 'Tick a class to let a player read its finals, or “Every final class”.'),
       msgBox(),
       !players.length ? el('div', { class: 'empty' }, 'No player accounts yet.') : null,
       ...players.map(p => el('details', { class: 'fc-who', open: openWho.has(p.id), ontoggle: e => { if (e.target.open) openWho.add(p.id); else openWho.delete(p.id); } },
@@ -208,7 +192,6 @@ window.HandbookFinals = function (H) {
     if (!user() || !p || rowsFor !== user().id || !rows) return false;
     if (p === 'access') return accessView(pane);
     if (p.startsWith('class:')) { const c = classes().find(x => x.id === p.slice(6)); if (c) { classView(pane, c); return true; } }
-    else if (p.startsWith('school:')) { const s = admin() && schools().find(x => x.id === p.slice(7)); if (s) { schoolView(pane, s); return true; } }
     else { const hit = findFinal(p); if (hit) { finalView(pane, hit.c, hit.f); return true; } }
     pane.replaceChildren(back(), el('div', { class: 'empty' }, 'That final class isn’t here.'));
     return true;

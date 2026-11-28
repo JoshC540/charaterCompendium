@@ -451,6 +451,103 @@
 - Blood glutton |  | Hemomancer – Sanguivore | Tear the blood from every bloodied enemy in 20ft (4d8 each), healing you for half of it all; overkill becomes temp HP, and any enemy killed restores an ally to full.
 - Exsanguine | | Hemomancer – Exsanguine | Spend everything. For 1d4+2 turns your maximum HP is your only resource and it is unlimited — every Rite at maximum effect, every turn, no cost calculated, no save allowed, no upper bound. Nothing on the field can meaningfully interrupt you. When it ends your maximum HP is 1, permanently, and only something on the order of a god, a pact or a genuine miracle changes that. Most hemomancers cast this once.
 
+# Creation and Destruction Magic
+
+## Tier 1
+- Conjure Object |  |  | Create a small, simple mundane object that lasts an hour.
+- Unmake Mote |  |  | Destroy a small non-magical object you touch.
+- Force Dart |  |  | 1d2 force to a target.
+- Shape Matter |  |  | Reshape a small object of wood, stone or metal by hand.
+- Spark of Making |  |  | Create light, heat or a small flame from nothing for an hour.
+- Make Do |  | Mage (Creation and Destruction) | Conjure any simple tool for a minute.
+- Crack |  | Mage (Creation and Destruction) | A lock, chain or hinge you touch breaks.
+- Sense Making |  | Mage (Creation and Destruction) | Learn what an object is made of and how it was made.
+- Conjure Tool |  | Mage (Creation and Destruction) – Genesis | Create any tool or weapon you know well for an hour.
+- Spark of Life |  | Mage (Creation and Destruction) – Genesis | Animate a small object to follow simple orders for an hour.
+- Bridge of Force |  | Mage (Creation and Destruction) – Genesis | Create a 20ft bridge of solid force for 1d4 turns.
+- Erase |  | Mage (Creation and Destruction) – Annihilation | 1d6 force; on a kill the target is disintegrated.
+- Unmake Lock |  | Mage (Creation and Destruction) – Annihilation | A lock, seal or barrier of tier 1 magic or lower is destroyed.
+- Crumble |  | Mage (Creation and Destruction) – Annihilation | A small wall or structure up to 5ft across collapses.
+- Alter |  | Mage (Creation and Destruction) – Transmutation | Change the colour, texture or temperature of an object.
+- Stone to Mud |  | Mage (Creation and Destruction) – Transmutation | Turn a 5ft patch of stone to mud for a minute.
+- Sharpen |  | Mage (Creation and Destruction) – Transmutation | A weapon becomes razor sharp: +1d4 on its next hit.
+- Rust |  | Mage (Creation and Destruction) – Entropy | A non-magical metal object rusts badly; armour loses 1 min hit, weapons lose 1 damage.
+- Weariness |  | Mage (Creation and Destruction) – Entropy | A target takes -1 to all rolls until its next turn.
+- Rot Wood |  | Mage (Creation and Destruction) – Entropy | A wooden object or structure up to 5ft across rots and gives way.
+- Door From Nothing |  | Mage (Creation and Destruction) – Worldshaping | Create a door through a wall up to 5ft thick for a minute.
+- Level Ground |  | Mage (Creation and Destruction) – Worldshaping | Flatten or smooth a 10ft area of ground.
+- Mark the Place |  | Mage (Creation and Destruction) – Worldshaping | Mark a location; you always know the way back to it.
+
+## Tier 2
+- Conjure Barrier |  |  | A wall of force 10ft across with 20 HP, lasting 1d4 turns.
+- Disintegrating Touch |  |  | 3d6 force to a creature or object you touch.
+- Fabricate |  |  | Turn raw materials into a finished item in a minute.
+- Shatterpoint |  |  | Every brittle object in a 10ft area breaks; constructs there take 3d6.
+- Force Shield (Reaction) |  | Mage (Creation and Destruction) | Block the next 1d10 damage to an ally.
+- Unmake Weapon |  | Mage (Creation and Destruction) | A non-magical weapon held by a target crumbles (STR save resists).
+- Conjured Blade |  | Mage (Creation and Destruction) – Genesis | Create a weapon of force for the combat (1d10 force, counts as magic).
+- Wall of Making |  | Mage (Creation and Destruction) – Genesis | A 20ft wall of stone or wood rises from nothing (40 HP).
+- Disintegrating Bolt |  | Mage (Creation and Destruction) – Annihilation | 1d12 force; non-magical armour struck loses 2 min hit for the combat.
+- Break Barrier |  | Mage (Creation and Destruction) – Annihilation | Destroy a magical barrier or shield of tier 3 or lower.
+- Turn Weapon |  | Mage (Creation and Destruction) – Transmutation | A non-magical weapon turns to wood or glass for 1d3 turns (STR save resists).
+- Water to Wine |  | Mage (Creation and Destruction) – Transmutation | Change one liquid into another for an hour.
+- Decay Strike |  | Mage (Creation and Destruction) – Entropy | 1d10, and the target takes 1d4 at the start of each turn for 1d3 turns.
+- Fade |  | Mage (Creation and Destruction) – Entropy | A magical effect of tier 2 or lower ends early.
+- Fold Room |  | Mage (Creation and Destruction) – Worldshaping | Make a room seem larger or smaller inside than outside for an hour.
+- Raise Earth |  | Mage (Creation and Destruction) – Worldshaping | Raise a 10ft platform or pillar of earth.
+
+## Tier 3
+- Genesis |  |  | Create a construct from nothing (30 HP, 1d10) that serves you for a day.
+- Annihilation Ray |  |  | 10d6 force in a line; non-magical objects in the line are destroyed.
+- Remake |  |  | Turn a non-magical object into another object of similar size.
+- Pocket of Nothing |  | Mage (Creation and Destruction) | Create a small extradimensional space that holds up to a chest's worth of items for a day.
+- Created Servant |  | Mage (Creation and Destruction) – Genesis | Create a humanoid construct (40 HP, 2d8) that serves you until combat ends.
+- Armour From Nothing |  | Mage (Creation and Destruction) – Genesis | An ally gains created armour: min hit +6 for 1d4 turns.
+- Annihilating Touch |  | Mage (Creation and Destruction) – Annihilation | 2d10 force to a target you touch; ignores min hit.
+- Unmaking Wave |  | Mage (Creation and Destruction) – Annihilation | 2d8 force in a 15ft cone; non-magical objects in it are destroyed.
+- Flesh to Stone |  | Mage (Creation and Destruction) – Transmutation | A creature's limbs stiffen; it is slowed for 1d3 turns (STR save each turn).
+- Lead to Gold |  | Mage (Creation and Destruction) – Transmutation | Turn a small amount of base metal into a precious one for a day.
+- Crumbling Touch |  | Mage (Creation and Destruction) – Entropy | 2d8, and the target's armour min hit drops by 3 until it rests.
+- Slow Time |  | Mage (Creation and Destruction) – Entropy | A target is slowed: it can act only every other turn for 1d3 turns (WIS save resists).
+- Pocket Realm |  | Mage (Creation and Destruction) – Worldshaping | Open a small realm 20ft across that only you can enter, for a day.
+- Seal Space |  | Mage (Creation and Destruction) – Worldshaping | Seal a room so that nothing can enter or leave it by any means of tier 3 or lower, for an hour.
+
+## Tier 4
+- Siege of Creation |  | Mage (Creation and Destruction) – Genesis | Create a ballista or catapult of force that fires each turn for 1d4 turns (3d8).
+- House From Nothing |  | Mage (Creation and Destruction) – Genesis | Create a stone house with beds, doors and a hearth that lasts a day.
+- Many Hands |  | Mage (Creation and Destruction) – Genesis | Create four small constructs (15 HP, 1d8) until combat ends.
+- Erasure |  | Mage (Creation and Destruction) – Annihilation | 3d10 force; a non-boss reduced to 0 is erased from existence.
+- Bring Down |  | Mage (Creation and Destruction) – Annihilation | A structure up to a large building's size collapses.
+- Unmade Ground |  | Mage (Creation and Destruction) – Annihilation | A 20ft area of ground vanishes, leaving a pit 20ft deep.
+- Lesser Shape |  | Mage (Creation and Destruction) – Transmutation | A non-boss makes a WIS save or becomes a harmless animal for 1d3 turns.
+- Transmute Terrain |  | Mage (Creation and Destruction) – Transmutation | Change a 30ft area of ground into stone, mud, water or sand.
+- Iron Body |  | Mage (Creation and Destruction) – Transmutation | An ally's body turns to living iron for 1d4 turns: damage taken is reduced by 10.
+- Entropic Field |  | Mage (Creation and Destruction) – Entropy | For 1d4 turns, enemies within 20ft take 2d8 at the start of each turn and their buffs end twice as fast.
+- Age Foe |  | Mage (Creation and Destruction) – Entropy | A non-boss ages decades in a moment: -3 to all rolls until it rests.
+- Wear Down |  | Mage (Creation and Destruction) – Entropy | Destroy a non-magical object up to the size of a door, or deal 3d8 to a construct.
+- Reshape Battlefield |  | Mage (Creation and Destruction) – Worldshaping | Raise or lower ground in a 40ft area: walls, pits, ramps and cover where you choose.
+- Bridge the Gap |  | Mage (Creation and Destruction) – Worldshaping | Fold space to make two points up to 300ft apart touch for 1d4 turns.
+- Labyrinth |  | Mage (Creation and Destruction) – Worldshaping | A target makes a WIS save or is lost in a maze of folded space for 1d3 turns.
+
+## Tier 5
+- Greater Genesis |  | Mage (Creation and Destruction) – Genesis | Create a great construct (80 HP, 3d10) until combat ends.
+- Made Whole |  | Mage (Creation and Destruction) – Genesis | Recreate a destroyed object or limb exactly as it was.
+- Oblivion Ray |  | Mage (Creation and Destruction) – Annihilation | 4d12 force in a 60ft line, ignoring all barriers.
+- Unmake Magic Item |  | Mage (Creation and Destruction) – Annihilation | Destroy a magic item (the holder makes a STR save to keep hold of it; legendary items cannot be destroyed).
+- Petrify |  | Mage (Creation and Destruction) – Transmutation | A non-boss makes a STR save or turns to stone until it is restored. A boss is slowed for 1d3 turns.
+- True Transmutation |  | Mage (Creation and Destruction) – Transmutation | Permanently change one non-magical object into another of similar size.
+- Heat Death |  | Mage (Creation and Destruction) – Entropy | 4d10 cold; the target cannot gain heat, light or fire effects for 1d4 turns.
+- End of Days |  | Mage (Creation and Destruction) – Entropy | For 1d4 turns, every effect an enemy within 30ft has ends one turn early, every turn.
+- Raise an Island |  | Mage (Creation and Destruction) – Worldshaping | Lift land or seabed 60ft across up to 30ft over a day; it stays.
+- Demiplane |  | Mage (Creation and Destruction) – Worldshaping | Create a realm up to 100ft across with weather and features you choose, lasting a week.
+
+## Tier 6
+- Let There Be |  | Mage (Creation and Destruction) – Genesis | Create anything that fits in a 40ft cube and could plausibly be built by hand: a fort, a ship, a tower, a bridge. It lasts a day; once per long rest you may make it permanent by spending all your Essence.
+- Total Annihilation |  | Mage (Creation and Destruction) – Annihilation | A sphere 40ft across is erased: everything inside takes 6d10 force, non-magical objects vanish, and non-bosses reduced to 0 leave no trace.
+- The Great Change |  | Mage (Creation and Destruction) – Transmutation | For 1d4 turns, change the nature of everything in a 40ft area: water to fire, stone to air, steel to glass. Enemies inside take 5d10 and suffer whatever the change implies.
+- The Long Decay |  | Mage (Creation and Destruction) – Entropy | For 1d4 turns, everything within 40ft decays: enemies take 5d10 each turn, structures crumble and non-magical gear falls apart. You age a year.
+- Remake the Land |  | Mage (Creation and Destruction) – Worldshaping | Over an hour, reshape a mile of land as you wish: valleys, hills, rivers and roads. The change is permanent.
+
 # Dawn Magic
 
 ## Tier 1
@@ -930,6 +1027,297 @@
 - Gate of Cinders | 6d10, then 4d20/turn | Mage (Fire) – Hellfire | Tear a rift open beneath the battlefield. Every creature within 40 ft takes 6d10, and the ground burns for 4d20 a turn for 1d4 turns. No creature in the burning ground can be healed by any means, and anything that dies inside can't be raised.
 - Reckoning | 5d10 (100 ft) | Mage (Fire) – Flare | Clean fire falls across a 100 ft radius, damaging every enemy. Every curse, possession, binding, summon and dark enchantment in the area is destroyed; no undead or corrupted creature can enter for a day; and nothing that dies inside can ever be raised.
 - Extinction Event | 8d12 (40 ft), then 3d10/turn | Mage (Fire) – Comet | Launch up to 200 ft and hit the ground like the end of the world. Everything within 40 ft takes 8d12 fire and is knocked prone, the ground burns for 3d10 a turn for 1d4 turns, and anything standing in the path of your launch takes half. You are stunned until the end of your next turn.
+
+# Light and Dark Magic
+
+## Tier 1
+- Glimmer |  |  | Create an orb of light that sheds bright light in 20ft for an hour.
+- Shade |  |  | Fill a 10ft area with magical darkness for a minute.
+- Radiant Mote |  |  | 1d2 radiant to a target.
+- Shadow Bolt |  |  | 1d2 necrotic to a target.
+- Twilight Eyes |  |  | See in darkness and through bright light without being blinded, for an hour.
+- Candleflame |  | Mage (Light and Dark) | Light or snuff any non-magical light within sight.
+- Shadow Hop (Bonus Action) |  | Mage (Light and Dark) | Step from one shadow to another within 15ft.
+- Warm Light |  | Mage (Light and Dark) | Heal a target 1d4.
+- Sunspark |  | Mage (Light and Dark) – Radiance | 1d6 radiant; the target sheds light and cannot hide for 1 turn.
+- Ray of Warmth |  | Mage (Light and Dark) – Radiance | Heal a target 1d6.
+- Daylight Orb |  | Mage (Light and Dark) – Radiance | An orb of true daylight lights 40ft for an hour.
+- Night Bolt |  | Mage (Light and Dark) – Shadow | 1d6 necrotic; the target takes -1 to its next roll.
+- Shadow Cloak |  | Mage (Light and Dark) – Shadow | Become hidden in any dim light until you attack.
+- Darkvision |  | Mage (Light and Dark) – Shadow | See perfectly in darkness for an hour.
+- Dusk Bolt |  | Mage (Light and Dark) – Twilight | 1d6 radiant or necrotic, your choice, matching your current stance.
+- Half-Light |  | Mage (Light and Dark) – Twilight | An ally becomes hard to see (+2 dodge) but can see perfectly, until your next turn.
+- Shift (Bonus Action) |  | Mage (Light and Dark) – Twilight | Switch between Light and Dark and heal 1d4.
+- Colour Spray |  | Mage (Light and Dark) – Spectrum | A spray of colour; 1d3 targets make a WIS save or are dazzled (-2 to attacks) for 1 turn.
+- Lightbend |  | Mage (Light and Dark) – Spectrum | Bend light around a small object or creature, making it invisible for a minute while it stays still.
+- Hue |  | Mage (Light and Dark) – Spectrum | Change the colour of any object or creature for an hour.
+- Void Mote |  | Mage (Light and Dark) – Void | 1d6 necrotic that ignores light-based protections.
+- Silence of the Void |  | Mage (Light and Dark) – Void | A 10ft area allows no sound for a minute.
+- Lightless Eye |  | Mage (Light and Dark) – Void | See through any darkness, including your own void.
+
+## Tier 2
+- Sunlance |  |  | 3d6 radiant to a target.
+- Umbral Grasp |  |  | Shadows hold a target in place for 1 turn (STR save resists).
+- Veil of Night |  |  | Become invisible while in darkness or dim light for 1d4 turns.
+- Blinding Burst |  |  | 1d3 targets make a WIS save or are blinded for 1 turn.
+- Dazzling Flash |  | Mage (Light and Dark) | A target makes a WIS save or takes -2 to its next attack.
+- Cloak of Shadow |  | Mage (Light and Dark) | An ally gains +2 to stealth rolls and dodge until your next turn.
+- Searing Ray |  | Mage (Light and Dark) – Radiance | 1d10 radiant, doubled against undead.
+- Glow of Life |  | Mage (Light and Dark) – Radiance | Heal every ally within 10ft for 1d6.
+- Shadow Blade |  | Mage (Light and Dark) – Shadow | Conjure a blade of shadow for the combat (1d10 necrotic, counts as magic).
+- Grasp of Night |  | Mage (Light and Dark) – Shadow | Shadows hold a target for 1d3 turns (STR save each turn).
+- Twin Rays |  | Mage (Light and Dark) – Twilight | Two rays, one radiant and one necrotic, each deal 1d8 to the same or different targets.
+- Mirror Day and Night |  | Mage (Light and Dark) – Twilight | Swap the light level in two 10ft areas you can see.
+- Split Beam |  | Mage (Light and Dark) – Spectrum | A beam deals 1d10 radiant and splits to a second target for half.
+- Rainbow Bridge |  | Mage (Light and Dark) – Spectrum | A bridge of solid light up to 60ft long for 1d4 turns.
+- Swallow Light |  | Mage (Light and Dark) – Void | Every light within 30ft goes out, and a light-based creature takes 1d10.
+- Void Grip |  | Mage (Light and Dark) – Void | A target is pulled 15ft toward you by the void (STR save resists).
+
+## Tier 3
+- Radiant Nova |  |  | 10d6 radiant to every creature in a 20ft radius around a point.
+- Living Shadow |  |  | Your shadow peels away and fights beside you for 1d4 turns (20 HP, 1d10 necrotic).
+- Total Darkness |  |  | Magical darkness fills 40ft for 1d4 turns; only you can see through it.
+- Twilight Shift |  | Mage (Light and Dark) | Swap Light and Dark for every creature within 30ft: their light sources go dark and their darkness lights up, for 1d3 turns.
+- Burning Halo |  | Mage (Light and Dark) – Radiance | For 1d3 turns, enemies adjacent to you at the start of their turn take 2d6 radiant.
+- Sun Shield |  | Mage (Light and Dark) – Radiance | An ally gains 2d10 temp HP and is immune to blindness for 1d3 turns.
+- Shadow Walk |  | Mage (Light and Dark) – Shadow | Step from any shadow to another within 60ft.
+- Chill of the Grave |  | Mage (Light and Dark) – Shadow | 2d8 necrotic, and the target cannot heal until its next turn.
+- Grey Ward |  | Mage (Light and Dark) – Twilight | For 1d3 turns, an ally takes half damage from radiant and necrotic spells.
+- Dusk Veil |  | Mage (Light and Dark) – Twilight | A 20ft area becomes twilight: allies inside gain +2 to dodge and saves for 1d3 turns.
+- Refraction (Reaction) |  | Mage (Light and Dark) – Spectrum | Redirect a beam, ray or light-based spell to a new target.
+- Prismatic Shield |  | Mage (Light and Dark) – Spectrum | An ally gains resistance to one damage type of your choice for 1d3 turns.
+- Black Hole Mote |  | Mage (Light and Dark) – Void | A tiny point of void pulls every creature within 15ft 10ft toward it and deals 2d6.
+- Nothing Here |  | Mage (Light and Dark) – Void | An area 10ft across becomes a void that no creature can see into or hear through for 1d3 turns.
+
+## Tier 4
+- Noonfire |  | Mage (Light and Dark) – Radiance | 3d8 radiant in a 20ft radius; undead that fail a WIS save flee for 1d3 turns.
+- Lighthouse |  | Mage (Light and Dark) – Radiance | For 1d4 turns, allies within 30ft of you heal 1d6 at the start of each turn.
+- Light of Truth |  | Mage (Light and Dark) – Radiance | Every illusion and disguise within 30ft is revealed and suppressed for 1d4 turns.
+- Shadow Puppets |  | Mage (Light and Dark) – Shadow | Up to three enemies' shadows rise and attack them for 3d6 necrotic each (WIS save halves).
+- Moonless Night |  | Mage (Light and Dark) – Shadow | A 30ft area becomes deep darkness for 1d4 turns; you and allies you choose can see in it.
+- Drain Light |  | Mage (Light and Dark) – Shadow | Extinguish every light within 60ft, magical lights of tier 4 or lower included.
+- Eclipse Bolt |  | Mage (Light and Dark) – Twilight | 3d8, half radiant and half necrotic; ignores resistance to either.
+- Twilight Mend |  | Mage (Light and Dark) – Twilight | Heal an ally 3d8; enemies adjacent to them take the same as necrotic.
+- Balance of Day |  | Mage (Light and Dark) – Twilight | Every creature within 30ft has its HP percentage moved halfway toward the average of everyone in the area (WIS save resists for enemies).
+- Prismatic Spray |  | Mage (Light and Dark) – Spectrum | 3d8 radiant in a 20ft cone; each target gets a random Seven Colours rider.
+- Kaleidoscope |  | Mage (Light and Dark) – Spectrum | Every enemy within 20ft makes a WIS save or is confused for 1d3 turns.
+- Spectrum Lance |  | Mage (Light and Dark) – Spectrum | 3d8 radiant that ignores all resistance.
+- Void Rift |  | Mage (Light and Dark) – Void | A 20ft rift of void: 3d8 necrotic to everything inside, and it pulls creatures 10ft toward its centre each turn for 1d3 turns.
+- Unlight |  | Mage (Light and Dark) – Void | For 1d4 turns, a target cannot be healed by light-based or radiant magic.
+- Hollow Out |  | Mage (Light and Dark) – Void | 3d8 necrotic, and the target's max HP drops by half the damage until it rests.
+
+## Tier 5
+- Sunstrike |  | Mage (Light and Dark) – Radiance | A pillar of light: 4d10 radiant, and the target is blinded for 1 turn (WIS save resists the blindness).
+- Radiant Renewal |  | Mage (Light and Dark) – Radiance | Heal an ally 4d10 and end every curse and darkness effect on them.
+- Shadow Self |  | Mage (Light and Dark) – Shadow | For 1d4 turns you become a living shadow: immune to physical damage, able to pass through walls, but unable to touch objects.
+- Night's Embrace of Death |  | Mage (Light and Dark) – Shadow | 4d10 necrotic; a non-boss reduced to 0 by it is swallowed by darkness and gone.
+- Sundown |  | Mage (Light and Dark) – Twilight | For 1d4 turns, each time you switch stance, every enemy within 20ft takes 2d10 of the stance you leave.
+- Equal Measure |  | Mage (Light and Dark) – Twilight | 4d10 radiant and 4d10 necrotic, split as you choose between up to two targets.
+- Prismatic Wall |  | Mage (Light and Dark) – Spectrum | A 40ft wall of colour for 1d4 turns; creatures passing through take 4d10 and every Seven Colours rider.
+- White Light |  | Mage (Light and Dark) – Spectrum | Combine all colours: 4d10 radiant and every Seven Colours rider on one target.
+- Event Horizon |  | Mage (Light and Dark) – Void | For 1d4 turns, any creature that enters the 20ft area around a point you choose cannot leave it without a STR save.
+- Devouring Dark |  | Mage (Light and Dark) – Void | 4d10 necrotic; you heal half and gain the rest as temp HP.
+
+## Tier 6
+- Second Sun |  | Mage (Light and Dark) – Radiance | For 1d4 turns a second sun hangs over a 40ft area: enemies inside take 5d10 radiant each turn, nothing can hide there, and allies heal 1d10 each turn.
+- Endless Dusk |  | Mage (Light and Dark) – Shadow | For 1d4 turns darkness covers a 60ft area: enemies inside are blinded and take 5d10 necrotic each turn, while you and allies are hidden and see clearly.
+- Dusk Unending |  | Mage (Light and Dark) – Twilight | For 1d4 turns you hold Light and Dark at once: both benefits apply, your spells deal both radiant and necrotic, and enemies within 40ft take 4d10 each turn.
+- Spectrum Storm |  | Mage (Light and Dark) – Spectrum | For 1d4 turns, rays of every colour strike every enemy within 40ft: 5d10 radiant each turn and a random rider each.
+- The Void Opens |  | Mage (Light and Dark) – Void | For 1d4 turns, a 40ft sphere of void: everything inside takes 5d10 necrotic each turn, is pulled toward its centre and cannot see or hear. Something in the void notices you; the GM decides what.
+
+# Mind Magic
+
+## Tier 1
+- Whisper |  |  | Send a short message into the mind of a creature you can see; it may answer the same way.
+- Sense Thoughts |  |  | Read a creature's surface thoughts for a minute (WIS save resists).
+- Phantasm |  |  | Create a small illusion of sound or image for a minute; it cannot touch or be touched.
+- Mind Prick |  |  | 1d2 psychic, and the target takes -1 to its next roll.
+- Daze |  |  | A target loses its reaction until its next turn (WIS save resists).
+- Calm Mind |  | Mage (Mind) | End one fear or charm effect on an ally.
+- Mask |  | Mage (Mind) | Cover your face with an illusion of another face for an hour.
+- Mind Ward |  | Mage (Mind) | An ally makes their next save against a mental effect at advantage.
+- Break Focus |  | Mage (Mind) – Interdiction | A caster within 60ft makes a WIS save or loses concentration on a spell.
+- Sense Casting |  | Mage (Mind) – Interdiction | For an hour you know whenever a spell is cast within 120ft, and its tier.
+- Stammer (Bonus Action) |  | Mage (Mind) – Interdiction | A target's next spell takes twice as long to cast and can be countered at any point before it lands.
+- Phantom Sound |  | Mage (Mind) – Phantasm | A sound of your choice from anywhere within 120ft, as loud as a shout or as quiet as a whisper.
+- Shimmer |  | Mage (Mind) – Phantasm | Your outline blurs until your next turn; the first attack against you is made at disadvantage.
+- Illusory Object |  | Mage (Mind) – Phantasm | Create an illusion of an object up to 5ft across for an hour.
+- Command |  | Mage (Mind) – Domination | A non-boss makes a WIS save or obeys a one-word command on its next turn.
+- Befriend |  | Mage (Mind) – Domination | A creature makes a WIS save or regards you as a friend for an hour.
+- Lower Your Guard |  | Mage (Mind) – Domination | A target makes a WIS save or takes -2 to defence until its next turn.
+- Hostile Thought |  | Mage (Mind) – Telepathy | Learn whether a creature means you harm.
+- Shared Senses |  | Mage (Mind) – Telepathy | See and hear through a willing ally's senses for a minute.
+- Mental Shout |  | Mage (Mind) – Telepathy | Every ally within a mile hears a short message from you.
+- Mind Spike |  | Mage (Mind) – Psionics | 1d6 psychic.
+- Telekinetic Push |  | Mage (Mind) – Psionics | Push a creature or object up to 10ft (STR save resists).
+- Float |  | Mage (Mind) – Psionics | An object up to your weight floats and follows you for an hour.
+
+## Tier 2
+- Suggestion |  |  | A non-boss makes a WIS save or carries out one reasonable, non-harmful action you suggest.
+- Mirrored Self |  |  | Two illusory copies of you appear for 1d4 turns; each attack against you has a 1d3 chance (on a 1) of hitting you, otherwise it destroys a copy.
+- Psychic Lash |  |  | 3d6 psychic to a target.
+- Forget |  |  | A target forgets the last minute of its life (WIS save resists).
+- Thought Link |  | Mage (Mind) | Link the minds of up to four willing creatures for an hour; they can speak silently to each other at any range.
+- Unseen |  | Mage (Mind) | One creature you choose cannot see you for 1d3 turns (WIS save resists).
+- Countermind (Reaction) |  | Mage (Mind) – Interdiction | Counter a tier 3 or lower spell.
+- Spell Echo Sense |  | Mage (Mind) – Interdiction | Learn every spell a caster has cast in the last hour.
+- Phantom Blade |  | Mage (Mind) – Phantasm | An illusory blade strikes a target for 1d10 psychic; if it fails a WIS save, it believes it is wounded and takes -2 to its next attack.
+- False Terrain |  | Mage (Mind) – Phantasm | Make a 20ft area look like different terrain (a pit, a wall, open ground) for an hour.
+- Hold Person |  | Mage (Mind) – Domination | A humanoid makes a WIS save or cannot move for 1d3 turns; it repeats the save each turn.
+- Turncoat |  | Mage (Mind) – Domination | A non-boss makes a WIS save or attacks a creature of your choice on its next turn.
+- Deep Read |  | Mage (Mind) – Telepathy | Read a creature's deeper memories about one topic (WIS save resists).
+- Warning (Reaction) |  | Mage (Mind) – Telepathy | Allies within 60ft gain +2 to their next dodge as you feel the attack coming.
+- Crushing Thought |  | Mage (Mind) – Psionics | 1d10 psychic, and the target makes a STR save or is knocked prone.
+- Kinetic Shield (Reaction) |  | Mage (Mind) – Psionics | Block the next 1d10 damage to you or an ally.
+
+## Tier 3
+- Dominate |  |  | A non-boss makes a WIS save or obeys your commands for 1d4 turns; it repeats the save at the end of each of its turns.
+- Mind Blast |  |  | 10d6 psychic in a 20ft cone; targets make a WIS save or are stunned for 1 turn.
+- Grand Illusion |  |  | Create an illusion of anything up to the size of a building, fooling every sense, for an hour.
+- Thought Shield |  | Mage (Mind) | For an hour, your party's minds cannot be read and they make saves against mental effects at advantage.
+- Unspoken Counter (Reaction) |  | Mage (Mind) – Interdiction | Counter a tier 4 or lower spell, even one cast silently or without moving.
+- Backlash |  | Mage (Mind) – Interdiction | The next spell you counter rebounds on its caster at half effect.
+- Phantom Beast |  | Mage (Mind) – Phantasm | An illusory beast attacks a target each turn for 1d3 turns, dealing 2d6 psychic if it fails a WIS save.
+- Invisibility |  | Mage (Mind) – Phantasm | A target becomes invisible until it attacks or for an hour.
+- Mass Command |  | Mage (Mind) – Domination | Up to 1d4 non-bosses make WIS saves or obey a one-word command.
+- Puppet Strings |  | Mage (Mind) – Domination | Take control of a held or charmed non-boss's movement for 1d3 turns.
+- Mind Network |  | Mage (Mind) – Telepathy | For 1d3 turns, every linked ally knows what every other ally is doing; they may act in any order on your turn.
+- Psychic Pursuit |  | Mage (Mind) – Telepathy | Mark a mind you have read; you always know its direction and distance for a day.
+- Psychic Spear |  | Mage (Mind) – Psionics | 2d8 psychic that passes through up to three targets in a line.
+- Lift |  | Mage (Mind) – Psionics | Lift a creature of medium size or smaller 20ft into the air for 1d3 turns (STR save resists).
+
+## Tier 4
+- Greater Countermind (Reaction) |  | Mage (Mind) – Interdiction | Counter a spell of tier 5 or lower.
+- Silent Zone |  | Mage (Mind) – Interdiction | For 1d4 turns no spell of tier 3 or lower can be cast within 20ft of you, except yours.
+- Locked Mind |  | Mage (Mind) – Interdiction | A caster makes a WIS save or cannot cast spells of its highest tier for 1d3 turns.
+- Phantasmal Killer |  | Mage (Mind) – Phantasm | A target sees its worst fear: 3d8 psychic each turn for 1d3 turns, WIS save each turn ends it.
+- Hall of Illusions |  | Mage (Mind) – Phantasm | A 30ft area becomes a maze of illusions for 1d4 turns; enemies inside must pass a WIS check to find their way out.
+- Double |  | Mage (Mind) – Phantasm | An illusory double of you acts on your turn for 1d4 turns and can cast your tier 1 spells.
+- Domination |  | Mage (Mind) – Domination | A non-boss makes a WIS save or obeys you for 1d4 turns; bosses are instead charmed for 1 turn.
+- Break the Will |  | Mage (Mind) – Domination | 3d8 psychic and the target takes -3 to all WIS saves until it rests.
+- Loyal Hound |  | Mage (Mind) – Domination | A beast or monster of medium size or smaller makes a WIS save or serves you for a day.
+- Mind Probe |  | Mage (Mind) – Telepathy | Learn one secret a creature is hiding (WIS save at disadvantage resists).
+- Overload Senses |  | Mage (Mind) – Telepathy | A target makes a WIS save or is blinded and deafened by a flood of thoughts for 1d3 turns.
+- Hive Strike |  | Mage (Mind) – Telepathy | Every linked ally may immediately make one attack against a target you choose.
+- Mind Shatter |  | Mage (Mind) – Psionics | 3d8 psychic, and the target makes a WIS save or is stunned for 1 turn.
+- Telekinetic Storm |  | Mage (Mind) – Psionics | Debris whirls in a 20ft area: 3d6 to every enemy inside for 1d3 turns.
+- Fling |  | Mage (Mind) – Psionics | Throw a creature you are lifting 30ft; it and anything it hits take 3d8.
+
+## Tier 5
+- Absolute Interdiction (Reaction) |  | Mage (Mind) – Interdiction | Counter any spell of any tier. A tier 7 or higher spell is only weakened to half effect.
+- Stolen Spell (Reaction) |  | Mage (Mind) – Interdiction | Counter a spell of tier 4 or lower and cast it yourself on your next turn without using a use.
+- Mass Illusion |  | Mage (Mind) – Phantasm | Every enemy within 60ft sees a scene of your choosing for 1d4 turns (WIS save resists).
+- Phantom Army |  | Mage (Mind) – Phantasm | An illusory army appears for 1d4 turns; non-bosses that fail a WIS save flee or waste their attacks on it.
+- Mass Domination |  | Mage (Mind) – Domination | Up to three non-bosses make WIS saves or obey you for 1d4 turns.
+- Implanted Order |  | Mage (Mind) – Domination | Plant an order in a creature's mind; it carries it out when a trigger you set occurs, within a week, and does not know why.
+- Steal Knowledge |  | Mage (Mind) – Telepathy | Take a skill, language or memory from a creature's mind and keep it for a day.
+- Collective Mind |  | Mage (Mind) – Telepathy | For 1d4 turns, your party shares the best stat each has for every save.
+- Brainburn |  | Mage (Mind) – Psionics | 4d10 psychic, and the target cannot cast spells for 1 turn.
+- Kinetic Barrier |  | Mage (Mind) – Psionics | A 20ft dome of force for 1d4 turns blocks all projectiles and 40 damage of attacks.
+
+## Tier 6
+- Mind Over Magic |  | Mage (Mind) – Interdiction | For 1d4 turns, every spell an enemy casts within 60ft must first pass a WIS save against you or fail, and you know what it was going to be.
+- The Dream Made Real |  | Mage (Mind) – Phantasm | For 1d4 turns, one illusion you create up to 40ft across is real for anyone who fails a WIS save: its walls stop them, its fire burns them for 5d10, its monsters strike them.
+- Throne of Minds |  | Mage (Mind) – Domination | For 1d4 turns, every non-boss within 40ft that fails a WIS save fights for you; bosses lose their next action.
+- Mind of the Many |  | Mage (Mind) – Telepathy | For 1d4 turns you hear every mind within a mile, cannot be surprised, and may cast spells through any ally's eyes as if you stood where they are.
+- Psychic Cataclysm |  | Mage (Mind) – Psionics | 5d10 psychic to every enemy within 30ft, and they make a WIS save or are stunned for 1d3 turns. You take 2d6 from the strain.
+
+# Natural Magic
+
+## Tier 1
+- Lifespark |  |  | Heal a target 1d4.
+- Deathtouch |  |  | 1d2 necrotic to a creature you touch.
+- Soul Glimpse |  |  | Learn whether a creature is alive, undead, soulless or possessed.
+- Hasten Bloom |  |  | Make a plant grow, flower or fruit in moments.
+- Wilt |  |  | A small plant or insect dies, or a creature's minor wound festers (1d2).
+- Vital Sense |  | Mage (Natural) | Sense every living creature within 60ft.
+- Stabilise |  | Mage (Natural) | A dying creature stops dying.
+- Grave Whisper |  | Mage (Natural) | Ask a corpse one question it knew the answer to in life.
+- Pulse of Life |  | Mage (Natural) – Vitality | Heal 1d8.
+- Clear Blood |  | Mage (Natural) – Vitality | Remove poison or disease from a target.
+- Quick Breath (Bonus Action) |  | Mage (Natural) – Vitality | An ally regains their reaction.
+- Grave Chill |  | Mage (Natural) – Mortality | 1d6 necrotic; the target cannot heal until its next turn.
+- Age |  | Mage (Natural) – Mortality | A non-living object ages a century in a moment, rusting or rotting.
+- Death's Eye |  | Mage (Natural) – Mortality | Learn how long a creature has left to live if nothing changes.
+- Soul Spark |  | Mage (Natural) – Soulbinding | 1d6 damage directly to the soul, ignoring armour.
+- Spirit Sight |  | Mage (Natural) – Soulbinding | See souls, spirits and the soulless for an hour.
+- Tug |  | Mage (Natural) – Soulbinding | A target's soul is pulled half out of its body; it takes -1 to all rolls until its next turn.
+- Thorn Whip |  | Mage (Natural) – Verdance | 1d6 piercing, and you may pull the target 5ft toward you.
+- Entangle |  | Mage (Natural) – Verdance | Grass and roots hold a target in place for 1 turn (STR save resists).
+- Seedling |  | Mage (Natural) – Verdance | Plant a seed that becomes a sapling within a minute.
+- Exchange |  | Mage (Natural) – The Cycle | Deal 1d4 necrotic to an enemy and heal an ally the same.
+- Turning Leaf |  | Mage (Natural) – The Cycle | Know which creature within 60ft is closest to death, and which is healthiest.
+- Compost |  | Mage (Natural) – The Cycle | A corpse decays to rich soil in a minute, and plants nearby flourish.
+
+## Tier 2
+- Mend Flesh |  |  | Heal a target 3d6.
+- Drain Life |  |  | 3d6 necrotic; you heal half.
+- Soul Tether |  |  | Link to an ally's soul for an hour; you know their health and location.
+- Rot |  |  | A target's healing is halved for 1d3 turns.
+- Vigour |  | Mage (Natural) | An ally gains 2d6 temp HP and ignores fatigue for an hour.
+- Wither Touch |  | Mage (Natural) | 1d10 necrotic, and the target's movement is halved for a turn.
+- Bloom of Health |  | Mage (Natural) – Vitality | Heal every ally within 10ft for 1d8.
+- Brimming Health |  | Mage (Natural) – Vitality | An ally's max HP rises by 2d6 until combat ends.
+- Decay |  | Mage (Natural) – Mortality | 1d10 necrotic, and the target's armour min hit drops by 2 for 1d3 turns as it rots.
+- Last Words |  | Mage (Natural) – Mortality | A creature that has just died speaks for a minute.
+- Soul Link |  | Mage (Natural) – Soulbinding | Link two creatures' souls for 1d3 turns; damage to one is shared at half with the other.
+- Ghostly Hand |  | Mage (Natural) – Soulbinding | A spectral hand can touch and carry objects up to 60ft away for a minute.
+- Barkskin |  | Mage (Natural) – Verdance | An ally's min hit rises by 4 for 1d3 turns.
+- Spore Cloud |  | Mage (Natural) – Verdance | A 10ft cloud; creatures inside make a STR save or are poisoned for 1 turn.
+- Life for Life |  | Mage (Natural) – The Cycle | Move up to 2d8 HP from an enemy to an ally.
+- Seasons Turn |  | Mage (Natural) – The Cycle | An ally's negative status becomes a positive one of the same strength (poison becomes regeneration, for example).
+
+## Tier 3
+- Restore Life |  |  | Return a creature that died within the last minute to life at 1 HP.
+- Death Wave |  |  | 10d6 necrotic to every creature in a 20ft radius around a point; you choose which allies are spared.
+- Soul Cage |  |  | Trap the soul of a creature that has just died in a gem; it can be spoken to, released or used in rituals.
+- Soul Ward |  | Mage (Natural) | For an hour, an ally's soul cannot be stolen, possessed or trapped.
+- Revive |  | Mage (Natural) – Vitality | A downed ally stands at 2d8 HP.
+- Regrowth |  | Mage (Natural) – Vitality | An ally regenerates 1d6 at the start of each turn for 1d3 turns.
+- Wasting |  | Mage (Natural) – Mortality | A target loses 1d8 at the start of each of its turns for 1d3 turns.
+- Marked for Death |  | Mage (Natural) – Mortality | For 1d3 turns, every hit on a target deals +1d6 necrotic.
+- Soul Rend |  | Mage (Natural) – Soulbinding | 2d8 to the soul; the target cannot use reactions for 1 turn.
+- Spirit Vessel |  | Mage (Natural) – Soulbinding | Bind a stored soul into an object; it can speak and grant one minor ability.
+- Wall of Thorns |  | Mage (Natural) – Verdance | A 20ft wall of thorns; crossing it deals 2d8.
+- Sudden Forest |  | Mage (Natural) – Verdance | Trees burst up in a 20ft area, giving full cover where you choose.
+- Wheel of Life |  | Mage (Natural) – The Cycle | For 1d3 turns, every hit an ally lands heals another ally for 1d4.
+- Death into Life |  | Mage (Natural) – The Cycle | A creature that died this combat is consumed; heal every ally 2d8.
+
+## Tier 4
+- Mass Vitality |  | Mage (Natural) – Vitality | Heal every ally within 30ft for 3d8.
+- Lifeguard |  | Mage (Natural) – Vitality | An ally cannot drop below 1 HP for 1d3 turns.
+- Mend the Body |  | Mage (Natural) – Vitality | Restore a lost limb or organ.
+- Death's Reach |  | Mage (Natural) – Mortality | 3d8 necrotic to every enemy within 20ft.
+- Hasten the End |  | Mage (Natural) – Mortality | A creature below a quarter of its HP makes a STR save or drops to 0 (non-boss only).
+- Unliving Ward |  | Mage (Natural) – Mortality | For 1d4 turns, you and allies within 10ft take half damage from necrotic spells and drain.
+- Soul Swap |  | Mage (Natural) – Soulbinding | Swap the souls of two willing creatures for an hour (an unwilling one makes a WIS save).
+- Possess |  | Mage (Natural) – Soulbinding | Your soul enters a non-boss body for 1d3 turns (WIS save resists); your body is helpless meanwhile.
+- Spirit Chains |  | Mage (Natural) – Soulbinding | Bind a ghost, spirit or possessing soul; it cannot move or act for 1d4 turns.
+- Strangler Vines |  | Mage (Natural) – Verdance | Vines hold every enemy in a 20ft area (STR save) and deal 3d6 each turn for 1d3 turns.
+- Awaken Tree |  | Mage (Natural) – Verdance | A tree fights for you for 1d4 turns (50 HP, 2d8).
+- Fruit of Life |  | Mage (Natural) – Verdance | Grow three fruits; each heals 3d8 when eaten, for a day.
+- Great Exchange |  | Mage (Natural) – The Cycle | Move 3d8 HP from every enemy within 20ft to your allies, split as you choose.
+- Rebirth (Reaction) |  | Mage (Natural) – The Cycle | An ally who drops to 0 HP this turn instead returns at half HP.
+- Balance |  | Mage (Natural) – The Cycle | Average the HP of two creatures you can see (an unwilling creature makes a WIS save).
+
+## Tier 5
+- Life Surge |  | Mage (Natural) – Vitality | Heal an ally to full; any excess is given to another ally.
+- Return from the Brink |  | Mage (Natural) – Vitality | Revive a creature that died within the last hour at half HP.
+- Final Breath |  | Mage (Natural) – Mortality | 4d10 necrotic; a non-boss reduced to 0 cannot be revived by tier 5 or lower magic.
+- Plague of Years |  | Mage (Natural) – Mortality | Every enemy within 30ft ages, taking -2 to all rolls for 1d4 turns.
+- Soul Theft |  | Mage (Natural) – Soulbinding | A non-boss below a quarter of its HP makes a WIS save or loses its soul, collapsing into an empty body.
+- Return the Soul |  | Mage (Natural) – Soulbinding | Put a stored soul back into its body, if the body is whole, bringing it back to life.
+- Overgrowth |  | Mage (Natural) – Verdance | A 40ft area becomes impassable jungle for enemies for 1d4 turns.
+- Treant |  | Mage (Natural) – Verdance | Raise a treant (70 HP, 3d10) until combat ends.
+- Turn of the Wheel |  | Mage (Natural) – The Cycle | For 1d4 turns, whenever an enemy takes damage, an ally heals half that amount.
+- Life Debt |  | Mage (Natural) – The Cycle | A non-boss you have harmed makes a WIS save or gives all its remaining HP to an ally and falls unconscious.
+
+## Tier 6
+- Font of Vitality |  | Mage (Natural) – Vitality | For 1d4 turns, allies within 40ft heal 2d10 at the start of each turn and cannot drop below 1 HP from a single hit.
+- Death's Door Opens |  | Mage (Natural) – Mortality | For 1d4 turns, enemies within 40ft cannot be healed and take 5d10 necrotic each turn; any that die cannot be raised.
+- Soulstorm |  | Mage (Natural) – Soulbinding | For 1d4 turns, every soul within 40ft is pulled half out of its body: enemies take 5d10 and -3 to all rolls each turn, and you may move one soul between bodies per turn (WIS save resists).
+- The Green Wakes |  | Mage (Natural) – Verdance | For 1d4 turns, every plant within 60ft fights for you: enemies take 5d10 each turn and are held on a failed STR save.
+- The Great Cycle |  | Mage (Natural) – The Cycle | For 1d4 turns, every point of damage dealt to enemies within 60ft heals your allies, and every enemy that dies returns an ally who has fallen this combat at half HP.
 
 # Nature Magic
 

@@ -561,6 +561,37 @@
     return opts;
   }
 
+  // ---------- every school of magic has its own colour and sigil ----------
+  // l = the colour on parchment (light), d = on the dark theme; p = the sigil's strokes, f = any filled part
+  const SCHOOL_LOOK = {
+    'Air Magic': { l: '#2a6578', d: '#8ccbe0', p: 'M3 8h11a3 3 0 1 0-3-3M3 12h15a3 3 0 1 1-3 3M3 16h8' },
+    'Angelic Magic': { l: '#7d5e0f', d: '#e6c766', p: 'M8 4.5a4 1.5 0 1 0 8 0a4 1.5 0 1 0-8 0M12 9v12M12 12c-3-3-7-3-9-1 2 3 5 4 9 3M12 12c3-3 7-3 9-1-2 3-5 4-9 3' },
+    'Augury Magic': { l: '#3a4f96', d: '#a7b6f0', p: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6M12 2v1.5M12 20.5V22' },
+    'Blood Magic (Rites)': { l: '#8f1d1d', d: '#e88070', p: 'M12 3c3 5 6 8 6 12a6 6 0 0 1-12 0c0-4 3-7 6-12zM9.5 15a2.5 2.5 0 0 0 2.5 2.5' },
+    'Creation and Destruction Magic': { l: '#9b3d12', d: '#ffab6b', p: 'M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3M12 8.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7' },
+    'Dawn Magic': { l: '#8c540a', d: '#f3c06a', p: 'M3 18h18M6 18a6 6 0 0 1 12 0M12 6v3M5.5 9.5l2 2M18.5 9.5l-2 2M2 14h2M20 14h2M8 21h8' },
+    'Dusk Magic': { l: '#46377a', d: '#b3a2ea', p: 'M15 4a8 8 0 1 0 5 13A7 7 0 0 1 15 4zM19 3l.6 1.6L21 5l-1.4.5L19 7l-.6-1.5L17 5l1.4-.4z' },
+    'Earth Magic': { l: '#6b5226', d: '#d4b27a', p: 'M2 20l7-12 4 6 3-4 6 10zM9 8l2.2 3.4M4 20l3-3' },
+    'Enhancement Magic': { l: '#2f6a66', d: '#85cbc4', p: 'M6 13l6-6 6 6M6 19l6-6 6 6M12 2.5v2' },
+    'Fire Magic': { l: '#b0301a', d: '#ff8a66', p: 'M12 3c1 4 5 6 5 11a5 5 0 0 1-10 0c0-3 2-4 2-7 1 1 2 2 2 4 1-2 1-5 1-8z' },
+    'Light and Dark Magic': { l: '#4b4760', d: '#d8d2ea', p: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 7.5a1.5 1.5 0 1 0 0 3M12 13.5a1.5 1.5 0 1 1 0 3', f: 'M12 3a9 9 0 0 1 0 18a4.5 4.5 0 0 1 0-9a4.5 4.5 0 0 0 0-9z' },
+    'Mind Magic': { l: '#74358f', d: '#d29be8', p: 'M12 12a1 1 0 0 1 2 0a2 2 0 0 1-4 0a3 3 0 0 1 6 0a4 4 0 0 1-8 0a5 5 0 0 1 10 0a6 6 0 0 1-12 0' },
+    'Natural Magic': { l: '#5c6a1f', d: '#c6d47a', p: 'M12 21v-8M12 13c0-4 3-7 8-7 0 5-3 7-8 7zM12 15.5c0-3-2-5-6-5 0 4 2 5 6 5zM8 21h8' },
+    'Nature Magic': { l: '#2f6b34', d: '#8fd08f', p: 'M12 3l6 8h-3l4 6H5l4-6H6zM12 17v4' },
+    'Shaman Magic': { l: '#7a4422', d: '#e0a77a', p: 'M20 4C12 4 6 10 6 18l-2 2M6 18c6 0 12-6 14-14M9 13h5M11.5 9.5h5' },
+    'Summoning Magic': { l: '#1d6b5a', d: '#7fd4bd', p: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 4.5l4.4 13.4L5 9.6h14L7.6 17.9z' },
+    'Warlock Magic': { l: '#6d2350', d: '#e090c4', p: 'M5 3.5c0 4 3 6 7 6s7-2 7-6M3 15s4-5 9-5 9 5 9 5-4 5-9 5-9-5-9-5zM12 13a2 2 0 1 0 0 4a2 2 0 1 0 0-4' },
+    'Water Magic': { l: '#1e5a8c', d: '#86bfee', p: 'M2 8c3 0 3-3 6-3s3 3 6 3 3-3 6-3M2 14c3 0 3-3 6-3s3 3 6 3 3-3 6-3M2 20c3 0 3-3 6-3s3 3 6 3 3-3 6-3' },
+  };
+  const NO_LOOK = { l: '#7a5a1f', d: '#c9a24e', p: 'M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8l-6.2 4.5 2.4-7.4L2 9.4h7.6z' };
+  const lookOf = school => SCHOOL_LOOK[school] || NO_LOOK;
+  // style for anything drawn in a school's colours (CSS picks the light or dark one: .sch)
+  const schoolStyle = school => { const L = lookOf(school); return `--sc-l:${L.l};--sc-d:${L.d}`; };
+  const sigil = (school, cls) => { const L = lookOf(school); return el('span', { class: 'sigil' + (cls ? ' ' + cls : ''), 'aria-hidden': 'true',
+    html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${L.f ? `<path d="${L.f}" fill="currentColor" stroke="none" opacity=".85"/>` : ''}<path d="${L.p}"/></svg>` }); };
+  // the school a subclass's spells come from, so its page takes that school's colours
+  const schoolOfSub = i => { const sp = (i.spellsTag && spellsFor(i.spellsTag)[0]) || (i.group && i.group.spellsTag && spellsFor(i.group.spellsTag)[0]); return sp ? sp.school : null; };
+
   function cardSub(i) {
     switch (i.type) {
       case 'race': return i.prime ? `Prime variant of ${i.base}` : [i.meta.hp && `HP ${i.meta.hp}`, i.meta.imp && `I.M.P. ${i.meta.imp}`].filter(Boolean).join(' · ');
@@ -579,11 +610,14 @@
         el('span', { class: 'card-name' }, i.name === i.chapter ? 'Overview' : i.name),
         i.heads.length && i.type !== 'patch' ? el('span', { class: 'card-sub' }, `${i.heads.length} ${i.heads.length === 1 ? 'entry' : 'entries'}`) : null);
     }
+    const sp = i.type === 'spell';
     return el('button', {
-      class: 'card' + (state.sel === i.id ? ' sel' : '') + (i.upcoming ? ' dim' : ''),
+      class: 'card' + (state.sel === i.id ? ' sel' : '') + (i.upcoming ? ' dim' : '') + (sp ? ' sch sp-card' : ''),
+      style: sp ? schoolStyle(i.school) : null,
       'data-id': i.id, onclick: () => openItem(i.id),
     },
       el('div', { class: 'card-top' },
+        sp ? sigil(i.school, 'sm') : null,
         showType ? el('span', { class: `badge ${i.type}` }, TYPE_ONE[i.type]) : null,
         el('span', { class: 'card-name', html: highlight(i.name, tokens) }),
         i.type === 'spell' && i.dice ? el('span', { class: 'dice' }, i.dice) : null,
@@ -740,6 +774,8 @@
   }
   function renderResultsInner() {
     const box = $('#results');
+    // a school's spell list wears that school's colour (its tier headings)
+    { const sc = state.tab === 'spell' && state.school ? state.school : null; box.classList.toggle('sch', !!sc); if (sc) { const L = lookOf(sc); box.style.setProperty('--sc-l', L.l); box.style.setProperty('--sc-d', L.d); } else { box.style.removeProperty('--sc-l'); box.style.removeProperty('--sc-d'); } }
     const meta = $('#result-meta');
     if (state.tab === 'settings') { renderSettings(box, meta); return; }
     if (state.tab === 'chars') {
@@ -791,9 +827,10 @@
     }
     if (state.tab === 'spell' && !state.q && !state.school && !state.tier && !state.source) {
       meta.textContent = 'Choose a school of magic, or use the filters above.';
-      box.replaceChildren(el('div', { class: 'home-grid schools' }, ...DB.schools.map(sc => el('button', { class: 'home-tile spell', onclick: () => go({ school: sc }, true) },
-        el('span', { class: 'big' }, String(DB.items.filter(x => x.type === 'spell' && x.school === sc).length), el('small', {}, ' spells')),
-        el('span', { class: 'lbl' }, sc)))));
+      box.replaceChildren(el('div', { class: 'home-grid schools' }, ...DB.schools.map(sc => el('button', { class: 'home-tile spell sch sch-tile', style: schoolStyle(sc), onclick: () => go({ school: sc }, true) },
+        sigil(sc, 'seal'),
+        el('span', { class: 'lbl' }, sc.replace(/ Magic\b/, '')),
+        el('span', { class: 'cnt' }, `${DB.items.filter(x => x.type === 'spell' && x.school === sc).length} spells`)))));
       return;
     }
     const { items: found, ranked, tokens } = filtered();
@@ -864,8 +901,8 @@
     for (const s of spells) { if (!byTier.has(s.tier)) byTier.set(s.tier, []); byTier.get(s.tier).push(s); }
     return [...byTier.keys()].sort((a, b) => a - b).map(t => el('div', { class: 'spell-tier' },
       el('h3', {}, `Tier ${t}`),
-      ...byTier.get(t).map(s => el('div', { class: 'spell-row', role: 'button', tabindex: '0', onclick: () => openItem(s.id), onkeydown: e => { if (e.key === 'Enter') openItem(s.id); } },
-        el('div', { class: 'sr-top' }, el('span', { class: 'nm' }, s.name), s.dice ? el('span', { class: 'dice' }, s.dice) : null),
+      ...byTier.get(t).map(s => el('div', { class: 'spell-row sch', style: schoolStyle(s.school), role: 'button', tabindex: '0', onclick: () => openItem(s.id), onkeydown: e => { if (e.key === 'Enter') openItem(s.id); } },
+        el('div', { class: 'sr-top' }, sigil(s.school, 'xs'), el('span', { class: 'nm' }, s.name), s.dice ? el('span', { class: 'dice' }, s.dice) : null),
         el('div', { class: 'ds' }, s.desc)))));
   }
 
@@ -928,6 +965,9 @@
       return linkBtn(tag, () => showSpells({ source: tag }));
     });
     return [
+      el('div', { class: 'sp-seal' }, sigil(i.school, 'lg'),
+        el('div', { class: 'sp-seal-t' }, el('span', { class: 'sch-name' }, i.school),
+          el('span', { class: 'pips', title: `Tier ${i.tier} of 9`, 'aria-label': `Tier ${i.tier}` }, ...Array.from({ length: 9 }, (_, k) => el('span', { class: k < i.tier ? 'on' : '' }))))),
       el('div', { class: 'stats' }, stat('Tier', String(i.tier)), stat('School', i.school), stat('Dice / effect', i.dice)),
       el('div', { class: 'prose' }, el('p', {}, i.desc)),
       section('Available to', i.sources.length
@@ -959,6 +999,9 @@
     const pane = $('#detail');
     const layout = $('.layout');
     if (state.tab !== 'chars') document.body.classList.remove('cc-open');
+    // a spell, a school or a magic subclass tints the reading page in its school's colours
+    const tint = school => { pane.classList.toggle('sch', !!school); pane.classList.toggle('sch-pane', !!school); if (school) { const L = lookOf(school); pane.style.setProperty('--sc-l', L.l); pane.style.setProperty('--sc-d', L.d); } else { pane.style.removeProperty('--sc-l'); pane.style.removeProperty('--sc-d'); } };
+    { const it = state.sel && DB.byId.get(state.sel); tint(it && it.type === 'spell' ? it.school : it && it.type === 'subclass' ? schoolOfSub(it) : !it && state.tab === 'spell' && state.school ? state.school : null); }
     if (!DM_TABS.includes(state.tab)) document.body.classList.remove('bs-wide', 'bs-card-open');
     if (state.tab !== 'craft') document.body.classList.remove('cf-wide');
     if (state.tab !== 'all' || state.q) document.body.classList.remove('hm-wide');
@@ -1094,7 +1137,7 @@
       const label = t => t === '__general' ? `Anyone with ${state.school}` : t;
       return [
         el('div', { class: 'd-kicker' }, el('span', { class: 'badge spell' }, 'School'), `${all.length} spells`),
-        el('h1', { class: 'd-title' }, state.school),
+        el('div', { class: 'sp-seal' }, sigil(state.school, 'lg'), el('h1', { class: 'd-title' }, state.school)),
         el('div', { class: 'stats' }, ...[...tiers.keys()].sort((a, b) => a - b).map(t => el('button', {
           class: 'stat ov-stat' + (state.tier === t ? ' on' : ''), title: `Show only tier ${t}`, onclick: () => go({ tier: state.tier === t ? 0 : t }, false),
         }, el('span', { class: 'k' }, `Tier ${t}`), el('span', { class: 'v' }, String(tiers.get(t)))))),

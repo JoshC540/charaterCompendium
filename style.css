@@ -2904,3 +2904,67 @@ body.hm-wide .layout.no-detail { max-width: 1180px; }
 .subtab-grp:first-child { margin-left: 0; }
 .bs-vols { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }
 .bs-vols .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+/* ---------- schools of magic: each has its colour (--sc) and sigil ---------- */
+.sch { --sc: var(--sc-l, var(--spell)); --sc-glow: color-mix(in srgb, var(--sc) 22%, transparent); --sc-wash: color-mix(in srgb, var(--sc) 8%, transparent); }
+:root[data-resolved="dark"] .sch { --sc: var(--sc-d, var(--spell)); --sc-glow: color-mix(in srgb, var(--sc) 30%, transparent); --sc-wash: color-mix(in srgb, var(--sc) 10%, transparent); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-resolved]) .sch { --sc: var(--sc-d, var(--spell)); --sc-glow: color-mix(in srgb, var(--sc) 30%, transparent); --sc-wash: color-mix(in srgb, var(--sc) 10%, transparent); }
+}
+.sigil { display: inline-grid; place-items: center; flex: none; color: var(--sc); }
+.sigil svg { width: 100%; height: 100%; display: block; }
+.sigil.xs { width: 15px; height: 15px; align-self: center; }
+.sigil.sm { width: 18px; height: 18px; align-self: center; filter: drop-shadow(0 0 3px var(--sc-glow)); }
+.sigil.lg, .sigil.seal { width: 58px; height: 58px; padding: 11px; box-sizing: border-box; border-radius: 50%;
+  background: radial-gradient(circle at 50% 40%, var(--sc-wash), transparent 70%), var(--surface);
+  border: 1px solid color-mix(in srgb, var(--sc) 55%, var(--gold)); box-shadow: 0 0 0 3px var(--surface), 0 0 0 4px var(--sc-glow), 0 0 22px var(--sc-glow); }
+
+/* spell cards: the spine, sigil and subtitle in the school's colour */
+.card.sch { --c: var(--sc); }
+.card.sp-card::before { opacity: .9; width: 4px; }
+.card.sp-card .card-sub { color: color-mix(in srgb, var(--sc) 70%, var(--ink-3)); }
+.card.sp-card:hover { border-color: color-mix(in srgb, var(--sc) 55%, var(--line)); box-shadow: var(--shadow), 0 0 0 3px var(--sc-glow); }
+.card.sp-card.sel { box-shadow: var(--shadow), 0 0 0 2px var(--sc), 0 0 18px var(--sc-glow); }
+
+/* the school picker: a sigil seal on each tile, glowing on hover */
+.home-grid.schools { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+.sch-tile { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 22px 14px 18px;
+  background-image: radial-gradient(ellipse 80% 60% at 50% 18%, var(--sc-wash), transparent 75%), var(--corner-tr), var(--paper);
+  background-position: 0 0, calc(100% - 6px) 6px, 0 0; background-size: 100% 100%, 34px 34px, auto; background-repeat: no-repeat, no-repeat, repeat; }
+.sch-tile .lbl { color: var(--sc); font-size: 14px; line-height: 1.3; }
+.sch-tile .cnt { font-style: italic; color: var(--ink-3); font-size: 15px; }
+.sch-tile .sigil.seal { transition: box-shadow .25s, transform .4s; }
+.sch-tile:hover { box-shadow: 0 10px 26px rgba(60, 35, 15, .18), inset 0 0 0 4px var(--surface), inset 0 0 0 5px var(--sc); }
+.sch-tile:hover .sigil.seal { transform: rotate(-8deg) scale(1.06); box-shadow: 0 0 0 3px var(--surface), 0 0 0 4px var(--sc), 0 0 30px var(--sc-glow); }
+
+/* spell lists on class and subclass pages */
+.spell-row.sch { border-left-color: color-mix(in srgb, var(--sc) 60%, transparent); }
+.spell-row.sch:hover { background: var(--sc-wash); border-left-color: var(--sc); }
+.spell-row .sr-top .sigil.xs { margin-right: -2px; }
+
+/* the reading page of a spell, a school or a magic subclass: a wash of its colour at the top */
+.detail-pane.sch-pane {
+  background-image:
+    radial-gradient(ellipse 90% 220px at 50% 0, var(--sc-wash), transparent 100%),
+    var(--corner-tl), var(--corner-tr), var(--corner-bl), var(--corner-br),
+    radial-gradient(ellipse at 50% 40%, transparent 60%, rgba(120, 80, 30, .10) 100%),
+    var(--paper);
+  background-position: 0 0, 6px 6px, calc(100% - 6px) 6px, 6px calc(100% - 6px), calc(100% - 6px) calc(100% - 6px), 0 0, 0 0;
+  background-size: 100% 100%, 44px 44px, 44px 44px, 44px 44px, 44px 44px, 100% 100%, auto;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, repeat;
+  box-shadow: var(--shadow), inset 0 0 0 5px var(--surface), inset 0 0 0 6px color-mix(in srgb, var(--sc) 40%, var(--gold-soft));
+}
+.sch-pane .d-title { color: color-mix(in srgb, var(--sc) 45%, var(--ink)); }
+.sch-pane .d-section > h2, .sch-pane .spell-tier h3 { color: var(--sc); }
+.sch-pane .badge.spell { --c: var(--sc); }
+.sp-seal { display: flex; align-items: center; gap: 16px; margin: 4px 0 16px; }
+.sp-seal .d-title { margin: 0; }
+.sp-seal-t { display: flex; flex-direction: column; gap: 6px; }
+.sp-seal .sch-name { font: 700 14px var(--head); letter-spacing: .12em; text-transform: uppercase; color: var(--sc); }
+.pips { display: inline-flex; gap: 5px; }
+.pips span { width: 9px; height: 9px; transform: rotate(45deg); border: 1px solid color-mix(in srgb, var(--sc) 60%, var(--line)); }
+.pips span.on { background: var(--sc); border-color: var(--sc); box-shadow: 0 0 6px var(--sc-glow); }
+@media (prefers-reduced-motion: reduce) { .sch-tile .sigil.seal { transition: none; } .sch-tile:hover .sigil.seal { transform: none; } }
+.results.sch .section-head { color: var(--sc); }
+.results.sch .section-head::before { background: var(--sc); }
+.sigil.xs { width: 16px; height: 16px; }
